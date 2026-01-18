@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortune Trader | Professional Trading Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Hub Screen - Introduction Layer -->
+    <div class="hub-screen" id="hubScreen">
+        <div class="hub-background">
+            <div class="hub-title">
+                <div class="hub-logo-icon">F</div>
+                <h1 class="hub-name">Fortune Trader</h1>
+                <p class="hub-tagline">Your destiny awaits in the markets</p>
+            </div>
+        </div>
+        
+        <!-- Smartphone Interface -->
+        <div class="smartphone" id="smartphone">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+                <div class="phone-status-bar">
+                    <span class="phone-time" id="phoneTime">12:00</span>
+                    <div class="phone-status-icons">
+                        <span class="phone-signal">////</span>
+                        <span class="phone-battery">100%</span>
+                    </div>
+                </div>
+                
+                <!-- Login Card Interface -->
+                <div class="login-card-container" id="loginCardContainer">
+                    <div class="login-title">Fortune Banking</div>
+                    <div class="login-subtitle">Enter your credentials to continue</div>
+                    
+                    <div class="card-wrapper" id="cardWrapper">
+                        <!-- Card Front -->
+                        <div class="credit-card card-front">
+                            <div class="card-chip"></div>
+                            <div class="card-logo">FORTUNE</div>
+                            <div class="card-number">FT7X 2K9M P4QR 8N5W</div>
+                            <div class="card-details">
+                                <div class="card-holder">
+                                    <label>CARD HOLDER</label>
+                                    <input type="text" id="cardHolderInput" class="card-input" placeholder="YOUR NAME" maxlength="20" autocomplete="off">
+                                </div>
+                                <div class="card-expiry">
+                                    <label>EXPIRES</label>
+                                    <span>07/32</span>
+                                </div>
+                            </div>
+                            <button class="card-next-btn" id="cardNextBtn" onclick="flipCardToBack()">Continue</button>
+                        </div>
+                        
+                        <!-- Card Back -->
+                        <div class="credit-card card-back">
+                            <div class="card-stripe"></div>
+                            <div class="card-signature-strip">
+                                <div class="signature-label">AUTHORIZED SIGNATURE</div>
+                                <div class="signature-display" id="signatureDisplay">-</div>
+                            </div>
+                            <div class="card-cvv-section">
+                                <label>SECURITY CODE</label>
+                                <input type="password" id="cardCvvInput" class="cvv-input" placeholder="***" maxlength="20" autocomplete="off">
+                            </div>
+                            <div class="card-back-actions">
+                                <button class="card-back-btn" onclick="flipCardToFront()">Back</button>
+                                <button class="card-login-btn" id="cardLoginBtn" onclick="attemptLogin()">Login</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="login-hint">This is not real banking information</div>
+                </div>
+                
+                <div class="phone-apps">
+                    <div class="phone-app" id="traderAppIcon" onclick="launchApp('trader')">
+                        <div class="app-icon trader-icon">
+                            <span>F</span>
+                        </div>
+                        <span class="app-name">Fortune Trader</span>
+                        <div class="app-lock-badge" id="traderLockBadge">🔒</div>
+                    </div>
+                    <div class="phone-app" onclick="launchApp('banker')">
+                        <div class="app-icon banker-icon">
+                            <span>$</span>
+                        </div>
+                        <span class="app-name">Fortune Banker</span>
+                    </div>
+                    <div class="phone-app" onclick="launchApp('shop')">
+                        <div class="app-icon shop-icon">
+                            <span>🛍️</span>
+                        </div>
+                        <span class="app-name">Shop</span>
+                    </div>
+                    <div class="phone-app" onclick="launchApp('expenses')">
+                        <div class="app-icon expenses-icon">
+                            <span>📋</span>
+                        </div>
+                        <span class="app-name">Expenses</span>
+                    </div>
+                    <div class="phone-app" onclick="launchApp('settings')">
+                        <div class="app-icon settings-icon">
+                            <span>⚙️</span>
+                        </div>
+                        <span class="app-name">Settings</span>
+                    </div>
+                </div>
+                <div class="phone-dock">
+                    <div class="dock-indicator" onclick="togglePhone()"></div>
+                </div>
+                
+                <!-- Banker App Interface -->
+                <div class="banker-app-overlay" id="bankerAppOverlay">
+                    <div class="banker-header">
+                        <button class="banker-back-btn" onclick="closeBankerApp()">←</button>
+                        <span class="banker-title">Fortune Banker</span>
+                        <span class="banker-user" id="bankerUserName"></span>
+                    </div>
+                    
+                    <div class="banker-content">
+                        <div class="bank-balance-card">
+                            <div class="bank-balance-label">Bank Balance</div>
+                            <div class="bank-balance-amount" id="bankBalanceDisplay">$1,000</div>
+                        </div>
+                        
+                        <div class="bank-stats">
+                            <div class="bank-stat">
+                                <span class="bank-stat-label">Lifetime Earnings</span>
+                                <span class="bank-stat-value" id="lifetimeEarnings">$0</span>
+                            </div>
+                            <div class="bank-stat">
+                                <span class="bank-stat-label">Trading Rounds</span>
+                                <span class="bank-stat-value" id="tradingRounds">0</span>
+                            </div>
+                        </div>
+                        
+                        <div class="deposit-section">
+                            <div class="deposit-label">Deposit to Trading</div>
+                            <div class="deposit-presets">
+                                <button class="deposit-preset" onclick="setDepositAmount(100)">$100</button>
+                                <button class="deposit-preset" onclick="setDepositAmount(250)">$250</button>
+                                <button class="deposit-preset" onclick="setDepositAmount(500)">$500</button>
+                                <button class="deposit-preset" onclick="depositAll()">All</button>
+                            </div>
+                            <div class="deposit-custom">
+                                <input type="number" id="depositAmountInput" class="deposit-input" placeholder="Amount" min="100">
+                                <button class="deposit-btn" onclick="executeDeposit()">Deposit</button>
+                            </div>
+                            <div class="deposit-hint">Min deposit: $100</div>
+                        </div>
+                        
+                        <div class="trading-account-info" id="tradingAccountInfo">
+                            <div class="trading-account-label">Trading Account</div>
+                            <div class="trading-account-balance" id="tradingAccountBalance">$0</div>
+                            <div class="trading-account-hint">5% fee on cash out</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Locked Trader Overlay -->
+                <div class="trader-locked-overlay" id="traderLockedOverlay">
+                    <div class="locked-icon">🔒</div>
+                    <div class="locked-text">No Trading Funds</div>
+                    <div class="locked-hint">Deposit money from Fortune Banker first</div>
+                    <button class="locked-btn" onclick="switchToBanker()">Open Banker</button>
+                </div>
+                
+                <!-- Expenses App Interface -->
+                <div class="expenses-app-overlay" id="expensesAppOverlay">
+                    <div class="expenses-header">
+                        <button class="expenses-back-btn" onclick="closeExpensesApp()">←</button>
+                        <span class="expenses-title">Expenses</span>
+                    </div>
+                    
+                    <div class="expenses-content">
+                        <div class="expenses-summary">
+                            <div class="expenses-total-card">
+                                <div class="expenses-total-label">Daily Expenses</div>
+                                <div class="expenses-total-amount" id="expensesTotalAmount">$0</div>
+                                <div class="expenses-total-hint">Charged once per real day</div>
+                            </div>
+                            <div class="expenses-countdown">
+                                <span class="countdown-label">Next charge at midnight</span>
+                                <span class="countdown-value" id="expensesCountdown">--</span>
+                            </div>
+                        </div>
+                        
+                        <div class="expenses-list" id="expensesList">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        
+                        <div class="expenses-warning" id="expensesWarning">
+                            <span class="warning-icon">💡</span>
+                            <span class="warning-text">Adjust your lifestyle spending using +/- buttons. Minimum values shown. Charged daily at midnight!</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Shop App Interface -->
+                <div class="shop-app-overlay" id="shopAppOverlay">
+                    <div class="shop-header">
+                        <button class="shop-back-btn" onclick="closeShopApp()">←</button>
+                        <span class="shop-title">Luxury Shop</span>
+                        <div class="shop-balance">$<span id="shopBalanceAmount">0</span></div>
+                    </div>
+                    
+                    <div class="shop-content">
+                        <!-- Category Tabs -->
+                        <div class="shop-tabs">
+                            <button class="shop-tab active" data-category="estate" onclick="filterShopCategory('estate')">🏠 Estate</button>
+                            <button class="shop-tab" data-category="car" onclick="filterShopCategory('car')">🚗 Cars</button>
+                            <button class="shop-tab" data-category="luxury" onclick="filterShopCategory('luxury')">💎 Luxury</button>
+                        </div>
+                        
+                        <!-- Owned Items -->
+                        <div class="shop-owned-section" id="shopOwnedSection">
+                            <div class="shop-owned-title">Your Assets</div>
+                            <div class="shop-owned-list" id="shopOwnedList">
+                                <!-- Populated by JavaScript -->
+                            </div>
+                        </div>
+                        
+                        <!-- Shop Items -->
+                        <div class="shop-items" id="shopItemsList">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                        
+                        <div class="shop-hint">
+                            💡 Estate and cars eliminate daily expenses. Luxury items are just for show!
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings App Interface -->
+                <div class="settings-app-overlay" id="settingsAppOverlay">
+                    <div class="settings-header">
+                        <button class="settings-back-btn" onclick="closeSettingsApp()">←</button>
+                        <span class="settings-title">Settings</span>
+                    </div>
+                    
+                    <div class="settings-content">
+                        <div class="settings-section">
+                            <div class="settings-section-title">Account</div>
+                            <div class="settings-item">
+                                <div class="settings-item-icon">👤</div>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Logged in as</div>
+                                    <div class="settings-item-value" id="settingsUserName">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <div class="settings-section-title">Game Data</div>
+                            <div class="settings-item clickable" onclick="confirmResetGame()">
+                                <div class="settings-item-icon danger">🔄</div>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Reset Game</div>
+                                    <div class="settings-item-desc">Clear all data and start over</div>
+                                </div>
+                                <div class="settings-item-arrow">›</div>
+                            </div>
+                        </div>
+                        
+                        <div class="settings-section">
+                            <div class="settings-section-title">About</div>
+                            <div class="settings-item">
+                                <div class="settings-item-icon">ℹ️</div>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Fortune Trader</div>
+                                    <div class="settings-item-desc">Version 1.0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="phone-hint" id="phoneHint">Press ESC to toggle phone during gameplay</div>
+    </div>
+
+    <!-- Phone Toggle Button (visible during gameplay) -->
+    <button class="phone-toggle-btn" id="phoneToggleBtn" onclick="togglePhone()" title="Open Phone">
+        <span class="phone-toggle-icon">📱</span>
+    </button>
+
+    <div class="app-container" id="appContainer">
+        <nav class="nav-bar">
+            <div class="nav-left">
+                <div class="logo">
+                    <div class="logo-icon">F</div>
+                    <span>Fortune Trader</span>
+                </div>
+                <div class="nav-source-selector">
+                    <select class="nav-source-select" id="sourceSelect" onchange="changeDataSource(this.value)">
+                        <!-- Options will be populated dynamically from stockConfig -->
+                    </select>
+                    <span class="source-status live" id="sourceStatus">LIVE</span>
+                </div>
+            </div>
+            <div class="nav-stats">
+                <div class="purchased-upgrades" id="purchasedUpgradesDisplay">
+                    <!-- Purchased upgrade icons will be displayed here -->
+                </div>
+                <div class="streak-stat" id="streakStat">
+                    <div class="streak-info">
+                        <span class="streak-label">Streak</span>
+                        <span class="streak-value">
+                            <span class="streak-icon">🔥</span>
+                            <span id="streakNumber">0</span>
+                        </span>
+                    </div>
+                    <div class="streak-divider"></div>
+                    <div class="bet-info">
+                        <span class="bet-label">Bet</span>
+                        <span class="bet-value" id="currentBetAmount">$100</span>
+                        <span class="bet-next" id="betNext">Next: <span>$200</span></span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Cash</span>
+                    <span class="stat-value balance" id="balance">$500.00</span>
+                </div>
+                <button class="nav-btn portfolio-btn" id="portfolioBtn" onclick="togglePortfolioOverlay()">
+                    <span class="nav-btn-icon">📊</span>
+                    <span class="nav-btn-label">Portfolio</span>
+                </button>
+                <button class="nav-btn prestige-btn" id="prestigeBtn" onclick="confirmPrestige()">
+                    <span class="nav-btn-icon">🏦</span>
+                    <span class="nav-btn-label">Cash Out</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <section class="panel chart-panel">
+                <div class="chart-header">
+                    <div class="asset-info">
+                        <span class="asset-name" id="assetName">APLS</span>
+                        <span class="asset-tag" id="assetTag">Apples Corp.</span>
+                    </div>
+                    <div class="stock-holding-compact" id="stockHoldingCompact"></div>
+                    <div class="time-frame-selector" id="timeFrameSelector">
+                        <button class="time-frame-btn active" data-frame="LIVE" onclick="changeTimeFrame('LIVE')">Live</button>
+                        <button class="time-frame-btn" data-frame="1H" onclick="changeTimeFrame('1H')">1H</button>
+                        <button class="time-frame-btn" data-frame="1D" onclick="changeTimeFrame('1D')">1D</button>
+                        <button class="time-frame-btn" data-frame="1W" onclick="changeTimeFrame('1W')">1W</button>
+                        <button class="time-frame-btn" data-frame="1M" onclick="changeTimeFrame('1M')">1M</button>
+                        <button class="time-frame-btn" data-frame="1Y" onclick="changeTimeFrame('1Y')">1Y</button>
+                    </div>
+                    <div class="price-info">
+                        <div class="current-price" id="currentPrice">$100.00</div>
+                        <div class="price-change up" id="priceChange">+0.00%</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart"></canvas>
+                    <div class="bet-markers-container" id="betMarkersContainer"></div>
+                    <div class="chart-loading-overlay" id="chartLoadingOverlay">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">Loading market data...</div>
+                    </div>
+                </div>
+
+                <div class="trade-section">
+                    <div class="trade-buttons">
+                        <button class="trade-btn long" onclick="openPosition('long')">Long</button>
+                        <button class="trade-btn short" onclick="openPosition('short')">Short</button>
+                    </div>
+                    <div class="stock-trade-buttons">
+                        <button class="trade-btn stock-buy" onclick="buyStock()">
+                            Buy Stock
+                            <div class="fee-text">$25 fixed fee</div>
+                        </button>
+                        <button class="trade-btn stock-sell" onclick="sellStock()">Sell All Stock</button>
+                    </div>
+                </div>
+
+                <div class="positions-row" id="activePositions"></div>
+            </section>
+
+            <section class="panel signals-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Fortune Oracle</span>
+                    <span class="panel-badge">Prophecy Market</span>
+                </div>
+
+                <div class="oracle-actions-row">
+                    <div class="signal-tier cookie-buy-compact" onclick="buyCookie()" id="cookieBuyBtn">
+                        <div class="tier-info">
+                            <div class="tier-icon oracle" id="cookieBuyIcon">🥠</div>
+                            <div class="tier-details">
+                                <span class="tier-name" id="cookieBuyName">Fortune Cookie</span>
+                                <span class="tier-accuracy" id="cookieBuyDesc">Basic prophecy</span>
+                            </div>
+                        </div>
+                        <span class="tier-price" id="cookieBuyPrice">$100</span>
+                    </div>
+                    <button class="shop-toggle-btn" id="shopToggleBtn" onclick="toggleShop()">
+                        <span class="shop-icon">🛒</span>
+                        <span class="shop-label">Shop</span>
+                    </button>
+                </div>
+
+                <div class="oracle-content-area">
+                    <div class="shop-panel" id="shopPanel">
+                        <!-- Shop items are dynamically generated from SHOP_UPGRADES in config.js -->
+                        <div class="shop-items-container" id="shopItemsContainer">
+                            <!-- Items will be generated by renderShopItems() -->
+                        </div>
+                    </div>
+
+                    <div class="cookie-content" id="cookieContent">
+                        <div class="cookie-inventory-section">
+                            <div class="inventory-header">
+                                <span class="inventory-title">Cookie Stash</span>
+                                <span class="inventory-count" id="inventoryCount">0 cookies</span>
+                            </div>
+                            <div class="cookie-inventory" id="cookieInventory">
+                                <div class="inventory-empty">No cookies yet. Purchase some above!</div>
+                            </div>
+                        </div>
+
+                        <div class="signal-reveal" id="signalReveal" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
+                            <div class="empty-state" id="emptyState">
+                                <div class="empty-state-icon">⚡</div>
+                                <div class="empty-state-text">Drag a cookie here to unpack its prophecy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel deals-panel">
+                <div class="panel-header">
+                    <span class="panel-title">Active Prophecies</span>
+                    <span class="panel-badge" id="dealCount">0 Active</span>
+                </div>
+                <div class="deals-scroll" id="dealsContainer">
+                    <div class="empty-deals">No active prophecies. Purchase a fortune cookie to receive trading insights.</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <!-- Portfolio Overlay -->
+    <div class="overlay-backdrop" id="portfolioBackdrop" onclick="togglePortfolioOverlay()"></div>
+    <div class="portfolio-overlay" id="portfolioOverlay">
+        <div class="overlay-header">
+            <h2 class="overlay-title">📊 Portfolio</h2>
+            <button class="overlay-close" onclick="togglePortfolioOverlay()">&times;</button>
+        </div>
+        <div class="overlay-content">
+            <div class="portfolio-summary" id="portfolioSummary">
+                <!-- Summary will be populated by JS -->
+            </div>
+            <div class="portfolio-holdings" id="portfolioHoldings">
+                <!-- Holdings will be populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div class="overlay-backdrop" id="resetBackdrop" onclick="cancelResetGame()"></div>
+    <div class="confirm-modal" id="resetModal">
+        <div class="confirm-icon">⚠️</div>
+        <h3 class="confirm-title">Reset Game?</h3>
+        <p class="confirm-text">This will reset your bank balance to $1,000 and clear all trading data. This action cannot be undone.</p>
+        <div class="confirm-actions">
+            <button class="confirm-btn cancel" onclick="cancelResetGame()">Cancel</button>
+            <button class="confirm-btn danger" onclick="executeResetGame()">Reset Game</button>
+        </div>
+    </div>
+
+    <!-- Prestige Confirmation Modal -->
+    <div class="overlay-backdrop" id="prestigeBackdrop" onclick="cancelPrestige()"></div>
+    <div class="confirm-modal prestige-modal" id="prestigeModal">
+        <div class="confirm-icon">🏦</div>
+        <h3 class="confirm-title">Cash Out?</h3>
+        <p class="confirm-text">Transfer your portfolio to your bank account and start a new trading round.</p>
+        <div class="prestige-summary">
+            <div class="prestige-row">
+                <span>Portfolio Value</span>
+                <span class="prestige-value" id="prestigePortfolioValue">$0</span>
+            </div>
+            <div class="prestige-row fee">
+                <span>Cash Out Fee (5%)</span>
+                <span class="prestige-value" id="prestigeFee">-$0</span>
+            </div>
+            <div class="prestige-row profit-row" id="prestigeProfitRow">
+                <span>Net Profit/Loss</span>
+                <span class="prestige-value" id="prestigeNetProfit">$0</span>
+            </div>
+            <div class="prestige-row total">
+                <span>You Receive</span>
+                <span class="prestige-value" id="prestigeReceive">$0</span>
+            </div>
+        </div>
+        <div class="confirm-actions">
+            <button class="confirm-btn cancel" onclick="cancelPrestige()">Cancel</button>
+            <button class="confirm-btn success" onclick="executePrestige()">Cash Out</button>
+        </div>
+    </div>
+
+    <!-- JavaScript files - order matters! -->
+    <script src="js/config.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/trading.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
