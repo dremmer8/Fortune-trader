@@ -289,8 +289,8 @@ function updateComboCounter() {
 // ===========================================
 const SAVE_KEY = 'fortuneTrader_save';
 
-// Save game state to localStorage
-function saveGameState() {
+// Save game state - Hybrid: localStorage (primary) + Firebase (backup/sync)
+async function saveGameState() {
     const saveData = {
         version: 6,
         timestamp: Date.now(),
@@ -311,26 +311,59 @@ function saveGameState() {
         cookieInventory: state.cookieInventory || []
     };
     
+    // PRIMARY: Save to localStorage (fast, works offline)
     try {
         localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-        console.log('Game saved:', saveData);
+        console.log('Game saved to localStorage');
     } catch (e) {
-        console.error('Failed to save game:', e);
+        console.error('Failed to save to localStorage:', e);
+    }
+    
+    // BACKUP/SYNC: Save to Firebase (for cross-device access)
+    // Only sync if logged in and Firebase is available
+    if (isLoggedIn && playerName && typeof FirebaseService !== 'undefined') {
+        // Fire and forget - don't block on Firebase save
+        FirebaseService.saveUserData(playerName, saveData).catch(err => {
+            console.warn('Firebase sync failed (localStorage saved):', err);
+        });
     }
 }
 
-// Load game state from localStorage
-function loadGameState() {
-    try {
-        const savedData = localStorage.getItem(SAVE_KEY);
-        if (!savedData) {
-            console.log('No save data found, starting fresh');
-            return false;
+// Load game state - Hybrid: Check Firebase first (cross-device), then localStorage
+async function loadGameState() {
+    let saveData = null;
+    let source = 'none';
+    
+    // STEP 1: If logged in, check Firebase first (for cross-device access)
+    if (isLoggedIn && playerName && typeof FirebaseService !== 'undefined') {
+        try {
+            const result = await FirebaseService.loadUserData(playerName);
+            if (result.success && result.data) {
+                saveData = result.data;
+                source = 'firebase';
+                console.log('Loaded game data from Firebase (cloud sync)');
+            }
+        } catch (error) {
+            console.warn('Firebase load failed, trying localStorage:', error);
         }
-        
-        const saveData = JSON.parse(savedData);
-        console.log('Loading save data:', saveData);
-        
+    }
+    
+    // STEP 2: If no cloud data, try localStorage (local device)
+    if (!saveData) {
+        try {
+            const savedData = localStorage.getItem(SAVE_KEY);
+            if (savedData) {
+                saveData = JSON.parse(savedData);
+                source = 'localStorage';
+                console.log('Loaded game data from localStorage');
+            }
+        } catch (e) {
+            console.error('Failed to load from localStorage:', e);
+        }
+    }
+    
+    // STEP 3: Restore state if we found data
+    if (saveData) {
         // Restore banking state
         state.bankBalance = saveData.bankBalance !== undefined ? saveData.bankBalance : STARTING_BANK_BALANCE;
         state.totalEarnings = saveData.totalEarnings || 0;
@@ -349,11 +382,22 @@ function loadGameState() {
         state.purchasedUpgrades = saveData.purchasedUpgrades || [];
         state.cookieInventory = saveData.cookieInventory || [];
         
+        // If we loaded from Firebase, also update localStorage (merge)
+        if (source === 'firebase') {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+                console.log('Synced cloud data to localStorage');
+            } catch (e) {
+                console.warn('Failed to sync to localStorage:', e);
+            }
+        }
+        
         return true;
-    } catch (e) {
-        console.error('Failed to load game:', e);
-        return false;
     }
+    
+    // No save data found - start fresh
+    console.log('No save data found, starting fresh');
+    return false;
 }
 
 // Clear save data (for reset)
@@ -469,5 +513,8 @@ function hasTradingFunds() {
 
 // Auto-save on important state changes
 function autoSave() {
-    saveGameState();
+    // Call async function but don't await (fire and forget)
+    saveGameState().catch(err => {
+        console.warn('Auto-save failed:', err);
+    });
 }

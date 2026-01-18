@@ -96,7 +96,7 @@ function flipCardToFront() {
 }
 
 // Attempt to login
-function attemptLogin() {
+async function attemptLogin() {
     const cvvInput = document.getElementById('cardCvvInput');
     
     if (!cvvInput || cvvInput.value.trim().length < 3) {
@@ -113,6 +113,14 @@ function attemptLogin() {
     
     // Save credentials to localStorage
     saveCredentials();
+    
+    // Update login time in Firebase (for statistics)
+    if (typeof FirebaseService !== 'undefined') {
+        await FirebaseService.updateLoginTime(playerName);
+    }
+    
+    // Load game state (will check Firebase first, then localStorage)
+    await loadGameState();
     
     // Hide login card
     const loginContainer = document.getElementById('loginCardContainer');
@@ -989,10 +997,7 @@ function executePrestige() {
 }
 
 // Initialize hub screen
-function initHub() {
-    // Load saved game state for banking info
-    loadGameState();
-    
+async function initHub() {
     // Start phone time update
     updatePhoneTime();
     setInterval(updatePhoneTime, 1000);
@@ -1013,6 +1018,14 @@ function initHub() {
         playerName = savedCredentials.playerName;
         playerPassword = savedCredentials.playerPassword;
         isLoggedIn = true;
+        
+        // Update login time in Firebase
+        if (typeof FirebaseService !== 'undefined') {
+            await FirebaseService.updateLoginTime(playerName);
+        }
+        
+        // Load game state (checks Firebase first, then localStorage)
+        await loadGameState();
         
         // Hide login card
         const loginContainer = document.getElementById('loginCardContainer');
