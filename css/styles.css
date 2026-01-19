@@ -1599,33 +1599,35 @@
     font-weight: 600;
 }
 
-.shop-items {
+.shop-app-overlay .shop-items {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.shop-item {
+.shop-app-overlay .shop-item {
     background: var(--bg-secondary);
     border-radius: 12px;
     padding: 14px;
-    display: flex;
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 6px 12px;
     align-items: center;
-    gap: 12px;
     border: 2px solid transparent;
     transition: all 0.2s;
 }
 
-.shop-item.owned {
+.shop-app-overlay .shop-item.owned {
     opacity: 0.5;
     border-color: var(--success);
 }
 
-.shop-item.locked {
+.shop-app-overlay .shop-item.locked {
     opacity: 0.4;
 }
 
-.shop-item-icon {
+.shop-app-overlay .shop-item-icon {
     font-size: 32px;
     width: 48px;
     height: 48px;
@@ -1634,45 +1636,50 @@
     justify-content: center;
     background: var(--bg-tertiary);
     border-radius: 12px;
+    grid-row: 1 / span 2;
 }
 
-.shop-item-info {
+.shop-app-overlay .shop-item-info {
     flex: 1;
+    grid-column: 2;
+    grid-row: 1 / span 2;
 }
 
-.shop-item-name {
+.shop-app-overlay .shop-item-name {
     font-size: 14px;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 3px;
 }
 
-.shop-item-desc {
+.shop-app-overlay .shop-item-desc {
     font-size: 11px;
     color: var(--text-muted);
     line-height: 1.4;
 }
 
-.shop-item-price {
+.shop-app-overlay .shop-item-price {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 4px;
+    grid-column: 3;
+    grid-row: 1;
 }
 
-.shop-item-price-value {
+.shop-app-overlay .shop-item-price-value {
     font-family: 'JetBrains Mono', monospace;
     font-size: 15px;
     font-weight: 600;
     color: var(--primary);
 }
 
-.shop-item-req {
+.shop-app-overlay .shop-item-req {
     font-size: 10px;
     color: var(--text-muted);
 }
 
-.shop-buy-btn {
+.shop-app-overlay .shop-buy-btn {
     background: var(--primary);
     border: none;
     color: white;
@@ -1683,21 +1690,24 @@
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
+    grid-column: 3;
+    grid-row: 2;
+    justify-self: end;
 }
 
-.shop-buy-btn:hover {
+.shop-app-overlay .shop-buy-btn:hover {
     background: #3b82f6;
     transform: scale(1.05);
 }
 
-.shop-buy-btn:disabled {
+.shop-app-overlay .shop-buy-btn:disabled {
     background: var(--bg-tertiary);
     color: var(--text-muted);
     cursor: not-allowed;
     transform: none;
 }
 
-.shop-hint {
+.shop-app-overlay .shop-hint {
     background: rgba(59, 130, 246, 0.1);
     border: 1px solid rgba(59, 130, 246, 0.2);
     border-radius: 10px;
