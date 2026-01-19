@@ -10,12 +10,14 @@ const state = {
     // Banking (meta-game layer)
     bankBalance: STARTING_BANK_BALANCE,
     totalEarnings: 0, // Track lifetime earnings for prestige stats
+    lifetimeSpendings: 0, // Track lifetime spendings (expenses, luxury, loan interest)
     tradingRounds: 0, // Track number of completed trading rounds
     initialDeposit: 0, // Track initial deposit for current trading round
     lastExpenseDate: null, // Last date expenses were charged (YYYY-MM-DD format)
     ownedItems: [], // Items purchased from shop { id, name, category, icon, price }
     customExpenseAmounts: {}, // Custom expense amounts { expenseId: amount }
     activeLoan: null, // Active loan details
+    spendingHistory: [], // Spend entries { type, label, amount, timestamp }
     
     // Trading balance (in-game)
     balance: 0, // Start with 0 until deposit
@@ -293,17 +295,19 @@ const SAVE_KEY = 'fortuneTrader_save';
 // Save game state - Hybrid: localStorage (primary) + Firebase (backup/sync)
 async function saveGameState() {
     const saveData = {
-        version: 7,
+        version: 8,
         timestamp: Date.now(),
         // Banking data
         bankBalance: state.bankBalance,
         totalEarnings: state.totalEarnings,
+        lifetimeSpendings: state.lifetimeSpendings,
         tradingRounds: state.tradingRounds,
         initialDeposit: state.initialDeposit,
         lastExpenseDate: state.lastExpenseDate,
         ownedItems: state.ownedItems || [],
         customExpenseAmounts: state.customExpenseAmounts || {},
         activeLoan: state.activeLoan || null,
+        spendingHistory: state.spendingHistory || [],
         // Trading data
         balance: state.balance,
         stockHoldings: state.stockHoldings,
@@ -369,12 +373,14 @@ async function loadGameState() {
         // Restore banking state
         state.bankBalance = saveData.bankBalance !== undefined ? saveData.bankBalance : STARTING_BANK_BALANCE;
         state.totalEarnings = saveData.totalEarnings || 0;
+        state.lifetimeSpendings = saveData.lifetimeSpendings || 0;
         state.tradingRounds = saveData.tradingRounds || 0;
         state.initialDeposit = saveData.initialDeposit || 0;
         state.lastExpenseDate = saveData.lastExpenseDate || null;
         state.ownedItems = saveData.ownedItems || [];
         state.customExpenseAmounts = saveData.customExpenseAmounts || {};
         state.activeLoan = saveData.activeLoan || null;
+        state.spendingHistory = saveData.spendingHistory || [];
         
         // Restore trading state
         state.balance = saveData.balance !== undefined ? saveData.balance : 0;
@@ -418,12 +424,14 @@ function resetGameState() {
     // Reset banking
     state.bankBalance = STARTING_BANK_BALANCE;
     state.totalEarnings = 0;
+    state.lifetimeSpendings = 0;
     state.tradingRounds = 0;
     state.initialDeposit = 0;
     state.lastExpenseDate = null;
     state.ownedItems = [];
     state.customExpenseAmounts = {};
     state.activeLoan = null;
+    state.spendingHistory = [];
     
     // Reset trading
     state.balance = 0;

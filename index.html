@@ -141,10 +141,14 @@
                                 <span class="bank-stat-label">Lifetime Earnings</span>
                                 <span class="bank-stat-value" id="lifetimeEarnings">$0</span>
                             </div>
-                            <div class="bank-stat">
-                                <span class="bank-stat-label">Trading Rounds</span>
-                                <span class="bank-stat-value" id="tradingRounds">0</span>
-                            </div>
+                            <button class="bank-stat bank-stat-button" id="spendingToggleButton" type="button" onclick="toggleSpendingPanel()" aria-expanded="false" aria-controls="bankSpendingPanel">
+                                <span class="bank-stat-label">Lifetime Spendings</span>
+                                <span class="bank-stat-value" id="lifetimeSpendings">$0</span>
+                            </button>
+                        </div>
+                        <div class="bank-spending-panel" id="bankSpendingPanel">
+                            <div class="spending-panel-header">Spending History</div>
+                            <div class="spending-panel-list" id="spendingHistoryList"></div>
                         </div>
                         <div class="banker-mode-toggle">
                             <button class="banker-mode-btn active" data-mode="deposit" onclick="setBankerMode('deposit')">Deposit</button>
