@@ -579,6 +579,7 @@ function updateBankerDisplay() {
     }
 
     updateLoanDisplay();
+    updateEarningsHistoryPanel();
     updateSpendingHistoryPanel();
 }
 
@@ -595,6 +596,64 @@ function addSpendingEntry({ amount, type, label, timestamp = Date.now() }) {
         label,
         timestamp
     });
+}
+
+function addEarningsEntry({ roundNumber, amountAfterFee, fee, netProfit, initialDeposit, timestamp = Date.now() }) {
+    if (!state.earningsHistory) {
+        state.earningsHistory = [];
+    }
+
+    state.earningsHistory.push({
+        roundNumber,
+        amountAfterFee,
+        fee,
+        netProfit,
+        initialDeposit,
+        timestamp
+    });
+}
+
+function updateEarningsHistoryPanel() {
+    const listEl = document.getElementById('earningsHistoryList');
+    if (!listEl) return;
+
+    const history = (state.earningsHistory || []).slice().sort((a, b) => a.timestamp - b.timestamp);
+    if (history.length === 0) {
+        listEl.innerHTML = '<div class="earnings-entry-empty">No rounds cashed out yet.</div>';
+        return;
+    }
+
+    listEl.innerHTML = history.map(entry => {
+        const dateLabel = new Date(entry.timestamp).toLocaleString();
+        const netProfit = Math.round(entry.netProfit || 0);
+        const profitPrefix = netProfit >= 0 ? '+$' : '-$';
+        const amountLabel = `${profitPrefix}${Math.abs(netProfit).toLocaleString()}`;
+        const amountClass = netProfit >= 0 ? 'positive' : 'negative';
+        const detailParts = [];
+
+        if (typeof entry.initialDeposit === 'number') {
+            detailParts.push(`Deposit $${Math.round(entry.initialDeposit).toLocaleString()}`);
+        }
+        if (typeof entry.amountAfterFee === 'number') {
+            detailParts.push(`Cashout $${Math.round(entry.amountAfterFee).toLocaleString()}`);
+        }
+        if (typeof entry.fee === 'number') {
+            detailParts.push(`Fee $${Math.round(entry.fee).toLocaleString()}`);
+        }
+
+        const detailLine = detailParts.length ? `${detailParts.join(' • ')} • ${dateLabel}` : dateLabel;
+        const roundLabel = entry.roundNumber ? `Round ${entry.roundNumber}` : 'Trading Round';
+
+        return `
+            <div class="earnings-entry">
+                <div class="earnings-entry-details">
+                    <div class="earnings-entry-label">${roundLabel}</div>
+                    <div class="earnings-entry-date">${detailLine}</div>
+                </div>
+                <div class="earnings-entry-amount ${amountClass}">${amountLabel}</div>
+            </div>
+        `;
+    }).join('');
 }
 
 function updateSpendingHistoryPanel() {
@@ -619,6 +678,18 @@ function updateSpendingHistoryPanel() {
             </div>
         `;
     }).join('');
+}
+
+function toggleEarningsPanel() {
+    const panel = document.getElementById('bankEarningsPanel');
+    const button = document.getElementById('earningsToggleButton');
+    if (!panel) return;
+
+    const isVisible = panel.classList.toggle('visible');
+    if (button) {
+        button.classList.toggle('active', isVisible);
+        button.setAttribute('aria-expanded', isVisible);
+    }
 }
 
 function toggleSpendingPanel() {
@@ -1470,6 +1541,15 @@ function executePrestige() {
     if (result.success) {
         AudioManager.playClick();
         cancelPrestige();
+
+        addEarningsEntry({
+            roundNumber: result.roundNumber,
+            amountAfterFee: result.amount,
+            fee: result.fee,
+            netProfit: result.netProfit,
+            initialDeposit: result.initialDeposit
+        });
+        saveGameState();
         
         // Show success notification
         showNotification(result.message, 'success');

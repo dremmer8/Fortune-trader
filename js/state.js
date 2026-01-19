@@ -18,6 +18,7 @@ const state = {
     customExpenseAmounts: {}, // Custom expense amounts { expenseId: amount }
     activeLoan: null, // Active loan details
     spendingHistory: [], // Spend entries { type, label, amount, timestamp }
+    earningsHistory: [], // Trading round history entries
     
     // Trading balance (in-game)
     balance: 0, // Start with 0 until deposit
@@ -308,6 +309,7 @@ async function saveGameState() {
         customExpenseAmounts: state.customExpenseAmounts || {},
         activeLoan: state.activeLoan || null,
         spendingHistory: state.spendingHistory || [],
+        earningsHistory: state.earningsHistory || [],
         // Trading data
         balance: state.balance,
         stockHoldings: state.stockHoldings,
@@ -381,6 +383,7 @@ async function loadGameState() {
         state.customExpenseAmounts = saveData.customExpenseAmounts || {};
         state.activeLoan = saveData.activeLoan || null;
         state.spendingHistory = saveData.spendingHistory || [];
+        state.earningsHistory = saveData.earningsHistory || [];
         
         // Restore trading state
         state.balance = saveData.balance !== undefined ? saveData.balance : 0;
@@ -432,6 +435,7 @@ function resetGameState() {
     state.customExpenseAmounts = {};
     state.activeLoan = null;
     state.spendingHistory = [];
+    state.earningsHistory = [];
     
     // Reset trading
     state.balance = 0;
@@ -490,6 +494,7 @@ function prestigeToBank() {
     state.bankBalance += amountAfterFee;
     state.totalEarnings += Math.max(0, netProfit);
     state.tradingRounds++;
+    const roundNumber = state.tradingRounds;
     
     // Reset trading account
     state.balance = 0;
@@ -509,7 +514,8 @@ function prestigeToBank() {
         amount: amountAfterFee,
         fee: fee,
         netProfit: netProfit,
-        initialDeposit: initialDeposit
+        initialDeposit: initialDeposit,
+        roundNumber: roundNumber
     };
 }
 
