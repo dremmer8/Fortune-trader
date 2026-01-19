@@ -235,7 +235,7 @@ function updatePhoneTime() {
 // Launch an app from the phone
 function launchApp(appName) {
     // Must be logged in first (except for settings)
-    if (!isLoggedIn && appName !== 'settings' && appName !== 'expenses') {
+    if (!isLoggedIn && appName !== 'settings' && appName !== 'expenses' && appName !== 'leaderboard') {
         showLoginCard();
         return;
     }
@@ -280,6 +280,9 @@ function launchApp(appName) {
     } else if (appName === 'expenses') {
         AudioManager.playOpenApp();
         openExpensesApp();
+    } else if (appName === 'leaderboard') {
+        AudioManager.playOpenApp();
+        openLeaderboardApp();
     } else if (appName === 'settings') {
         AudioManager.playOpenApp();
         openSettingsApp();
@@ -321,11 +324,119 @@ function closeSettingsApp() {
     }
 }
 
+function escapeHtml(value) {
+    const div = document.createElement('div');
+    div.textContent = value ?? '';
+    return div.innerHTML;
+}
+
 // Update settings display
 function updateSettingsDisplay() {
     const userNameEl = document.getElementById('settingsUserName');
     if (userNameEl) {
         userNameEl.textContent = playerName || 'Not logged in';
+    }
+}
+
+// ===========================================
+// LEADERBOARD APP
+// ===========================================
+
+async function openLeaderboardApp() {
+    const overlay = document.getElementById('leaderboardAppOverlay');
+    if (overlay) {
+        overlay.classList.add('visible');
+    }
+    await loadLeaderboard();
+}
+
+function closeLeaderboardApp() {
+    const overlay = document.getElementById('leaderboardAppOverlay');
+    if (overlay) {
+        overlay.classList.remove('visible');
+    }
+}
+
+async function loadLeaderboard() {
+    const statusEl = document.getElementById('leaderboardStatus');
+    const listEl = document.getElementById('leaderboardList');
+    const updatedEl = document.getElementById('leaderboardUpdated');
+
+    if (statusEl) {
+        statusEl.textContent = 'Loading leaderboard...';
+    }
+    if (listEl) {
+        listEl.innerHTML = '';
+    }
+    if (updatedEl) {
+        updatedEl.textContent = '';
+    }
+
+    if (typeof FirebaseService === 'undefined' || !FirebaseService.isAvailable()) {
+        if (statusEl) {
+            statusEl.textContent = 'Leaderboard unavailable (offline).';
+        }
+        return;
+    }
+
+    try {
+        const result = await FirebaseService.getAllUserStats();
+        if (!result.success) {
+            if (statusEl) {
+                statusEl.textContent = `Unable to load leaderboard: ${result.error || 'Unknown error'}`;
+            }
+            return;
+        }
+
+        const stats = result.stats || [];
+        if (stats.length === 0) {
+            if (statusEl) {
+                statusEl.textContent = 'No players on the leaderboard yet.';
+            }
+            return;
+        }
+
+        const sortedStats = [...stats].sort((a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0));
+        const topStats = sortedStats.slice(0, 10);
+        if (statusEl) {
+            statusEl.textContent = `Showing top ${topStats.length} of ${stats.length} players.`;
+        }
+
+        if (listEl) {
+            const now = Date.now();
+            listEl.innerHTML = topStats.map((player, index) => {
+                const safeName = escapeHtml(player.playerName || 'Unknown');
+                const lastLogin = player.lastLogin;
+                const lastLoginDate = lastLogin ? (lastLogin.getTime ? lastLogin : new Date(lastLogin)) : null;
+                const lastLoginText = lastLoginDate ? lastLoginDate.toLocaleDateString() : 'Never';
+                const daysSinceLogin = lastLoginDate ? Math.floor((now - lastLoginDate.getTime()) / (1000 * 60 * 60 * 24)) : null;
+                const activityText = daysSinceLogin === null ? 'Inactive' : `${daysSinceLogin}d ago`;
+
+                return `
+                    <div class="leaderboard-card">
+                        <div class="leaderboard-rank">#${index + 1}</div>
+                        <div class="leaderboard-player">
+                            <div class="leaderboard-player-name">${safeName}</div>
+                            <div class="leaderboard-player-meta">
+                                <span class="leaderboard-stat">Balance <strong>$${(player.bankBalance || 0).toLocaleString()}</strong></span>
+                                <span class="leaderboard-stat">Earnings <strong>$${(player.totalEarnings || 0).toLocaleString()}</strong></span>
+                                <span class="leaderboard-stat">Rounds <strong>${player.tradingRounds || 0}</strong></span>
+                                <span class="leaderboard-stat">Last <strong>${lastLoginText}</strong></span>
+                                <span class="leaderboard-stat">Active <strong>${activityText}</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        if (updatedEl) {
+            updatedEl.textContent = `Updated ${new Date().toLocaleString()}`;
+        }
+    } catch (error) {
+        if (statusEl) {
+            statusEl.textContent = `Failed to load leaderboard: ${error.message}`;
+        }
     }
 }
 
@@ -432,6 +543,7 @@ function closePhoneOverlays() {
     closeTraderLocked();
     closeShopApp();
     closeExpensesApp();
+    closeLeaderboardApp();
     closeSettingsApp();
 }
 
