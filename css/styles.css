@@ -544,7 +544,8 @@
     color: var(--text-primary);
 }
 
-.bank-spending-panel {
+.bank-spending-panel,
+.bank-earnings-panel {
     display: none;
     flex-direction: column;
     gap: 12px;
@@ -553,18 +554,21 @@
     padding: 14px;
 }
 
-.bank-spending-panel.visible {
+.bank-spending-panel.visible,
+.bank-earnings-panel.visible {
     display: flex;
 }
 
-.spending-panel-header {
+.spending-panel-header,
+.earnings-panel-header {
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.6px;
     color: var(--text-muted);
 }
 
-.spending-panel-list {
+.spending-panel-list,
+.earnings-panel-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -572,7 +576,8 @@
     overflow-y: auto;
 }
 
-.spending-entry {
+.spending-entry,
+.earnings-entry {
     display: flex;
     justify-content: space-between;
     gap: 12px;
@@ -580,17 +585,20 @@
     color: var(--text-primary);
 }
 
-.spending-entry-details {
+.spending-entry-details,
+.earnings-entry-details {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.spending-entry-label {
+.spending-entry-label,
+.earnings-entry-label {
     font-weight: 600;
 }
 
-.spending-entry-date {
+.spending-entry-date,
+.earnings-entry-date {
     font-size: 10px;
     color: var(--text-muted);
 }
@@ -601,7 +609,21 @@
     white-space: nowrap;
 }
 
-.spending-entry-empty {
+.earnings-entry-amount {
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+}
+
+.earnings-entry-amount.positive {
+    color: var(--success);
+}
+
+.earnings-entry-amount.negative {
+    color: var(--danger);
+}
+
+.spending-entry-empty,
+.earnings-entry-empty {
     font-size: 12px;
     color: var(--text-muted);
 }

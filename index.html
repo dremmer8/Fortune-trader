@@ -137,14 +137,18 @@
                         </div>
                         
                         <div class="bank-stats">
-                            <div class="bank-stat">
+                            <button class="bank-stat bank-stat-button" id="earningsToggleButton" type="button" onclick="toggleEarningsPanel()" aria-expanded="false" aria-controls="bankEarningsPanel">
                                 <span class="bank-stat-label">Lifetime Earnings</span>
                                 <span class="bank-stat-value" id="lifetimeEarnings">$0</span>
-                            </div>
+                            </button>
                             <button class="bank-stat bank-stat-button" id="spendingToggleButton" type="button" onclick="toggleSpendingPanel()" aria-expanded="false" aria-controls="bankSpendingPanel">
                                 <span class="bank-stat-label">Lifetime Spendings</span>
                                 <span class="bank-stat-value" id="lifetimeSpendings">$0</span>
                             </button>
+                        </div>
+                        <div class="bank-earnings-panel" id="bankEarningsPanel">
+                            <div class="earnings-panel-header">Trading Round History</div>
+                            <div class="earnings-panel-list" id="earningsHistoryList"></div>
                         </div>
                         <div class="bank-spending-panel" id="bankSpendingPanel">
                             <div class="spending-panel-header">Spending History</div>
