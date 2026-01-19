@@ -39,7 +39,7 @@ const DAILY_EXPENSES = [
         name: 'Rent',
         icon: '🏠',
         description: 'Monthly apartment rent',
-        amount: 25,
+        amount: 30,
         enabled: true,
         canEliminate: true,
         eliminatedBy: 'estate'
@@ -49,7 +49,7 @@ const DAILY_EXPENSES = [
         name: 'Utilities',
         icon: '💡',
         description: 'Electric, water, gas',
-        amount: 8,
+        amount: 3,
         enabled: true,
         canEliminate: false
     },
@@ -67,7 +67,7 @@ const DAILY_EXPENSES = [
         name: 'Transport',
         icon: '🚗',
         description: 'Gas, transit, parking',
-        amount: 6,
+        amount: 3,
         enabled: true,
         canEliminate: true,
         eliminatedBy: 'car'
@@ -77,7 +77,7 @@ const DAILY_EXPENSES = [
         name: 'Phone Bill',
         icon: '📱',
         description: 'Mobile service',
-        amount: 4,
+        amount: 1,
         enabled: true,
         canEliminate: false
     },
@@ -86,7 +86,7 @@ const DAILY_EXPENSES = [
         name: 'Internet',
         icon: '📡',
         description: 'Home internet service',
-        amount: 5,
+        amount: 1,
         enabled: true,
         canEliminate: false
     },
@@ -104,7 +104,7 @@ const DAILY_EXPENSES = [
         name: 'Subscriptions',
         icon: '📺',
         description: 'Streaming, apps, etc.',
-        amount: 5,
+        amount: 1,
         enabled: true,
         canEliminate: false
     }
@@ -150,138 +150,138 @@ function getExpenseAmount(expenseId, customExpenseAmounts = {}) {
 // ===========================================
 
 const SHOP_ITEMS = [
-    // ESTATE CATEGORY (eliminates rent expense)
+    // HOME OWNERSHIP (eliminates rent expense)
     {
-        id: 'apartment',
-        name: 'Studio Apartment',
-        category: 'estate',
-        icon: '🏢',
-        price: 5000,
-        description: 'Small but cozy studio. Eliminates rent expense.',
-        prestigeRequired: 0
+      id: 'micro_flat',
+      name: 'City Micro-Apartment (Ownership)',
+      category: 'estate',
+      icon: '🏢',
+      price: 220000,
+      description: 'Small owned flat in an urban area. Eliminates rent expense.',
+      prestigeRequired: 0
     },
     {
-        id: 'condo',
-        name: 'Luxury Condo',
-        category: 'estate',
-        icon: '🏙️',
-        price: 25000,
-        description: 'Modern condo with city view. Eliminates rent expense.',
-        prestigeRequired: 5
+      id: 'new_build_flat',
+      name: 'New-Build City Apartment',
+      category: 'estate',
+      icon: '🏙️',
+      price: 650000,
+      description: 'Modern new-build apartment in a prime district. Eliminates rent expense.',
+      prestigeRequired: 6
     },
     {
-        id: 'house',
-        name: 'Suburban House',
-        category: 'estate',
-        icon: '🏡',
-        price: 50000,
-        description: 'Spacious family home with yard. Eliminates rent expense.',
-        prestigeRequired: 10
+      id: 'family_house',
+      name: 'Detached Family House (Outskirts)',
+      category: 'estate',
+      icon: '🏡',
+      price: 750000,
+      description: 'Detached house with garden outside the city core. Eliminates rent expense.',
+      prestigeRequired: 12
     },
     {
-        id: 'mansion',
-        name: 'Luxury Mansion',
-        category: 'estate',
-        icon: '🏰',
-        price: 150000,
-        description: 'Opulent estate for the elite. Eliminates rent expense.',
-        prestigeRequired: 20
+      id: 'villa_estate',
+      name: 'Prestige Villa Estate',
+      category: 'estate',
+      icon: '🏰',
+      price: 3000000,
+      description: 'High-end villa with land and privacy. Eliminates rent expense.',
+      prestigeRequired: 22
     },
-    
-    // CAR CATEGORY (eliminates transport expense)
+  
+    // VEHICLE OWNERSHIP (eliminates transport expense)
     {
-        id: 'sedan',
-        name: 'Economy Sedan',
-        category: 'car',
-        icon: '🚗',
-        price: 3000,
-        description: 'Reliable basic car. Eliminates transport expense.',
-        prestigeRequired: 0
-    },
-    {
-        id: 'sports',
-        name: 'Sports Car',
-        category: 'car',
-        icon: '🏎️',
-        price: 15000,
-        description: 'Fast and flashy. Eliminates transport expense.',
-        prestigeRequired: 5
+      id: 'compact_used',
+      name: 'Used Compact Car',
+      category: 'car',
+      icon: '🚗',
+      price: 12000,
+      description: 'Basic used car for everyday driving. Eliminates transport expense.',
+      prestigeRequired: 0
     },
     {
-        id: 'luxury',
-        name: 'Luxury Vehicle',
-        category: 'car',
-        icon: '🚙',
-        price: 35000,
-        description: 'Premium comfort and status. Eliminates transport expense.',
-        prestigeRequired: 10
+      id: 'performance_car',
+      name: 'Performance Coupe',
+      category: 'car',
+      icon: '🏎️',
+      price: 70000,
+      description: 'Quick, loud, and attention-grabbing. Eliminates transport expense.',
+      prestigeRequired: 6
     },
     {
-        id: 'supercar',
-        name: 'Exotic Supercar',
-        category: 'car',
-        icon: '🏁',
-        price: 100000,
-        description: 'Ultimate speed and luxury. Eliminates transport expense.',
-        prestigeRequired: 20
-    },
-    
-    // LUXURY CATEGORY (no gameplay effect, just for show)
-    {
-        id: 'watch',
-        name: 'Designer Watch',
-        category: 'luxury',
-        icon: '⌚',
-        price: 2000,
-        description: 'Luxury timepiece. Pure status symbol.',
-        prestigeRequired: 0
+      id: 'executive_vehicle',
+      name: 'Executive Luxury Vehicle',
+      category: 'car',
+      icon: '🚙',
+      price: 110000,
+      description: 'Premium comfort and status. Eliminates transport expense.',
+      prestigeRequired: 12
     },
     {
-        id: 'jewelry',
-        name: 'Gold Jewelry',
-        category: 'luxury',
-        icon: '💍',
-        price: 5000,
-        description: 'Elegant gold accessories. Show off your wealth.',
-        prestigeRequired: 3
+      id: 'exotic_supercar',
+      name: 'Exotic Supercar',
+      category: 'car',
+      icon: '🏁',
+      price: 350000,
+      description: 'Extreme performance and prestige. Eliminates transport expense.',
+      prestigeRequired: 22
+    },
+  
+    // LIFESTYLE / STATUS (no gameplay effect)
+    {
+      id: 'mechanical_watch',
+      name: 'Mechanical Watch',
+      category: 'luxury',
+      icon: '⌚',
+      price: 4000,
+      description: 'High-end timepiece. Pure status symbol.',
+      prestigeRequired: 0
     },
     {
-        id: 'clothes',
-        name: 'Designer Wardrobe',
-        category: 'luxury',
-        icon: '👔',
-        price: 8000,
-        description: 'High-end fashion collection. Look the part.',
-        prestigeRequired: 5
+      id: 'fine_jewelry',
+      name: 'Fine Jewelry Set',
+      category: 'luxury',
+      icon: '💍',
+      price: 12000,
+      description: 'Precious metals and stones. Flashy but classic.',
+      prestigeRequired: 4
     },
     {
-        id: 'painting',
-        name: 'Fine Art Painting',
-        category: 'luxury',
-        icon: '🖼️',
-        price: 12000,
-        description: 'Original artwork by renowned artist.',
-        prestigeRequired: 8
+      id: 'tailored_wardrobe',
+      name: 'Tailored Wardrobe Upgrade',
+      category: 'luxury',
+      icon: '👔',
+      price: 9000,
+      description: 'Custom-fit clothing collection. Look like money.',
+      prestigeRequired: 6
     },
     {
-        id: 'yacht',
-        name: 'Luxury Yacht',
-        category: 'luxury',
-        icon: '🛥️',
-        price: 80000,
-        description: 'Private yacht for ocean adventures.',
-        prestigeRequired: 15
+      id: 'original_art',
+      name: 'Original Contemporary Artwork',
+      category: 'luxury',
+      icon: '🖼️',
+      price: 25000,
+      description: 'Original piece from a respected artist. Conversation starter.',
+      prestigeRequired: 9
     },
     {
-        id: 'jet',
-        name: 'Private Jet',
-        category: 'luxury',
-        icon: '✈️',
-        price: 200000,
-        description: 'Ultimate symbol of success and freedom.',
-        prestigeRequired: 25
+      id: 'motor_yacht',
+      name: 'Motor Yacht (25m Class)',
+      category: 'luxury',
+      icon: '🛥️',
+      price: 1500000,
+      description: 'Private yacht for serious leisure and flex.',
+      prestigeRequired: 16
+    },
+    {
+      id: 'private_jet',
+      name: 'Private Jet (Light-Class)',
+      category: 'luxury',
+      icon: '✈️',
+      price: 4500000,
+      description: 'Private air travel. Ultimate convenience and prestige.',
+      prestigeRequired: 26
     }
-];
+  ];
 
 // Stock purchase fee (fixed amount per transaction)
 // This encourages buying stocks in bulk to save on fees
