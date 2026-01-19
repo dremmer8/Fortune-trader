@@ -105,6 +105,12 @@
                         </div>
                         <span class="app-name">Expenses</span>
                     </div>
+                    <div class="phone-app" onclick="launchApp('leaderboard')">
+                        <div class="app-icon leaderboard-icon">
+                            <span>🏆</span>
+                        </div>
+                        <span class="app-name">Leaderboard</span>
+                    </div>
                     <div class="phone-app" onclick="launchApp('settings')">
                         <div class="app-icon settings-icon">
                             <span>⚙️</span>
@@ -279,6 +285,20 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard App Interface -->
+                <div class="leaderboard-app-overlay" id="leaderboardAppOverlay">
+                    <div class="leaderboard-header">
+                        <button class="leaderboard-back-btn" onclick="closeLeaderboardApp()">←</button>
+                        <span class="leaderboard-title">Top Traders</span>
+                        <span class="leaderboard-subtitle">Best players this season</span>
+                    </div>
+                    <div class="leaderboard-content">
+                        <div class="leaderboard-status" id="leaderboardStatus">Loading leaderboard...</div>
+                        <div class="leaderboard-list" id="leaderboardList"></div>
+                        <div class="leaderboard-updated" id="leaderboardUpdated"></div>
                     </div>
                 </div>
             </div>
