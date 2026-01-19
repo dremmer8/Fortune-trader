@@ -488,10 +488,11 @@ async function loadLeaderboard() {
             return;
         }
 
-        const sortedStats = [...stats].sort((a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0));
+        const filteredStats = stats.filter(player => !(player.securityStatus && player.securityStatus.flagged));
+        const sortedStats = [...filteredStats].sort((a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0));
         const topStats = sortedStats.slice(0, 10);
         if (statusEl) {
-            statusEl.textContent = `Showing top ${topStats.length} of ${stats.length} players.`;
+            statusEl.textContent = `Showing top ${topStats.length} of ${filteredStats.length} eligible players.`;
         }
 
         if (listEl) {

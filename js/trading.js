@@ -985,6 +985,19 @@ function renderPositions() {
 
 function resolvePosition(pos) {
     if (pos.resolved) return; // Already resolved
+
+    if (typeof SecurityService !== 'undefined') {
+        const validation = SecurityService.validateTransaction('resolvePosition', {
+            amount: pos.amount,
+            entryPrice: pos.entryPrice,
+            currentPrice: state.currentPrice,
+            direction: pos.direction
+        });
+        if (!validation.ok) {
+            SecurityService.addFlag('invalid_position_resolution', { id: pos.id, reason: validation.reason });
+            return;
+        }
+    }
     
     const priceChange = (state.currentPrice - pos.entryPrice) / pos.entryPrice;
     const won = 
@@ -1002,12 +1015,18 @@ function resolvePosition(pos) {
         updateBalance();
         const profit = winnings - pos.amount;
         pos.result = profit; // Store profit for display
+        if (typeof SecurityService !== 'undefined') {
+            SecurityService.logTransaction('position_win', { id: pos.id, profit, winnings });
+        }
         handleWin(); // Increase streak and bet
         flashTradingScreen(true); // Green flash for win
         AudioManager.playSuccessfulDeal(); // Play success sound
         showNotification(`+$${profit.toLocaleString()} 🔥`, 'success');
     } else {
         pos.result = -pos.amount; // Store loss for display
+        if (typeof SecurityService !== 'undefined') {
+            SecurityService.logTransaction('position_loss', { id: pos.id, loss: pos.amount });
+        }
         handleLoss(); // Reset streak and bet
         flashTradingScreen(false); // Red flash for loss
         showNotification(`-$${pos.amount.toLocaleString()}`, 'error');
@@ -1039,6 +1058,21 @@ function buyStock() {
     const amount = getCurrentBet();
     const fee = STOCK_PURCHASE_FEE;
     const totalCostWithFee = amount + fee;
+
+    if (typeof SecurityService !== 'undefined') {
+        const validation = SecurityService.validateTransaction('buyStock', {
+            amount,
+            totalCost: totalCostWithFee,
+            balance: state.balance,
+            price: state.currentPrice
+        });
+        if (!validation.ok) {
+            SecurityService.addFlag('invalid_buy', { amount, totalCostWithFee, balance: state.balance });
+            showNotification(validation.reason, 'error');
+            return;
+        }
+        SecurityService.logTransaction('buyStock', { amount, fee, price: state.currentPrice });
+    }
     
     // Check if player has enough for amount + fee
     if (totalCostWithFee > state.balance) {
@@ -1090,6 +1124,20 @@ function sellStock() {
     if (!holding || holding.shares === 0) {
         showNotification('No shares to sell', 'error');
         return;
+    }
+
+    if (typeof SecurityService !== 'undefined') {
+        const validation = SecurityService.validateTransaction('sellStock', {
+            amount: holding.totalInvested,
+            shares: holding.shares,
+            price: state.currentPrice
+        });
+        if (!validation.ok) {
+            SecurityService.addFlag('invalid_sell', { shares: holding.shares, price: state.currentPrice });
+            showNotification(validation.reason, 'error');
+            return;
+        }
+        SecurityService.logTransaction('sellStock', { shares: holding.shares, price: state.currentPrice });
     }
     
     // Play click sound for selling

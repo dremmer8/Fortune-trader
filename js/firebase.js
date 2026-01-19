@@ -12,10 +12,12 @@ const firebaseConfig = {
 
 // Initialize Firebase (only if Firebase is loaded)
 let db = null;
+let functions = null;
 if (typeof firebase !== 'undefined') {
     try {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
+        functions = firebase.functions ? firebase.functions() : null;
         console.log('Firebase initialized successfully');
     } catch (error) {
         console.warn('Firebase initialization failed:', error);
@@ -40,13 +42,29 @@ const FirebaseService = {
             if (!userId) {
                 return { success: false, error: 'Missing user ID' };
             }
+            if (typeof SecurityService !== 'undefined') {
+                const gate = SecurityService.canSubmitToCloud();
+                if (!gate.ok) {
+                    return { success: false, error: 'Rate limited' };
+                }
+            }
             const userRef = db.collection('users').doc(userId);
             const payload = {
                 ...gameData,
                 playerName: playerName,
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-                syncedAt: Date.now()
+                syncedAt: Date.now(),
+                securityStatus: typeof SecurityService !== 'undefined' ? SecurityService.getSecuritySummary() : { flagged: false, flags: [] }
             };
+            if (functions) {
+                try {
+                    const validate = firebase.functions().httpsCallable('validateSubmission');
+                    await validate({ userId, payload });
+                } catch (error) {
+                    console.warn('Cloud validation failed:', error?.message || error);
+                    return { success: false, error: 'Cloud validation rejected' };
+                }
+            }
             await userRef.set(payload, { merge: true });
             console.log('Game data synced to Firebase');
             return { success: true };
@@ -69,6 +87,9 @@ const FirebaseService = {
                 const doc = await userRef.get();
                 if (doc.exists) {
                     const data = doc.data();
+                    if (data?.securityStatus?.flagged) {
+                        console.warn('Loaded data flagged by security rules.');
+                    }
                     // Remove Firebase metadata
                     const cleanData = { ...data };
                     delete cleanData.lastUpdated;
@@ -167,7 +188,8 @@ const FirebaseService = {
                     loginCount: data.loginCount || 0,
                     purchasedUpgrades: data.purchasedUpgrades?.length || 0,
                     ownedItems: data.ownedItems?.length || 0,
-                    lastSynced: data.syncedAt || null
+                    lastSynced: data.syncedAt || null,
+                    securityStatus: data.securityStatus || { flagged: false, flags: [] }
                 });
             });
             return { success: true, stats: stats };
