@@ -21,6 +21,13 @@ function getVersionStamp() {
     return 'v0.0.0';
 }
 
+function getVersionStamp() {
+    if (typeof APP_VERSION === 'string' && APP_VERSION.trim()) {
+        return APP_VERSION.trim();
+    }
+    return formatVersionStamp();
+}
+
 function updateVersionStamp() {
     const versionText = getVersionStamp();
     const stamp = document.getElementById('versionStamp');
