@@ -15,6 +15,7 @@ const state = {
     lastExpenseDate: null, // Last date expenses were charged (YYYY-MM-DD format)
     ownedItems: [], // Items purchased from shop { id, name, category, icon, price }
     customExpenseAmounts: {}, // Custom expense amounts { expenseId: amount }
+    activeLoan: null, // Active loan details
     
     // Trading balance (in-game)
     balance: 0, // Start with 0 until deposit
@@ -292,7 +293,7 @@ const SAVE_KEY = 'fortuneTrader_save';
 // Save game state - Hybrid: localStorage (primary) + Firebase (backup/sync)
 async function saveGameState() {
     const saveData = {
-        version: 6,
+        version: 7,
         timestamp: Date.now(),
         // Banking data
         bankBalance: state.bankBalance,
@@ -302,6 +303,7 @@ async function saveGameState() {
         lastExpenseDate: state.lastExpenseDate,
         ownedItems: state.ownedItems || [],
         customExpenseAmounts: state.customExpenseAmounts || {},
+        activeLoan: state.activeLoan || null,
         // Trading data
         balance: state.balance,
         stockHoldings: state.stockHoldings,
@@ -372,6 +374,7 @@ async function loadGameState() {
         state.lastExpenseDate = saveData.lastExpenseDate || null;
         state.ownedItems = saveData.ownedItems || [];
         state.customExpenseAmounts = saveData.customExpenseAmounts || {};
+        state.activeLoan = saveData.activeLoan || null;
         
         // Restore trading state
         state.balance = saveData.balance !== undefined ? saveData.balance : 0;
@@ -420,6 +423,7 @@ function resetGameState() {
     state.lastExpenseDate = null;
     state.ownedItems = [];
     state.customExpenseAmounts = {};
+    state.activeLoan = null;
     
     // Reset trading
     state.balance = 0;
