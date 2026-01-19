@@ -661,12 +661,13 @@ function updateLoanDisplay() {
     
     const loan = state.activeLoan;
     if (!loan) {
-        activeCard.classList.add('empty');
-        activeCard.textContent = 'No active loan. Choose an option below.';
+        activeCard.classList.add('hidden');
+        activeCard.classList.remove('empty');
+        activeCard.textContent = '';
         return;
     }
     
-    activeCard.classList.remove('empty');
+    activeCard.classList.remove('empty', 'hidden');
     
     const payoffToday = getLoanPayoff(loan);
     const payoffFull = getLoanPayoff(loan, true);

@@ -589,6 +589,10 @@
     font-size: 12px;
 }
 
+.loan-active-card.hidden {
+    display: none;
+}
+
 .loan-active-card.empty {
     opacity: 0.7;
     text-align: center;
