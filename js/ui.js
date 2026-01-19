@@ -191,11 +191,10 @@ function renderShopItems() {
         const purchasedClass = (state.purchasedUpgrades && state.purchasedUpgrades.includes(upgradeId)) ? 'purchased' : '';
         
         return `
-            <div class="shop-item ${lockedClass} ${purchasedClass}" onclick="purchaseUpgrade('${upgradeId}')">
+            <div class="shop-item ${lockedClass} ${purchasedClass}" data-tooltip="${upgrade.description}" onclick="purchaseUpgrade('${upgradeId}')">
                 <div class="shop-item-icon">${upgrade.icon}</div>
                 <div class="shop-item-info">
                     <span class="shop-item-name">${upgrade.name}</span>
-                    <span class="shop-item-desc">${upgrade.description}</span>
                 </div>
                 <span class="shop-item-price">$${upgrade.price.toLocaleString()}</span>
             </div>

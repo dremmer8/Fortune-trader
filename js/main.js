@@ -1000,11 +1000,10 @@ function renderLuxuryShopItems() {
         }
         
         return `
-            <div class="shop-item ${statusClass}">
+            <div class="shop-item ${statusClass}" data-tooltip="${item.description}">
                 <div class="shop-item-icon">${item.icon}</div>
                 <div class="shop-item-info">
                     <div class="shop-item-name">${item.name}</div>
-                    <div class="shop-item-desc">${item.description}</div>
                 </div>
                 <div class="shop-item-price">
                     <div class="shop-item-price-value">$${item.price.toLocaleString()}</div>

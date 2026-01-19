@@ -1616,6 +1616,38 @@
     align-items: center;
     border: 2px solid transparent;
     transition: all 0.2s;
+    position: relative;
+}
+
+.shop-app-overlay .shop-item[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: normal;
+    max-width: 250px;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.shop-app-overlay .shop-item[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-2px);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.95);
+    z-index: 1000;
+    pointer-events: none;
 }
 
 .shop-app-overlay .shop-item.owned {
@@ -1625,6 +1657,11 @@
 
 .shop-app-overlay .shop-item.locked {
     opacity: 0.4;
+}
+
+.shop-app-overlay .shop-item.locked:hover::after,
+.shop-app-overlay .shop-item.locked:hover::before {
+    display: none;
 }
 
 .shop-app-overlay .shop-item-icon {
@@ -1646,16 +1683,14 @@
 }
 
 .shop-app-overlay .shop-item-name {
-    font-size: 14px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 3px;
 }
 
 .shop-app-overlay .shop-item-desc {
-    font-size: 11px;
-    color: var(--text-muted);
-    line-height: 1.4;
+    display: none;
 }
 
 .shop-app-overlay .shop-item-price {
@@ -3418,6 +3453,38 @@ body {
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
+    position: relative;
+}
+
+.shop-item[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: normal;
+    max-width: 250px;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.shop-item[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-2px);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.95);
+    z-index: 1000;
+    pointer-events: none;
 }
 
 .shop-item:hover {
@@ -3435,6 +3502,11 @@ body {
     border-color: var(--border);
     background: var(--bg-secondary);
     transform: none;
+}
+
+.shop-item.locked:hover::after,
+.shop-item.locked:hover::before {
+    display: none;
 }
 
 .shop-item.purchased {
@@ -3468,11 +3540,7 @@ body {
 }
 
 .shop-item-desc {
-    font-size: 10px;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: none;
 }
 
 .shop-item-price {
