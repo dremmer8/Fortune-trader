@@ -8,6 +8,7 @@ let gameStarted = false;
 let isLoggedIn = false;
 let playerName = '';
 let playerId = '';
+let bankerMode = 'deposit';
 
 // ===========================================
 // VERSION STAMP
@@ -347,8 +348,7 @@ function openBankerApp() {
     if (overlay) {
         overlay.classList.add('visible');
         updateBankerDisplay();
-        renderLoanOptions();
-        updateLoanDisplay();
+        setBankerMode(bankerMode);
     }
 }
 
@@ -359,6 +359,31 @@ function closeBankerApp() {
         overlay.classList.remove('visible');
     }
     updateTraderLockState();
+}
+
+function setBankerMode(mode) {
+    bankerMode = mode === 'loan' ? 'loan' : 'deposit';
+
+    const buttons = document.querySelectorAll('.banker-mode-btn');
+    buttons.forEach(button => {
+        const isActive = button.dataset.mode === bankerMode;
+        button.classList.toggle('active', isActive);
+    });
+
+    const depositSection = document.getElementById('bankerDepositSection');
+    if (depositSection) {
+        depositSection.classList.toggle('active', bankerMode === 'deposit');
+    }
+
+    const loanSection = document.getElementById('bankerLoanSection');
+    if (loanSection) {
+        loanSection.classList.toggle('active', bankerMode === 'loan');
+    }
+
+    if (bankerMode === 'loan') {
+        renderLoanOptions();
+        updateLoanDisplay();
+    }
 }
 
 // Open settings app

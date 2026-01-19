@@ -146,26 +146,40 @@
                                 <span class="bank-stat-value" id="tradingRounds">0</span>
                             </div>
                         </div>
-                        
-                        <div class="deposit-section">
-                            <div class="deposit-label">Deposit to Trading</div>
-                            <div class="deposit-presets">
-                                <button class="deposit-preset" onclick="setDepositAmount(100)">$100</button>
-                                <button class="deposit-preset" onclick="setDepositAmount(250)">$250</button>
-                                <button class="deposit-preset" onclick="setDepositAmount(500)">$500</button>
-                                <button class="deposit-preset" onclick="depositAll()">All</button>
-                            </div>
-                            <div class="deposit-custom">
-                                <input type="number" id="depositAmountInput" class="deposit-input" placeholder="Amount" min="100">
-                                <button class="deposit-btn" onclick="executeDeposit()">Deposit</button>
-                            </div>
-                            <div class="deposit-hint">Min deposit: $100</div>
+                        <div class="banker-mode-toggle">
+                            <button class="banker-mode-btn active" data-mode="deposit" onclick="setBankerMode('deposit')">Deposit</button>
+                            <button class="banker-mode-btn" data-mode="loan" onclick="setBankerMode('loan')">Loans</button>
                         </div>
-                        
-                        <div class="trading-account-info" id="tradingAccountInfo">
-                            <div class="trading-account-label">Trading Account</div>
-                            <div class="trading-account-balance" id="tradingAccountBalance">$0</div>
-                            <div class="trading-account-hint">5% fee on cash out</div>
+
+                        <div class="banker-mode-section active" id="bankerDepositSection">
+                            <div class="deposit-section">
+                                <div class="deposit-label">Deposit to Trading</div>
+                                <div class="deposit-presets">
+                                    <button class="deposit-preset" onclick="setDepositAmount(100)">$100</button>
+                                    <button class="deposit-preset" onclick="setDepositAmount(250)">$250</button>
+                                    <button class="deposit-preset" onclick="setDepositAmount(500)">$500</button>
+                                    <button class="deposit-preset" onclick="depositAll()">All</button>
+                                </div>
+                                <div class="deposit-custom">
+                                    <input type="number" id="depositAmountInput" class="deposit-input" placeholder="Amount" min="100">
+                                    <button class="deposit-btn" onclick="executeDeposit()">Deposit</button>
+                                </div>
+                                <div class="deposit-hint">Min deposit: $100</div>
+                            </div>
+
+                            <div class="trading-account-info" id="tradingAccountInfo">
+                                <div class="trading-account-label">Trading Account</div>
+                                <div class="trading-account-balance" id="tradingAccountBalance">$0</div>
+                                <div class="trading-account-hint">5% fee on cash out</div>
+                            </div>
+                        </div>
+
+                        <div class="banker-mode-section" id="bankerLoanSection">
+                            <div class="loan-section">
+                                <div class="loan-section-title">Loan options</div>
+                                <div class="loan-active-card" id="loanActiveCard"></div>
+                                <div class="loan-options" id="loanOptionsList"></div>
+                            </div>
                         </div>
 
                         <div class="loan-section">

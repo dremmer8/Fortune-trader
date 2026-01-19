@@ -523,6 +523,45 @@
     color: var(--text-primary);
 }
 
+.banker-mode-toggle {
+    display: flex;
+    gap: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    padding: 6px;
+}
+
+.banker-mode-btn {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.banker-mode-btn.active {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+    box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.4);
+}
+
+.banker-mode-section {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.banker-mode-section.active {
+    display: flex;
+}
+
 .loan-section {
     background: var(--bg-secondary);
     border: 1px solid rgba(16, 185, 129, 0.2);
