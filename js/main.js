@@ -330,6 +330,21 @@ function escapeHtml(value) {
     return div.innerHTML;
 }
 
+function formatCompactNumber(value) {
+    const number = Number(value) || 0;
+    const absValue = Math.abs(number);
+    if (absValue >= 1_000_000_000) {
+        return `${(number / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B`;
+    }
+    if (absValue >= 1_000_000) {
+        return `${(number / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+    }
+    if (absValue >= 1_000) {
+        return `${(number / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+    }
+    return number.toLocaleString();
+}
+
 // Update settings display
 function updateSettingsDisplay() {
     const userNameEl = document.getElementById('settingsUserName');
@@ -418,9 +433,8 @@ async function loadLeaderboard() {
                         <div class="leaderboard-player">
                             <div class="leaderboard-player-name">${safeName}</div>
                             <div class="leaderboard-player-stats">
-                                <div class="leaderboard-stat">Balance <strong>$${(player.bankBalance || 0).toLocaleString()}</strong></div>
-                                <div class="leaderboard-stat">Earnings <strong>$${(player.totalEarnings || 0).toLocaleString()}</strong></div>
-                                <div class="leaderboard-stat">Rounds <strong>${player.tradingRounds || 0}</strong></div>
+                                <div class="leaderboard-stat">Balance <strong>$${formatCompactNumber(player.bankBalance)}</strong></div>
+                                <div class="leaderboard-stat">Earnings <strong>$${formatCompactNumber(player.totalEarnings)}</strong></div>
                             </div>
                         </div>
                     </div>
