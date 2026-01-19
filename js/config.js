@@ -27,7 +27,7 @@ const MIN_DEPOSIT = 100;
 // e.g., 0.05 = 5% fee
 const CASH_OUT_FEE_PERCENT = 0.05;
 
-// Loan options (effective annual rates)
+// Loan options (effective weekly rates)
 const LOAN_OPTIONS = [
     {
         id: 'small',

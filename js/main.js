@@ -719,9 +719,9 @@ function getLoanElapsedWeeks(loan) {
     return Math.max(0, Math.min(loan.termWeeks, elapsedMs / MS_PER_WEEK));
 }
 
-function calculateLoanInterest(principal, annualRate, weeks) {
+function calculateLoanInterest(principal, weeklyRate, weeks) {
     if (weeks <= 0) return 0;
-    return Math.round(principal * (Math.pow(1 + annualRate, weeks / 52) - 1));
+    return Math.round(principal * (Math.pow(1 + weeklyRate, weeks) - 1));
 }
 
 function getLoanPayoff(loan, useFullTerm = false) {
@@ -747,7 +747,7 @@ function renderLoanOptions() {
     container.innerHTML = LOAN_OPTIONS.map(option => {
         const amountRange = `$${option.amountMin.toLocaleString()}–$${option.amountMax.toLocaleString()}`;
         const termRange = `${option.termWeeksMin}–${option.termWeeksMax} weeks`;
-        const rateRange = `${Math.round(option.rateMin * 100)}–${Math.round(option.rateMax * 100)}% p.a.`;
+        const rateRange = `${Math.round(option.rateMin * 100)}–${Math.round(option.rateMax * 100)}% p.w.`;
         const inputId = `loanAmount-${option.id}`;
         
         return `
@@ -758,7 +758,7 @@ function renderLoanOptions() {
                 </div>
                 <div class="loan-option-detail">Amount: ${amountRange}</div>
                 <div class="loan-option-detail">Typical term: ${termRange}</div>
-                <div class="loan-option-detail">Typical rate (effective p.a.): ${rateRange}</div>
+                <div class="loan-option-detail">Typical rate (per week): ${rateRange}</div>
                 <input
                     type="number"
                     class="loan-option-input"
@@ -800,7 +800,7 @@ function updateLoanDisplay() {
         <div><strong>${loan.name}</strong> is active.</div>
         <div class="loan-active-grid">
             <div class="loan-active-item">Principal<strong>$${loan.principal.toLocaleString()}</strong></div>
-            <div class="loan-active-item">Rate<strong>${formatLoanRate(loan.annualRate)} p.a.</strong></div>
+            <div class="loan-active-item">Rate<strong>${formatLoanRate(loan.annualRate)} p.w.</strong></div>
             <div class="loan-active-item">Term<strong>${loan.termWeeks} weeks</strong></div>
             <div class="loan-active-item">Due date<strong>${dueDate}</strong></div>
             <div class="loan-active-item">Payoff today<strong>$${payoffToday.total.toLocaleString()}</strong></div>
