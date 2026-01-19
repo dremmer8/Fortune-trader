@@ -10,6 +10,57 @@ let playerName = '';
 let playerId = '';
 
 // ===========================================
+// VERSION STAMP
+// ===========================================
+
+function formatVersionStamp(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    return `v${year}${month}${day}-${hour}${minute}`;
+}
+
+function updateVersionStamp() {
+    const versionText = formatVersionStamp();
+    const stamp = document.getElementById('versionStamp');
+    if (stamp) {
+        stamp.textContent = versionText;
+    }
+
+    const settingsVersion = document.getElementById('settingsVersionValue');
+    if (settingsVersion) {
+        settingsVersion.textContent = `Version ${versionText}`;
+    }
+}
+
+function initVersionStamp() {
+    updateVersionStamp();
+    setInterval(updateVersionStamp, 60000);
+}
+
+function initAudioControls() {
+    const slider = document.getElementById('audioVolumeSlider');
+    const valueLabel = document.getElementById('audioVolumeValue');
+    if (!slider || !valueLabel || typeof AudioManager === 'undefined') return;
+
+    const updateLabel = (value) => {
+        valueLabel.textContent = `${value}%`;
+    };
+
+    const initialValue = Math.round((AudioManager.masterVolume ?? 0.8) * 100);
+    slider.value = String(initialValue);
+    updateLabel(initialValue);
+
+    slider.addEventListener('input', (event) => {
+        const value = Number(event.target.value);
+        AudioManager.setMasterVolume(value / 100);
+        updateLabel(value);
+    });
+}
+
+// ===========================================
 // LOGIN CARD INTERFACE
 // ===========================================
 
@@ -2159,6 +2210,8 @@ function initGameSystems() {
 
 // Initialize the application (hub first)
 function initApp() {
+    initVersionStamp();
+    initAudioControls();
     // Initialize the hub/phone interface first
     initHub();
     console.log('Hub initialized - waiting for app selection');
