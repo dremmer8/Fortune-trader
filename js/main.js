@@ -23,8 +23,15 @@ function formatVersionStamp(date = new Date()) {
     return `v${year}${month}${day}-${hour}${minute}`;
 }
 
+function getVersionStamp() {
+    if (typeof APP_VERSION === 'string' && APP_VERSION.trim()) {
+        return APP_VERSION.trim();
+    }
+    return formatVersionStamp();
+}
+
 function updateVersionStamp() {
-    const versionText = formatVersionStamp();
+    const versionText = getVersionStamp();
     const stamp = document.getElementById('versionStamp');
     if (stamp) {
         stamp.textContent = versionText;
@@ -38,7 +45,6 @@ function updateVersionStamp() {
 
 function initVersionStamp() {
     updateVersionStamp();
-    setInterval(updateVersionStamp, 60000);
 }
 
 function initAudioControls() {
