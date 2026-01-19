@@ -235,7 +235,7 @@ function updatePhoneTime() {
 // Launch an app from the phone
 function launchApp(appName) {
     // Must be logged in first (except for settings)
-    if (!isLoggedIn && appName !== 'settings' && appName !== 'expenses') {
+    if (!isLoggedIn && appName !== 'settings' && appName !== 'expenses' && appName !== 'leaderboard') {
         showLoginCard();
         return;
     }
@@ -406,23 +406,21 @@ async function loadLeaderboard() {
             const now = Date.now();
             listEl.innerHTML = topStats.map((player, index) => {
                 const safeName = escapeHtml(player.playerName || 'Unknown');
-                const lastLogin = player.lastLogin;
-                const lastLoginDate = lastLogin ? (lastLogin.getTime ? lastLogin : new Date(lastLogin)) : null;
-                const lastLoginText = lastLoginDate ? lastLoginDate.toLocaleDateString() : 'Never';
-                const daysSinceLogin = lastLoginDate ? Math.floor((now - lastLoginDate.getTime()) / (1000 * 60 * 60 * 24)) : null;
-                const activityText = daysSinceLogin === null ? 'Inactive' : `${daysSinceLogin}d ago`;
+                const rankNumber = index + 1;
+                const rankEmoji = rankNumber === 1 ? '🥇' : rankNumber === 2 ? '🥈' : rankNumber === 3 ? '🥉' : '';
 
                 return `
                     <div class="leaderboard-card">
-                        <div class="leaderboard-rank">#${index + 1}</div>
+                        <div class="leaderboard-rank">
+                            <span class="leaderboard-rank-emoji">${rankEmoji}</span>
+                            <span class="leaderboard-rank-number">#${rankNumber}</span>
+                        </div>
                         <div class="leaderboard-player">
                             <div class="leaderboard-player-name">${safeName}</div>
-                            <div class="leaderboard-player-meta">
-                                <span class="leaderboard-stat">Balance <strong>$${(player.bankBalance || 0).toLocaleString()}</strong></span>
-                                <span class="leaderboard-stat">Earnings <strong>$${(player.totalEarnings || 0).toLocaleString()}</strong></span>
-                                <span class="leaderboard-stat">Rounds <strong>${player.tradingRounds || 0}</strong></span>
-                                <span class="leaderboard-stat">Last <strong>${lastLoginText}</strong></span>
-                                <span class="leaderboard-stat">Active <strong>${activityText}</strong></span>
+                            <div class="leaderboard-player-stats">
+                                <div class="leaderboard-stat">Balance <strong>$${(player.bankBalance || 0).toLocaleString()}</strong></div>
+                                <div class="leaderboard-stat">Earnings <strong>$${(player.totalEarnings || 0).toLocaleString()}</strong></div>
+                                <div class="leaderboard-stat">Rounds <strong>${player.tradingRounds || 0}</strong></div>
                             </div>
                         </div>
                     </div>
