@@ -182,6 +182,7 @@ async function attemptLogin() {
     
     // Start expense system after login
     initExpenseSystem();
+    initLoanSystem();
     
     // Update any displays that show player name
     updatePlayerDisplay();
@@ -346,6 +347,8 @@ function openBankerApp() {
     if (overlay) {
         overlay.classList.add('visible');
         updateBankerDisplay();
+        renderLoanOptions();
+        updateLoanDisplay();
     }
 }
 
@@ -551,6 +554,203 @@ function updateBankerDisplay() {
     if (userNameEl && playerName) {
         userNameEl.textContent = playerName;
     }
+
+    updateLoanDisplay();
+}
+
+// ===========================================
+// LOANS
+// ===========================================
+
+const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
+
+function getLoanOptionById(optionId) {
+    return LOAN_OPTIONS.find(option => option.id === optionId);
+}
+
+function getLoanElapsedWeeks(loan) {
+    const elapsedMs = Date.now() - loan.startTimestamp;
+    return Math.max(0, Math.min(loan.termWeeks, elapsedMs / MS_PER_WEEK));
+}
+
+function calculateLoanInterest(principal, annualRate, weeks) {
+    if (weeks <= 0) return 0;
+    return Math.round(principal * (Math.pow(1 + annualRate, weeks / 52) - 1));
+}
+
+function getLoanPayoff(loan, useFullTerm = false) {
+    const weeks = useFullTerm ? loan.termWeeks : getLoanElapsedWeeks(loan);
+    const interest = calculateLoanInterest(loan.principal, loan.annualRate, weeks);
+    return {
+        interest,
+        total: Math.round(loan.principal + interest),
+        weeks
+    };
+}
+
+function formatLoanRate(rate) {
+    return `${(rate * 100).toFixed(2).replace(/\.00$/, '')}%`;
+}
+
+function renderLoanOptions() {
+    const container = document.getElementById('loanOptionsList');
+    if (!container || typeof LOAN_OPTIONS === 'undefined') return;
+    
+    const hasLoan = !!state.activeLoan;
+    
+    container.innerHTML = LOAN_OPTIONS.map(option => {
+        const amountRange = `$${option.amountMin.toLocaleString()}–$${option.amountMax.toLocaleString()}`;
+        const termRange = `${option.termWeeksMin}–${option.termWeeksMax} weeks`;
+        const rateRange = `${Math.round(option.rateMin * 100)}–${Math.round(option.rateMax * 100)}% p.a.`;
+        const inputId = `loanAmount-${option.id}`;
+        
+        return `
+            <div class="loan-option ${hasLoan ? 'disabled' : ''}">
+                <div class="loan-option-header">
+                    <div class="loan-option-title">${option.name}</div>
+                    <div class="loan-option-desc">${option.description}</div>
+                </div>
+                <div class="loan-option-detail">Amount: ${amountRange}</div>
+                <div class="loan-option-detail">Typical term: ${termRange}</div>
+                <div class="loan-option-detail">Typical rate (effective p.a.): ${rateRange}</div>
+                <input
+                    type="number"
+                    class="loan-option-input"
+                    id="${inputId}"
+                    min="${option.amountMin}"
+                    max="${option.amountMax}"
+                    value="${option.amountMin}"
+                    ${hasLoan ? 'disabled' : ''}
+                />
+                <button class="loan-option-btn" onclick="takeLoan('${option.id}')" ${hasLoan ? 'disabled' : ''}>
+                    Take loan
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateLoanDisplay() {
+    const activeCard = document.getElementById('loanActiveCard');
+    if (!activeCard) return;
+    
+    const loan = state.activeLoan;
+    if (!loan) {
+        activeCard.classList.add('empty');
+        activeCard.textContent = 'No active loan. Choose an option below.';
+        return;
+    }
+    
+    activeCard.classList.remove('empty');
+    
+    const payoffToday = getLoanPayoff(loan);
+    const payoffFull = getLoanPayoff(loan, true);
+    const dueDate = new Date(loan.dueTimestamp).toLocaleDateString();
+    const remainingDays = Math.max(0, Math.ceil((loan.dueTimestamp - Date.now()) / (1000 * 60 * 60 * 24)));
+    const isOverdue = Date.now() >= loan.dueTimestamp;
+    
+    activeCard.innerHTML = `
+        <div><strong>${loan.name}</strong> is active.</div>
+        <div class="loan-active-grid">
+            <div class="loan-active-item">Principal<strong>$${loan.principal.toLocaleString()}</strong></div>
+            <div class="loan-active-item">Rate<strong>${formatLoanRate(loan.annualRate)} p.a.</strong></div>
+            <div class="loan-active-item">Term<strong>${loan.termWeeks} weeks</strong></div>
+            <div class="loan-active-item">Due date<strong>${dueDate}</strong></div>
+            <div class="loan-active-item">Payoff today<strong>$${payoffToday.total.toLocaleString()}</strong></div>
+            <div class="loan-active-item">${isOverdue ? 'Overdue by' : 'Days remaining'}<strong>${remainingDays} days</strong></div>
+        </div>
+        <div class="loan-option-detail">Full term payoff: $${payoffFull.total.toLocaleString()}</div>
+        <button class="loan-repay-btn" onclick="repayLoan()">Repay loan now</button>
+    `;
+}
+
+function takeLoan(optionId) {
+    if (state.activeLoan) {
+        showNotification('You already have an active loan.', 'error');
+        return;
+    }
+    
+    const option = getLoanOptionById(optionId);
+    if (!option) return;
+    
+    const input = document.getElementById(`loanAmount-${option.id}`);
+    const amount = parseInt(input ? input.value : option.amountMin, 10);
+    
+    if (Number.isNaN(amount) || amount < option.amountMin || amount > option.amountMax) {
+        showNotification(`Enter an amount between $${option.amountMin.toLocaleString()} and $${option.amountMax.toLocaleString()}.`, 'error');
+        return;
+    }
+    
+    const termWeeks = Math.floor(Math.random() * (option.termWeeksMax - option.termWeeksMin + 1)) + option.termWeeksMin;
+    const rate = Number((Math.random() * (option.rateMax - option.rateMin) + option.rateMin).toFixed(4));
+    const startTimestamp = Date.now();
+    const dueTimestamp = startTimestamp + termWeeks * MS_PER_WEEK;
+    const fullPayoff = getLoanPayoff({
+        principal: amount,
+        annualRate: rate,
+        termWeeks,
+        startTimestamp
+    }, true);
+    
+    state.activeLoan = {
+        id: option.id,
+        name: option.name,
+        principal: amount,
+        annualRate: rate,
+        termWeeks,
+        startTimestamp,
+        dueTimestamp,
+        fullPayoffAmount: fullPayoff.total
+    };
+    
+    state.bankBalance += amount;
+    saveGameState();
+    updateBankerDisplay();
+    renderLoanOptions();
+    
+    showNotification(`${option.name} approved for $${amount.toLocaleString()}!`, 'success');
+}
+
+function repayLoan() {
+    const loan = state.activeLoan;
+    if (!loan) return;
+    
+    const useFullTerm = Date.now() >= loan.dueTimestamp;
+    const payoff = getLoanPayoff(loan, useFullTerm);
+    
+    if (state.bankBalance < payoff.total) {
+        showNotification('Insufficient bank balance to repay loan.', 'error');
+        return;
+    }
+    
+    state.bankBalance -= payoff.total;
+    state.activeLoan = null;
+    saveGameState();
+    updateBankerDisplay();
+    renderLoanOptions();
+    
+    showNotification(`Loan repaid for $${payoff.total.toLocaleString()}.`, 'success');
+}
+
+function processLoanDue() {
+    const loan = state.activeLoan;
+    if (!loan) return;
+    
+    if (Date.now() >= loan.dueTimestamp) {
+        const payoff = getLoanPayoff(loan, true);
+        state.bankBalance -= payoff.total;
+        state.activeLoan = null;
+        saveGameState();
+        updateBankerDisplay();
+        renderLoanOptions();
+        showNotification(`Loan auto-repaid for $${payoff.total.toLocaleString()}.`, 'info');
+    }
+}
+
+function initLoanSystem() {
+    processLoanDue();
+    updateLoanDisplay();
+    renderLoanOptions();
 }
 
 // Set deposit amount from preset
@@ -991,6 +1191,8 @@ function checkForDayChange() {
     if (state.lastExpenseDate !== today) {
         chargeExpenses();
     }
+
+    processLoanDue();
 }
 
 // Charge expenses for a new day
