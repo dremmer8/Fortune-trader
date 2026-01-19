@@ -563,13 +563,13 @@ function closeTraderLocked() {
 function updateBankerDisplay() {
     const bankBalanceEl = document.getElementById('bankBalanceDisplay');
     const lifetimeEl = document.getElementById('lifetimeEarnings');
-    const roundsEl = document.getElementById('tradingRounds');
+    const spendingsEl = document.getElementById('lifetimeSpendings');
     const tradingBalanceEl = document.getElementById('tradingAccountBalance');
     const userNameEl = document.getElementById('bankerUserName');
     
     if (bankBalanceEl) bankBalanceEl.textContent = '$' + state.bankBalance.toLocaleString();
     if (lifetimeEl) lifetimeEl.textContent = '$' + state.totalEarnings.toLocaleString();
-    if (roundsEl) roundsEl.textContent = state.tradingRounds.toString();
+    if (spendingsEl) spendingsEl.textContent = '$' + (state.lifetimeSpendings || 0).toLocaleString();
     if (tradingBalanceEl) {
         const portfolioValue = getTotalPortfolioValue();
         tradingBalanceEl.textContent = '$' + Math.floor(portfolioValue).toLocaleString();
@@ -579,6 +579,58 @@ function updateBankerDisplay() {
     }
 
     updateLoanDisplay();
+    updateSpendingHistoryPanel();
+}
+
+function addSpendingEntry({ amount, type, label, timestamp = Date.now() }) {
+    if (!amount || amount <= 0) return;
+    if (!state.spendingHistory) {
+        state.spendingHistory = [];
+    }
+
+    state.lifetimeSpendings = (state.lifetimeSpendings || 0) + amount;
+    state.spendingHistory.push({
+        amount,
+        type,
+        label,
+        timestamp
+    });
+}
+
+function updateSpendingHistoryPanel() {
+    const listEl = document.getElementById('spendingHistoryList');
+    if (!listEl) return;
+
+    const history = (state.spendingHistory || []).slice().sort((a, b) => a.timestamp - b.timestamp);
+    if (history.length === 0) {
+        listEl.innerHTML = '<div class="spending-entry-empty">No spendings recorded yet.</div>';
+        return;
+    }
+
+    listEl.innerHTML = history.map(entry => {
+        const dateLabel = new Date(entry.timestamp).toLocaleString();
+        return `
+            <div class="spending-entry">
+                <div class="spending-entry-details">
+                    <div class="spending-entry-label">${entry.label}</div>
+                    <div class="spending-entry-date">${dateLabel}</div>
+                </div>
+                <div class="spending-entry-amount">-$${entry.amount.toLocaleString()}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function toggleSpendingPanel() {
+    const panel = document.getElementById('bankSpendingPanel');
+    const button = document.getElementById('spendingToggleButton');
+    if (!panel) return;
+
+    const isVisible = panel.classList.toggle('visible');
+    if (button) {
+        button.classList.toggle('active', isVisible);
+        button.setAttribute('aria-expanded', isVisible);
+    }
 }
 
 // ===========================================
@@ -748,6 +800,12 @@ function repayLoan() {
     }
     
     state.bankBalance -= payoff.total;
+    const interestPaid = Math.max(0, payoff.total - loan.principal);
+    addSpendingEntry({
+        amount: interestPaid,
+        type: 'loan-interest',
+        label: `Loan interest (${loan.name})`
+    });
     state.activeLoan = null;
     saveGameState();
     updateBankerDisplay();
@@ -763,6 +821,12 @@ function processLoanDue() {
     if (Date.now() >= loan.dueTimestamp) {
         const payoff = getLoanPayoff(loan, true);
         state.bankBalance -= payoff.total;
+        const interestPaid = Math.max(0, payoff.total - loan.principal);
+        addSpendingEntry({
+            amount: interestPaid,
+            type: 'loan-interest',
+            label: `Loan interest (${loan.name})`
+        });
         state.activeLoan = null;
         saveGameState();
         updateBankerDisplay();
@@ -979,6 +1043,11 @@ function buyShopItem(itemId) {
     
     // Deduct price from bank balance
     state.bankBalance -= item.price;
+    addSpendingEntry({
+        amount: item.price,
+        type: 'luxury',
+        label: `Luxury purchase: ${item.name}`
+    });
     
     // Add to owned items
     state.ownedItems.push({
@@ -1177,6 +1246,11 @@ function initExpenseSystem() {
         
         if (missedAmount > 0) {
             state.bankBalance -= missedAmount;
+            addSpendingEntry({
+                amount: missedAmount,
+                type: 'expense',
+                label: `Daily expenses (${daysMissed} days)`
+            });
             state.lastExpenseDate = today;
             saveGameState();
             updateBankerDisplay();
@@ -1230,6 +1304,11 @@ function chargeExpenses() {
     
     // Deduct from bank balance
     state.bankBalance -= totalExpenses;
+    addSpendingEntry({
+        amount: totalExpenses,
+        type: 'expense',
+        label: 'Daily expenses'
+    });
     
     // Update last expense date
     state.lastExpenseDate = today;
