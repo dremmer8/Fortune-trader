@@ -27,6 +27,43 @@ const MIN_DEPOSIT = 100;
 // e.g., 0.05 = 5% fee
 const CASH_OUT_FEE_PERCENT = 0.05;
 
+// Loan options (effective annual rates)
+const LOAN_OPTIONS = [
+    {
+        id: 'small',
+        name: 'Small loan',
+        amountMin: 1160,
+        amountMax: 3480,
+        termWeeksMin: 1,
+        termWeeksMax: 3,
+        rateMin: 0.07,
+        rateMax: 0.11,
+        description: 'Short-term cash boost'
+    },
+    {
+        id: 'average',
+        name: 'Average loan',
+        amountMin: 11600,
+        amountMax: 23200,
+        termWeeksMin: 4,
+        termWeeksMax: 6,
+        rateMin: 0.06,
+        rateMax: 0.1,
+        description: 'Mid-term liquidity'
+    },
+    {
+        id: 'big',
+        name: 'Big loan',
+        amountMin: 34800,
+        amountMax: 87000,
+        termWeeksMin: 6,
+        termWeeksMax: 10,
+        rateMin: 0.06,
+        rateMax: 0.09,
+        description: 'Large capital injection'
+    }
+];
+
 // ===========================================
 // DAILY EXPENSES CONFIGURATION
 // ===========================================
