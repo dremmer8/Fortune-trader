@@ -30,20 +30,24 @@ const FirebaseService = {
     },
 
     // Save user game data to Firebase (cloud backup)
-    async saveUserData(playerName, gameData) {
+    async saveUserData(userId, playerName, gameData) {
         if (!this.isAvailable()) {
             console.warn('Firebase not available, skipping cloud sync');
             return { success: false, error: 'Firebase not initialized' };
         }
 
         try {
-            const userRef = db.collection('users').doc(playerName);
-            await userRef.set({
+            if (!userId) {
+                return { success: false, error: 'Missing user ID' };
+            }
+            const userRef = db.collection('users').doc(userId);
+            const payload = {
                 ...gameData,
                 playerName: playerName,
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
                 syncedAt: Date.now()
-            }, { merge: true });
+            };
+            await userRef.set(payload, { merge: true });
             console.log('Game data synced to Firebase');
             return { success: true };
         } catch (error) {
@@ -54,24 +58,38 @@ const FirebaseService = {
     },
 
     // Load user game data from Firebase (for cross-device access)
-    async loadUserData(playerName) {
+    async loadUserData(userId, playerName) {
         if (!this.isAvailable()) {
             return { success: false, error: 'Firebase not initialized' };
         }
 
         try {
-            const userRef = db.collection('users').doc(playerName);
-            const doc = await userRef.get();
-            if (doc.exists) {
-                const data = doc.data();
-                // Remove Firebase metadata
-                const cleanData = { ...data };
-                delete cleanData.lastUpdated;
-                delete cleanData.syncedAt;
-                return { success: true, data: cleanData };
-            } else {
-                return { success: false, data: null };
+            if (userId) {
+                const userRef = db.collection('users').doc(userId);
+                const doc = await userRef.get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    // Remove Firebase metadata
+                    const cleanData = { ...data };
+                    delete cleanData.lastUpdated;
+                    delete cleanData.syncedAt;
+                    return { success: true, data: cleanData };
+                }
             }
+
+            if (playerName) {
+                const legacyRef = db.collection('users').doc(playerName);
+                const legacyDoc = await legacyRef.get();
+                if (legacyDoc.exists) {
+                    const data = legacyDoc.data();
+                    const cleanData = { ...data };
+                    delete cleanData.lastUpdated;
+                    delete cleanData.syncedAt;
+                    return { success: true, data: cleanData };
+                }
+            }
+
+            return { success: false, data: null };
         } catch (error) {
             console.error('Error loading from Firebase:', error);
             return { success: false, error: error.message };
@@ -79,13 +97,16 @@ const FirebaseService = {
     },
 
     // Check if cloud data is newer than local
-    async checkCloudSyncStatus(playerName, localTimestamp) {
+    async checkCloudSyncStatus(userId, localTimestamp) {
         if (!this.isAvailable()) {
             return { hasCloudData: false };
         }
 
         try {
-            const userRef = db.collection('users').doc(playerName);
+            if (!userId) {
+                return { hasCloudData: false };
+            }
+            const userRef = db.collection('users').doc(userId);
             const doc = await userRef.get();
             if (doc.exists) {
                 const cloudData = doc.data();
@@ -105,17 +126,21 @@ const FirebaseService = {
     },
 
     // Update user login timestamp
-    async updateLoginTime(playerName) {
+    async updateLoginTime(userId, playerName) {
         if (!this.isAvailable()) {
             return;
         }
 
         try {
-            const userRef = db.collection('users').doc(playerName);
-            await userRef.update({
+            if (!userId) {
+                return;
+            }
+            const userRef = db.collection('users').doc(userId);
+            await userRef.set({
+                playerName: playerName,
                 lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
                 loginCount: firebase.firestore.FieldValue.increment(1)
-            });
+            }, { merge: true });
         } catch (error) {
             console.error('Error updating login time:', error);
         }

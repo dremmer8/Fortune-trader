@@ -321,9 +321,9 @@ async function saveGameState() {
     
     // BACKUP/SYNC: Save to Firebase (for cross-device access)
     // Only sync if logged in and Firebase is available
-    if (isLoggedIn && playerName && typeof FirebaseService !== 'undefined') {
+    if (isLoggedIn && playerId && typeof FirebaseService !== 'undefined') {
         // Fire and forget - don't block on Firebase save
-        FirebaseService.saveUserData(playerName, saveData).catch(err => {
+        FirebaseService.saveUserData(playerId, playerName, saveData).catch(err => {
             console.warn('Firebase sync failed (localStorage saved):', err);
         });
     }
@@ -335,9 +335,9 @@ async function loadGameState() {
     let source = 'none';
     
     // STEP 1: If logged in, check Firebase first (for cross-device access)
-    if (isLoggedIn && playerName && typeof FirebaseService !== 'undefined') {
+    if (isLoggedIn && playerId && typeof FirebaseService !== 'undefined') {
         try {
-            const result = await FirebaseService.loadUserData(playerName);
+            const result = await FirebaseService.loadUserData(playerId, playerName);
             if (result.success && result.data) {
                 saveData = result.data;
                 source = 'firebase';
