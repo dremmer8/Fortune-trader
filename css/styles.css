@@ -255,6 +255,11 @@
     font-size: 32px;
 }
 
+.app-icon.leaderboard-icon {
+    background: linear-gradient(135deg, #facc15, #f97316);
+    font-size: 32px;
+}
+
 .app-name {
     font-size: 11px;
     color: var(--text-primary);
@@ -1854,6 +1859,170 @@
     font-size: 10px;
     color: var(--text-secondary);
     line-height: 1.4;
+}
+
+/* ===========================================
+   LEADERBOARD APP INTERFACE
+   =========================================== */
+.leaderboard-app-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, #15121f 0%, #1b1c2d 100%);
+    border-radius: 36px;
+    z-index: 30;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.leaderboard-app-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.leaderboard-header {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 48px 16px 16px;
+    border-bottom: 1px solid rgba(250, 204, 21, 0.2);
+}
+
+.leaderboard-header-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.leaderboard-back-btn {
+    width: 32px;
+    height: 32px;
+    background: rgba(250, 204, 21, 0.1);
+    border: 1px solid rgba(250, 204, 21, 0.3);
+    border-radius: 8px;
+    color: #facc15;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.leaderboard-back-btn:hover {
+    background: rgba(250, 204, 21, 0.2);
+}
+
+.leaderboard-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #facc15;
+}
+
+.leaderboard-subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.leaderboard-content {
+    flex: 1;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.leaderboard-status {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.leaderboard-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.leaderboard-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.leaderboard-rank {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 48px;
+    padding: 8px 6px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.leaderboard-rank-emoji {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.leaderboard-rank-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #facc15;
+}
+
+.leaderboard-player {
+    flex: 1;
+}
+
+.leaderboard-player-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.leaderboard-player-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.leaderboard-stat {
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    border-radius: 8px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+}
+
+.leaderboard-stat strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.leaderboard-updated {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
 }
 
 /* Expense deduction notification */
