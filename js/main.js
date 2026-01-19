@@ -7,7 +7,7 @@
 let gameStarted = false;
 let isLoggedIn = false;
 let playerName = '';
-let playerPassword = '';
+let playerId = '';
 
 // ===========================================
 // LOGIN CARD INTERFACE
@@ -104,8 +104,9 @@ async function attemptLogin() {
         AudioManager.playError();
         return;
     }
-    
-    playerPassword = cvvInput.value.trim();
+
+    const password = cvvInput.value.trim();
+    playerId = await deriveUserId(playerName, password);
     isLoggedIn = true;
     
     // Play success sound
@@ -116,7 +117,7 @@ async function attemptLogin() {
     
     // Update login time in Firebase (for statistics)
     if (typeof FirebaseService !== 'undefined') {
-        await FirebaseService.updateLoginTime(playerName);
+        await FirebaseService.updateLoginTime(playerId, playerName);
     }
     
     // Load game state (will check Firebase first, then localStorage)
@@ -142,7 +143,7 @@ function saveCredentials() {
     try {
         const credentials = {
             playerName: playerName,
-            playerPassword: playerPassword
+            playerId: playerId
         };
         localStorage.setItem('fortuneTraderCredentials', JSON.stringify(credentials));
     } catch (e) {
@@ -156,7 +157,7 @@ function loadCredentials() {
         const saved = localStorage.getItem('fortuneTraderCredentials');
         if (saved) {
             const credentials = JSON.parse(saved);
-            if (credentials.playerName && credentials.playerPassword) {
+            if (credentials.playerName) {
                 return credentials;
             }
         }
@@ -193,7 +194,7 @@ function updatePlayerDisplay() {
 function showLoginCard() {
     isLoggedIn = false;
     playerName = '';
-    playerPassword = '';
+    playerId = '';
     
     const loginContainer = document.getElementById('loginCardContainer');
     const cardWrapper = document.getElementById('cardWrapper');
@@ -326,6 +327,19 @@ function updateSettingsDisplay() {
     if (userNameEl) {
         userNameEl.textContent = playerName || 'Not logged in';
     }
+}
+
+// Derive a stable user ID from name + password without storing the password
+async function deriveUserId(name, password) {
+    const base = `${name}:${password}`;
+    if (window.crypto && window.crypto.subtle) {
+        const data = new TextEncoder().encode(base);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(hashBuffer))
+            .map(byte => byte.toString(16).padStart(2, '0'))
+            .join('');
+    }
+    return btoa(unescape(encodeURIComponent(base))).replace(/=+$/, '');
 }
 
 // Switch to banker from locked overlay
@@ -1016,12 +1030,20 @@ async function initHub() {
     if (savedCredentials) {
         // Auto-login with saved credentials
         playerName = savedCredentials.playerName;
-        playerPassword = savedCredentials.playerPassword;
-        isLoggedIn = true;
-        
+        if (savedCredentials.playerId) {
+            playerId = savedCredentials.playerId;
+            isLoggedIn = true;
+        } else if (savedCredentials.playerPassword) {
+            playerId = await deriveUserId(playerName, savedCredentials.playerPassword);
+            isLoggedIn = true;
+            saveCredentials();
+        }
+    }
+
+    if (isLoggedIn) {
         // Update login time in Firebase
         if (typeof FirebaseService !== 'undefined') {
-            await FirebaseService.updateLoginTime(playerName);
+            await FirebaseService.updateLoginTime(playerId, playerName);
         }
         
         // Load game state (checks Firebase first, then localStorage)
