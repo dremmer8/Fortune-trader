@@ -1598,6 +1598,13 @@
     font-weight: 300;
 }
 
+.settings-slider {
+    width: 120px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    margin-left: auto;
+}
+
 /* ===========================================
    EXPENSES APP INTERFACE
    =========================================== */

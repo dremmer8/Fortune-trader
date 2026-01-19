@@ -22,16 +22,42 @@ function formatVersionStamp(date = new Date()) {
     return `v${year}${month}${day}-${hour}${minute}`;
 }
 
-function initVersionStamp() {
+function updateVersionStamp() {
+    const versionText = formatVersionStamp();
     const stamp = document.getElementById('versionStamp');
-    if (!stamp) return;
+    if (stamp) {
+        stamp.textContent = versionText;
+    }
 
-    const updateStamp = () => {
-        stamp.textContent = formatVersionStamp();
+    const settingsVersion = document.getElementById('settingsVersionValue');
+    if (settingsVersion) {
+        settingsVersion.textContent = `Version ${versionText}`;
+    }
+}
+
+function initVersionStamp() {
+    updateVersionStamp();
+    setInterval(updateVersionStamp, 60000);
+}
+
+function initAudioControls() {
+    const slider = document.getElementById('audioVolumeSlider');
+    const valueLabel = document.getElementById('audioVolumeValue');
+    if (!slider || !valueLabel || typeof AudioManager === 'undefined') return;
+
+    const updateLabel = (value) => {
+        valueLabel.textContent = `${value}%`;
     };
 
-    updateStamp();
-    setInterval(updateStamp, 60000);
+    const initialValue = Math.round((AudioManager.masterVolume ?? 0.8) * 100);
+    slider.value = String(initialValue);
+    updateLabel(initialValue);
+
+    slider.addEventListener('input', (event) => {
+        const value = Number(event.target.value);
+        AudioManager.setMasterVolume(value / 100);
+        updateLabel(value);
+    });
 }
 
 // ===========================================
@@ -2185,6 +2211,7 @@ function initGameSystems() {
 // Initialize the application (hub first)
 function initApp() {
     initVersionStamp();
+    initAudioControls();
     // Initialize the hub/phone interface first
     initHub();
     console.log('Hub initialized - waiting for app selection');
