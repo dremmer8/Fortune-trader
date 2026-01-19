@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "users": {
+      "$userId": {
+        ".read": true,
+        ".write": "auth != null && auth.uid === $userId",
+        "bankBalance": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000"
+        },
+        "balance": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000000"
+        },
+        "totalEarnings": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5000000000"
+        },
+        "lifetimeSpendings": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5000000000"
+        },
+        "tradingRounds": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 250000"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+        },
+        "security": {
+          ".validate": "newData.hasChildren(['signature', 'publicKey', 'signedAt'])"
+        },
+        "securityStatus": {
+          "flagged": {
+            ".validate": "newData.isBoolean()"
+          }
+        }
+      }
+    }
+  }
+}

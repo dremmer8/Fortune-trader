@@ -318,10 +318,19 @@ async function saveGameState() {
         purchasedUpgrades: state.purchasedUpgrades || [],
         cookieInventory: state.cookieInventory || []
     };
+
+    let payload = saveData;
+    if (typeof SecurityService !== 'undefined') {
+        const result = await SecurityService.prepareSaveData(saveData);
+        payload = result.payload;
+        if (!result.validation.ok) {
+            console.warn('Save validation issues detected:', result.validation.issues);
+        }
+    }
     
     // PRIMARY: Save to localStorage (fast, works offline)
     try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+        localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
         console.log('Game saved to localStorage');
     } catch (e) {
         console.error('Failed to save to localStorage:', e);
@@ -331,7 +340,7 @@ async function saveGameState() {
     // Only sync if logged in and Firebase is available
     if (isLoggedIn && playerId && typeof FirebaseService !== 'undefined') {
         // Fire and forget - don't block on Firebase save
-        FirebaseService.saveUserData(playerId, playerName, saveData).catch(err => {
+        FirebaseService.saveUserData(playerId, playerName, payload).catch(err => {
             console.warn('Firebase sync failed (localStorage saved):', err);
         });
     }
@@ -393,6 +402,14 @@ async function loadGameState() {
         state.betIndex = saveData.betIndex || 0;
         state.purchasedUpgrades = saveData.purchasedUpgrades || [];
         state.cookieInventory = saveData.cookieInventory || [];
+
+        if (typeof SecurityService !== 'undefined') {
+            SecurityService.verifyLoadedSave(saveData).then(result => {
+                if (!result.valid) {
+                    console.warn('Loaded save failed signature verification:', result.reason);
+                }
+            });
+        }
         
         // If we loaded from Firebase, also update localStorage (merge)
         if (source === 'firebase') {
@@ -458,6 +475,19 @@ function resetGameState() {
 
 // Deposit money from bank to trading account
 function depositToTrading(amount) {
+    if (typeof SecurityService !== 'undefined') {
+        const validation = SecurityService.validateTransaction('depositToTrading', {
+            amount,
+            bankBalance: state.bankBalance,
+            minDeposit: MIN_DEPOSIT
+        });
+        if (!validation.ok) {
+            SecurityService.addFlag('invalid_deposit', { amount, bankBalance: state.bankBalance });
+            return { success: false, message: validation.reason };
+        }
+        SecurityService.logTransaction('depositToTrading', { amount, bankBalance: state.bankBalance });
+    }
+
     if (amount < MIN_DEPOSIT) {
         return { success: false, message: `Minimum deposit is $${MIN_DEPOSIT}` };
     }
@@ -480,6 +510,18 @@ function prestigeToBank() {
     
     if (portfolioValue <= 0) {
         return { success: false, message: 'No funds to transfer' };
+    }
+
+    if (typeof SecurityService !== 'undefined') {
+        const validation = SecurityService.validateTransaction('prestigeToBank', {
+            amount: portfolioValue,
+            portfolioValue
+        });
+        if (!validation.ok) {
+            SecurityService.addFlag('invalid_prestige', { portfolioValue });
+            return { success: false, message: validation.reason };
+        }
+        SecurityService.logTransaction('prestigeToBank', { portfolioValue });
     }
     
     // Calculate cash out fee
