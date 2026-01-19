@@ -14,17 +14,15 @@ let bankerMode = 'deposit';
 // VERSION STAMP
 // ===========================================
 
-function formatVersionStamp(date = new Date()) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hour = String(date.getHours()).padStart(2, '0');
-    const minute = String(date.getMinutes()).padStart(2, '0');
-    return `v${year}${month}${day}-${hour}${minute}`;
+function getVersionStamp() {
+    if (typeof APP_VERSION === 'string' && APP_VERSION.trim()) {
+        return APP_VERSION.trim();
+    }
+    return 'v0.0.0';
 }
 
 function updateVersionStamp() {
-    const versionText = formatVersionStamp();
+    const versionText = getVersionStamp();
     const stamp = document.getElementById('versionStamp');
     if (stamp) {
         stamp.textContent = versionText;
@@ -38,7 +36,7 @@ function updateVersionStamp() {
 
 function initVersionStamp() {
     updateVersionStamp();
-    setInterval(updateVersionStamp, 60000);
+    window.addEventListener('app-version-ready', updateVersionStamp);
 }
 
 function initAudioControls() {
