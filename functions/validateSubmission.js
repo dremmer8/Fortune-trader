@@ -77,6 +77,24 @@ function validateRange(label, value, min, max) {
   return null;
 }
 
+function stripNonSignedFields(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return payload;
+  }
+
+  const {
+    playerName,
+    gameUserId,
+    firebaseUid,
+    lastUpdated,
+    syncedAt,
+    securityStatus,
+    ...signedPayload
+  } = payload;
+
+  return signedPayload;
+}
+
 exports.validateSubmission = functions.https.onCall(async (data, context) => {
   const { userId, payload } = data || {};
   
@@ -106,6 +124,7 @@ exports.validateSubmission = functions.https.onCall(async (data, context) => {
   // Check signature if present (legacy saves might not have it)
   const security = payload.security || {};
   if (security.signature && security.publicKey) {
+    const signedPayload = stripNonSignedFields(payload);
     // Recreate the exact payload that was signed on the client
     // Client signs BEFORE adding validationIssues and recentTransactions
     const securityForSignature = {
@@ -119,7 +138,7 @@ exports.validateSubmission = functions.https.onCall(async (data, context) => {
       flags: security.flags || [],
       legacy: security.legacy
     };
-    const payloadForSignature = { ...payload, security: securityForSignature };
+    const payloadForSignature = { ...signedPayload, security: securityForSignature };
     const signatureValid = verifySignature(payloadForSignature, security.signature, security.publicKey);
     if (!signatureValid) {
       cleanIssues.push('Invalid signature');
