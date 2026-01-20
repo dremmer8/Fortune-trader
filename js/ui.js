@@ -524,9 +524,22 @@ function cancelResetGame() {
     backdrop.classList.remove('open');
 }
 
-function executeResetGame() {
-    // Reset game state
-    resetGameState();
+async function executeResetGame() {
+    // Show loading state
+    showNotification('Resetting game and deleting all data...', 'info');
+    
+    // Close all overlays first
+    if (typeof closePhoneOverlays === 'function') {
+        closePhoneOverlays();
+    }
+    
+    // Reset game state and delete all cloud data
+    if (typeof resetGameStateComplete === 'function') {
+        await resetGameStateComplete();
+    } else {
+        // Fallback to local reset only
+        resetGameState();
+    }
     
     // Clear saved credentials
     if (typeof clearCredentials === 'function') {
@@ -536,7 +549,7 @@ function executeResetGame() {
     // Close modal
     cancelResetGame();
     
-    // Update UI
+    // Update all game UI elements
     updateBalanceDisplay();
     updateComboCounter();
     renderCookieInventory();
@@ -547,15 +560,23 @@ function executeResetGame() {
     // Update shop item states
     updateShopItemStates();
     
-    // Update banking displays and return to phone
+    // Update all banking/phone displays
     if (typeof updateTraderLockState === 'function') {
         updateTraderLockState();
     }
     if (typeof updateBankerDisplay === 'function') {
         updateBankerDisplay();
     }
+    if (typeof updateExpensesDisplay === 'function') {
+        updateExpensesDisplay();
+    }
+    if (typeof updateLuxuryShopDisplay === 'function') {
+        updateLuxuryShopDisplay();
+    }
+    
+    // Return to phone hub
     if (typeof togglePhone === 'function') {
-        togglePhone(); // Return to phone hub
+        togglePhone();
     }
     
     // Show login card again
@@ -563,5 +584,5 @@ function executeResetGame() {
         showLoginCard();
     }
     
-    showNotification('Game has been reset!', 'info');
+    showNotification('Game reset complete! All data deleted.', 'success');
 }

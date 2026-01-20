@@ -146,6 +146,14 @@
             border-bottom: none;
         }
         
+        tbody tr.flagged-row {
+            background: rgba(153, 27, 27, 0.1);
+        }
+        
+        tbody tr.flagged-row:hover {
+            background: rgba(153, 27, 27, 0.2);
+        }
+        
         .number {
             text-align: right;
             font-family: 'JetBrains Mono', monospace;
@@ -201,6 +209,177 @@
             font-size: 12px;
             margin-top: 10px;
         }
+        
+        .action-btn {
+            background: #334155;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 2px;
+            transition: all 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #475569;
+            transform: translateY(-1px);
+        }
+        
+        .action-btn.danger {
+            background: #991b1b;
+            border-color: #dc2626;
+        }
+        
+        .action-btn.danger:hover {
+            background: #dc2626;
+        }
+        
+        .action-btn.success {
+            background: #065f46;
+            border-color: #10b981;
+        }
+        
+        .action-btn.success:hover {
+            background: #047857;
+        }
+        
+        .action-btn.warning {
+            background: #92400e;
+            border-color: #f59e0b;
+        }
+        
+        .action-btn.warning:hover {
+            background: #b45309;
+        }
+        
+        .flagged-badge {
+            display: inline-block;
+            background: #991b1b;
+            color: #fca5a5;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .clean-badge {
+            display: inline-block;
+            background: #065f46;
+            color: #6ee7b7;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #334155;
+            margin: 10% auto;
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 600px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .modal-title {
+            font-size: 1.5em;
+            color: #4ade80;
+        }
+        
+        .modal-close {
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: #e2e8f0;
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            max-height: 60vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .modal-body::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .modal-body::-webkit-scrollbar-track {
+            background: #0f172a;
+            border-radius: 4px;
+        }
+        
+        .modal-body::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        
+        .modal-body::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 12px;
+            border-top: 1px solid #334155;
+        }
+        
+        .flag-item {
+            background: #0f172a;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border-left: 3px solid #dc2626;
+        }
+        
+        .flag-type {
+            color: #fca5a5;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .flag-details {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 6px;
+        }
     </style>
 </head>
 <body>
@@ -229,11 +408,13 @@
                         <th class="number">Items Owned</th>
                         <th>Last Login</th>
                         <th class="number">Login Count</th>
+                        <th>Security Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="playersBody">
                     <tr>
-                        <td colspan="8" class="loading">Loading players...</td>
+                        <td colspan="10" class="loading">Loading players...</td>
                     </tr>
                 </tbody>
             </table>
@@ -241,12 +422,47 @@
         
         <div class="last-synced" id="lastSynced"></div>
     </div>
+    
+    <!-- Modal for viewing cheat flags -->
+    <div id="flagModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🚩 Security Flags</h2>
+                <button class="modal-close" onclick="closeFlagModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="flagModalBody">
+                <!-- Flag details will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" onclick="closeFlagModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for confirming player deletion -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">⚠️ Confirm Player Deletion</h2>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="deleteModalBody">
+                <p>Are you sure you want to permanently delete this player?</p>
+                <p style="color: #fca5a5; margin-top: 12px;">⚠️ This action cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" onclick="closeDeleteModal()">Cancel</button>
+                <button class="action-btn danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete Player</button>
+            </div>
+        </div>
+    </div>
 
     <div class="version-stamp" id="versionStamp" aria-live="polite"></div>
 
     <!-- Include Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="js/firebase.js"></script>
     <script src="js/version.js"></script>
     <script>
@@ -262,7 +478,7 @@
             
             // Show loading state
             document.getElementById('statsGrid').innerHTML = '<div class="loading">Loading statistics...</div>';
-            document.getElementById('playersBody').innerHTML = '<tr><td colspan="8" class="loading">Loading players...</td></tr>';
+            document.getElementById('playersBody').innerHTML = '<tr><td colspan="10" class="loading">Loading players...</td></tr>';
             
             try {
                 const result = await FirebaseService.getAllUserStats();
@@ -286,9 +502,12 @@
         }
 
         function displayStats(stats) {
+            // Store for later use
+            currentStats = stats;
+            
             if (stats.length === 0) {
                 document.getElementById('statsGrid').innerHTML = '<div class="loading">No players found</div>';
-                document.getElementById('playersBody').innerHTML = '<tr><td colspan="8" class="loading">No players registered yet</td></tr>';
+                document.getElementById('playersBody').innerHTML = '<tr><td colspan="10" class="loading">No players registered yet</td></tr>';
                 return;
             }
 
@@ -303,6 +522,10 @@
                 if (!s.lastLogin) return false;
                 const lastLoginTime = s.lastLogin.getTime ? s.lastLogin.getTime() : new Date(s.lastLogin).getTime();
                 return (now - lastLoginTime) < 7 * 24 * 60 * 60 * 1000; // Last 7 days
+            }).length;
+            const flaggedPlayers = stats.filter(s => {
+                const secStatus = s.securityStatus || { flagged: false, flags: [] };
+                return secStatus.flagged && secStatus.flags && secStatus.flags.length > 0;
             }).length;
 
             // Display aggregate stats
@@ -331,14 +554,29 @@
                     <div class="stat-value">${activePlayers}</div>
                     <div class="stat-label">Active Players (Last 7 Days)</div>
                 </div>
+                <div class="stat-card" style="border-color: ${flaggedPlayers > 0 ? '#dc2626' : '#334155'}">
+                    <div class="stat-value" style="color: ${flaggedPlayers > 0 ? '#fca5a5' : '#4ade80'}">${flaggedPlayers}</div>
+                    <div class="stat-label">Flagged for Cheating</div>
+                </div>
             `;
 
-            // Sort players by total earnings (descending)
-            const sortedStats = [...stats].sort((a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0));
+            // Sort players: flagged first, then by total earnings (descending)
+            sortedStats = [...stats].sort((a, b) => {
+                const aFlagged = a.securityStatus?.flagged && a.securityStatus?.flags?.length > 0 ? 1 : 0;
+                const bFlagged = b.securityStatus?.flagged && b.securityStatus?.flags?.length > 0 ? 1 : 0;
+                
+                // Flagged players come first
+                if (bFlagged !== aFlagged) {
+                    return bFlagged - aFlagged;
+                }
+                
+                // Then sort by total earnings
+                return (b.totalEarnings || 0) - (a.totalEarnings || 0);
+            });
 
             // Display player table
             const tbody = document.getElementById('playersBody');
-            tbody.innerHTML = sortedStats.map(s => {
+            tbody.innerHTML = sortedStats.map((s, index) => {
                 const lastLogin = s.lastLogin;
                 let lastLoginText = 'Never';
                 let isActive = false;
@@ -351,8 +589,27 @@
                 }
                 
                 const safePlayerName = escapeHtml(s.playerName);
+                const securityStatus = s.securityStatus || { flagged: false, flags: [] };
+                const isFlagged = securityStatus.flagged && securityStatus.flags && securityStatus.flags.length > 0;
+                const flagCount = isFlagged ? securityStatus.flags.length : 0;
+                
+                // Security status badge
+                let securityBadge = '<span class="clean-badge">✓ Clean</span>';
+                if (isFlagged) {
+                    securityBadge = `<span class="flagged-badge">⚠ ${flagCount} Flag${flagCount > 1 ? 's' : ''}</span>`;
+                }
+                
+                // Action buttons
+                let actionButtons = `<button class="action-btn danger" onclick="deletePlayer(${index})">🗑️ Remove</button>`;
+                if (isFlagged) {
+                    actionButtons += `
+                        <button class="action-btn warning" onclick="viewFlags(${index})">🔍 View Flags</button>
+                        <button class="action-btn success" onclick="unflagPlayer(${index})">✓ Unflag</button>
+                    `;
+                }
+                
                 return `
-                    <tr>
+                    <tr class="${isFlagged ? 'flagged-row' : ''}">
                         <td><span class="status-indicator ${isActive ? 'status-active' : 'status-inactive'}"></span>${safePlayerName}</td>
                         <td class="number">$${(s.bankBalance || 0).toLocaleString()}</td>
                         <td class="number">$${(s.totalEarnings || 0).toLocaleString()}</td>
@@ -361,6 +618,8 @@
                         <td class="number">${s.ownedItems || 0}</td>
                         <td>${lastLoginText}</td>
                         <td class="number">${s.loginCount || 0}</td>
+                        <td>${securityBadge}</td>
+                        <td>${actionButtons}</td>
                     </tr>
                 `;
             }).join('');
@@ -383,6 +642,150 @@
             if (!stamp) return;
             stamp.textContent = getVersionStamp();
         }
+
+        // Store current stats for action callbacks
+        let currentStats = [];
+        let sortedStats = [];
+
+        // View security flags for a player
+        function viewFlags(index) {
+            const player = sortedStats[index];
+            if (!player) return;
+            
+            const securityStatus = player.securityStatus || { flagged: false, flags: [] };
+            const flags = securityStatus.flags || [];
+            
+            const modalBody = document.getElementById('flagModalBody');
+            if (flags.length === 0) {
+                modalBody.innerHTML = '<p>No security flags found for this player.</p>';
+            } else {
+                modalBody.innerHTML = `
+                    <p><strong>Player:</strong> ${escapeHtml(player.playerName)}</p>
+                    <p><strong>Total Flags:</strong> ${flags.length}</p>
+                    <div style="margin-top: 16px;">
+                        ${flags.map(flag => {
+                            const flagType = escapeHtml(flag.type || 'Unknown');
+                            const flagTime = flag.timestamp ? new Date(flag.timestamp).toLocaleString() : 'Unknown time';
+                            let details = '';
+                            if (flag.details) {
+                                details = '<div class="flag-details">' + escapeHtml(JSON.stringify(flag.details, null, 2)) + '</div>';
+                            }
+                            return `
+                                <div class="flag-item">
+                                    <div class="flag-type">${flagType}</div>
+                                    <div class="flag-details">${flagTime}</div>
+                                    ${details}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+            
+            document.getElementById('flagModal').style.display = 'block';
+        }
+        
+        function closeFlagModal() {
+            document.getElementById('flagModal').style.display = 'none';
+        }
+        
+        // Unflag a player
+        async function unflagPlayer(index) {
+            const player = sortedStats[index];
+            if (!player) return;
+            
+            if (!confirm(`Are you sure you want to unflag ${player.playerName}? This will clear all security flags.`)) {
+                return;
+            }
+            
+            // Show loading feedback
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '⏳ Unflagging...';
+            btn.disabled = true;
+            
+            try {
+                const result = await FirebaseService.adminUnflagPlayer(player.playerName);
+                
+                if (result.success) {
+                    alert(`✓ Successfully unflagged ${player.playerName}`);
+                    loadStats(); // Reload the stats
+                } else {
+                    showError('Error unflagging player: ' + (result.error || 'Unknown error'));
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                showError('Error unflagging player: ' + error.message);
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+        
+        // Delete player
+        let playerToDelete = null;
+        
+        function deletePlayer(index) {
+            const player = sortedStats[index];
+            if (!player) return;
+            
+            playerToDelete = player;
+            
+            const modalBody = document.getElementById('deleteModalBody');
+            modalBody.innerHTML = `
+                <p>Are you sure you want to permanently delete <strong>${escapeHtml(player.playerName)}</strong>?</p>
+                <div style="background: #0f172a; padding: 12px; margin-top: 12px; border-radius: 6px; border-left: 3px solid #dc2626;">
+                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 8px;">This will delete:</p>
+                    <ul style="color: #94a3b8; font-size: 13px; margin-left: 20px;">
+                        <li>All player game data</li>
+                        <li>Bank balance: $${(player.bankBalance || 0).toLocaleString()}</li>
+                        <li>Total earnings: $${(player.totalEarnings || 0).toLocaleString()}</li>
+                        <li>Trading rounds: ${player.tradingRounds || 0}</li>
+                        <li>Login history</li>
+                    </ul>
+                </div>
+                <p style="color: #fca5a5; margin-top: 12px; font-weight: 600;">⚠️ This action cannot be undone!</p>
+            `;
+            
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            playerToDelete = null;
+        }
+        
+        async function confirmDelete() {
+            if (!playerToDelete) return;
+            
+            try {
+                const result = await FirebaseService.adminDeletePlayer(playerToDelete.playerName);
+                
+                if (result.success) {
+                    alert(`✓ Successfully deleted player: ${playerToDelete.playerName}`);
+                    closeDeleteModal();
+                    loadStats(); // Reload the stats
+                } else {
+                    showError('Error deleting player: ' + (result.error || 'Unknown error'));
+                    closeDeleteModal();
+                }
+            } catch (error) {
+                showError('Error deleting player: ' + error.message);
+                closeDeleteModal();
+            }
+        }
+        
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const flagModal = document.getElementById('flagModal');
+            const deleteModal = document.getElementById('deleteModal');
+            if (event.target === flagModal) {
+                closeFlagModal();
+            }
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+        };
 
         // Load stats on page load
         loadStats();

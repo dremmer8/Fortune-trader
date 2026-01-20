@@ -539,10 +539,10 @@
     <div class="confirm-modal" id="resetModal">
         <div class="confirm-icon">⚠️</div>
         <h3 class="confirm-title">Reset Game?</h3>
-        <p class="confirm-text">This will reset your bank balance to $1,000 and clear all trading data. This action cannot be undone.</p>
+        <p class="confirm-text">This will reset your bank balance to $1,000 and <strong>permanently delete ALL saved data</strong> for this login/password pair from both your device and cloud storage. This action cannot be undone.</p>
         <div class="confirm-actions">
             <button class="confirm-btn cancel" onclick="cancelResetGame()">Cancel</button>
-            <button class="confirm-btn danger" onclick="executeResetGame()">Reset Game</button>
+            <button class="confirm-btn danger" onclick="executeResetGame()">Reset & Delete All Data</button>
         </div>
     </div>
 
@@ -583,6 +583,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <!-- Game scripts -->
     <script src="js/config.js"></script>
     <script src="js/version.js"></script>
@@ -590,6 +591,7 @@
     <script src="js/firebase.js"></script>
     <script src="js/security.js"></script>
     <script src="js/state.js"></script>
+    <script src="js/state-protected.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/chart.js"></script>
     <script src="js/trading.js"></script>

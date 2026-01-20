@@ -439,7 +439,7 @@ function clearSaveData() {
     }
 }
 
-// Reset game to initial state
+// Reset game to initial state (synchronous - clears local state and localStorage)
 function resetGameState() {
     // Reset banking
     state.bankBalance = STARTING_BANK_BALANCE;
@@ -467,6 +467,27 @@ function resetGameState() {
     state.cookie = null;
     
     clearSaveData();
+}
+
+// Reset game and delete all cloud data (async - use this for user-initiated reset)
+async function resetGameStateComplete() {
+    // Reset local state first
+    resetGameState();
+    
+    // Delete from Firebase if logged in
+    if (isLoggedIn && playerId && typeof FirebaseService !== 'undefined') {
+        try {
+            console.log('Deleting cloud data for user:', playerId);
+            const result = await FirebaseService.deleteUserData(playerId, playerName);
+            if (result.success) {
+                console.log('✅ Cloud data deleted successfully');
+            } else {
+                console.warn('⚠️ Cloud data deletion failed:', result.error);
+            }
+        } catch (error) {
+            console.error('Error deleting cloud data:', error);
+        }
+    }
 }
 
 // ===========================================

@@ -403,6 +403,48 @@ const SecurityService = (() => {
         saveState(state);
     }
 
+    function getRecentTransactions(count = 10) {
+        const log = loadTransactionLog();
+        return log.slice(-count);
+    }
+
+    function detectTampering() {
+        // Check if SecurityService functions have been overridden
+        const functionsToCheck = ['validateSaveData', 'addFlag', 'logTransaction'];
+        const tampered = [];
+
+        for (const funcName of functionsToCheck) {
+            if (typeof SecurityService[funcName] !== 'function') {
+                tampered.push(`${funcName} is not a function`);
+            }
+        }
+
+        // Check if localStorage keys are being modified externally
+        const securityState = loadState();
+        const expectedKeys = ['lastSaveAt', 'lastBankBalance', 'lastTotalEarnings', 'lastBalance', 'lastSubmissionAt', 'flagged', 'flags'];
+        const actualKeys = Object.keys(securityState);
+        
+        for (const key of expectedKeys) {
+            if (!(key in securityState) && securityState.lastSaveAt > 0) {
+                tampered.push(`Missing security state key: ${key}`);
+            }
+        }
+
+        if (tampered.length > 0) {
+            addFlag('tampering_detected', { issues: tampered });
+            return { tampered: true, issues: tampered };
+        }
+
+        return { tampered: false, issues: [] };
+    }
+
+    // Run tampering check periodically
+    if (typeof window !== 'undefined') {
+        setInterval(() => {
+            detectTampering();
+        }, 10000); // Check every 10 seconds
+    }
+
     return {
         logTransaction,
         addFlag,
@@ -412,6 +454,8 @@ const SecurityService = (() => {
         verifyLoadedSave,
         canSubmitToCloud,
         getSecuritySummary,
-        resetSubmissionTimer
+        resetSubmissionTimer,
+        getRecentTransactions,
+        detectTampering
     };
 })();

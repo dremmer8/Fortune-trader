@@ -31,14 +31,35 @@ function verifySignature(payload, signature, publicKeyJwk) {
   if (!signature || !publicKeyJwk) {
     return false;
   }
-  const verifier = crypto.createVerify('SHA256');
-  verifier.update(stableStringify(payload));
-  verifier.end();
   try {
-    const keyObject = crypto.createPublicKey({ key: publicKeyJwk, format: 'jwk' });
-    return verifier.verify(keyObject, Buffer.from(signature, 'base64'));
+    // ECDSA verification with P-256 curve
+    const keyObject = crypto.createPublicKey({ 
+      key: publicKeyJwk, 
+      format: 'jwk' 
+    });
+    
+    // Prepare the data
+    const dataString = stableStringify(payload);
+    const dataBuffer = Buffer.from(dataString, 'utf8');
+    
+    // WebCrypto outputs IEEE P1363 format (64 bytes for P-256)
+    // Tell Node.js crypto to expect IEEE P1363 format instead of DER
+    const signatureBuffer = Buffer.from(signature, 'base64');
+    
+    // Verify with dsaEncoding set to ieee-p1363 to match WebCrypto format
+    const isValid = crypto.verify(
+      'sha256',
+      dataBuffer,
+      {
+        key: keyObject,
+        dsaEncoding: 'ieee-p1363'  // This tells crypto.verify to expect WebCrypto format!
+      },
+      signatureBuffer
+    );
+    
+    return isValid;
   } catch (error) {
-    console.warn('Signature verification failed:', error);
+    console.warn('Signature verification error:', error.message);
     return false;
   }
 }
@@ -58,8 +79,19 @@ function validateRange(label, value, min, max) {
 
 exports.validateSubmission = functions.https.onCall(async (data, context) => {
   const { userId, payload } = data || {};
-  if (!context.auth || context.auth.uid !== userId) {
-    throw new functions.https.HttpsError('permission-denied', 'Invalid auth.');
+  
+  // Require Firebase Authentication
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Must be authenticated.');
+  }
+
+  // userId format: gameUserId_firebaseUid
+  // Extract Firebase UID and verify it matches the authenticated user
+  const parts = userId.split('_');
+  const firebaseUid = parts.length > 1 ? parts[parts.length - 1] : null;
+  
+  if (!firebaseUid || context.auth.uid !== firebaseUid) {
+    throw new functions.https.HttpsError('permission-denied', 'Auth UID mismatch.');
   }
 
   const issues = [];
@@ -71,11 +103,35 @@ exports.validateSubmission = functions.https.onCall(async (data, context) => {
 
   const cleanIssues = issues.filter(Boolean);
 
+  // Check signature if present (legacy saves might not have it)
   const security = payload.security || {};
-  const payloadForSignature = { ...payload, security: { ...security, signature: null } };
-  const signatureValid = verifySignature(payloadForSignature, security.signature, security.publicKey);
-  if (!signatureValid) {
-    cleanIssues.push('Invalid signature');
+  if (security.signature && security.publicKey) {
+    // Recreate the exact payload that was signed on the client
+    // Client signs BEFORE adding validationIssues and recentTransactions
+    const securityForSignature = {
+      version: security.version,
+      deviceId: security.deviceId,
+      signedAt: security.signedAt,
+      signature: null,
+      signatureAlgorithm: security.signatureAlgorithm,
+      publicKey: null,
+      flagged: security.flagged,
+      flags: security.flags || [],
+      legacy: security.legacy
+    };
+    const payloadForSignature = { ...payload, security: securityForSignature };
+    const signatureValid = verifySignature(payloadForSignature, security.signature, security.publicKey);
+    if (!signatureValid) {
+      cleanIssues.push('Invalid signature');
+      console.error('Signature verification failed for user:', userId, {
+        hasSignature: !!security.signature,
+        hasPublicKey: !!security.publicKey,
+        securityVersion: security.version
+      });
+    }
+  } else if (!security.legacy) {
+    // Warn but don't fail for missing signature (transition period)
+    console.warn('Save missing security signature', { userId, hasSignature: !!security.signature });
   }
 
   const userRef = admin.firestore().collection('users').doc(userId);
@@ -95,9 +151,11 @@ exports.validateSubmission = functions.https.onCall(async (data, context) => {
   }
 
   if (cleanIssues.length) {
+    console.error('Validation failed for user:', userId, { issues: cleanIssues });
     await userRef.set({ securityStatus: { flagged: true, flags: cleanIssues.slice(-10) } }, { merge: true });
-    throw new functions.https.HttpsError('failed-precondition', 'Validation failed.', { issues: cleanIssues });
+    throw new functions.https.HttpsError('failed-precondition', 'Validation failed: ' + cleanIssues.join(', '), { issues: cleanIssues });
   }
 
+  console.log('Validation passed for user:', userId);
   return { ok: true };
 });
