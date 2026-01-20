@@ -294,6 +294,9 @@ function updateComboCounter() {
 const SAVE_KEY = 'fortuneTrader_save';
 
 // Save game state - Hybrid: localStorage (primary) + Firebase (backup/sync)
+// Pending save snapshot key
+const PENDING_SAVE_KEY = 'fortuneTrader_pendingSave';
+
 async function saveGameState() {
     const saveData = {
         version: 8,
@@ -327,13 +330,247 @@ async function saveGameState() {
         console.error('Failed to save to localStorage:', e);
     }
     
+    // Store as pending save snapshot (for boot-time sync) - WITH SIGNATURE
+    // This prevents tampering with the pending snapshot in localStorage
+    try {
+        if (typeof SecurityService !== 'undefined') {
+            // Sign the snapshot to prevent tampering
+            const signed = await SecurityService.prepareSaveData(saveData);
+            localStorage.setItem(PENDING_SAVE_KEY, JSON.stringify(signed.payload));
+        } else {
+            // SECURITY: If SecurityService is unavailable, DO NOT save pending snapshot
+            // This prevents attackers from disabling SecurityService to bypass signatures
+            console.error('⚠️ SecurityService unavailable - pending save NOT stored (security risk)');
+            localStorage.removeItem(PENDING_SAVE_KEY);
+        }
+    } catch (e) {
+        console.warn('Failed to save pending snapshot:', e);
+        // On error, remove any existing unsigned snapshot
+        localStorage.removeItem(PENDING_SAVE_KEY);
+    }
+    
     // BACKUP/SYNC: Save to Firebase (for cross-device access)
     // Only sync if logged in and Firebase is available
     if (isLoggedIn && playerId && typeof FirebaseService !== 'undefined') {
-        // Fire and forget - don't block on Firebase save
-        FirebaseService.saveUserData(playerId, playerName, saveData).catch(err => {
-            console.warn('Firebase sync failed (localStorage saved):', err);
-        });
+        // Check rate limit
+        if (typeof SecurityService !== 'undefined') {
+            const gate = SecurityService.canSubmitToCloud();
+            if (!gate.ok) {
+                console.log(`⏳ Firebase sync rate limited (will sync on next boot, ${Math.ceil(gate.retryInMs / 1000)}s remaining)`);
+                return; // Keep in pending queue for boot-time sync
+            }
+        }
+        
+        // Attempt Firebase sync
+        try {
+            await FirebaseService.saveUserData(playerId, playerName, saveData);
+            // Success - clear pending snapshot
+            localStorage.removeItem(PENDING_SAVE_KEY);
+            console.log('✅ Firebase synced successfully, pending snapshot cleared');
+        } catch (err) {
+            console.warn('⚠️ Firebase sync failed (snapshot queued for boot-time sync):', err);
+            // Keep in pending queue for next boot
+        }
+    }
+}
+
+// Show/hide sync overlay
+function showSyncOverlay(show, status = '') {
+    const overlay = document.getElementById('syncOverlay');
+    const statusEl = document.getElementById('syncStatus');
+    
+    if (overlay) {
+        if (show) {
+            overlay.classList.remove('hidden');
+            if (statusEl && status) {
+                statusEl.textContent = status;
+            }
+        } else {
+            overlay.classList.add('hidden');
+        }
+    }
+}
+
+// Check and sync pending save snapshot from previous session
+async function syncPendingSaveSnapshot() {
+    if (!isLoggedIn || !playerId || typeof FirebaseService === 'undefined') {
+        // Not logged in, clear pending snapshot
+        localStorage.removeItem(PENDING_SAVE_KEY);
+        return { hadPendingSave: false };
+    }
+    
+    try {
+        const pendingSaveData = localStorage.getItem(PENDING_SAVE_KEY);
+        if (!pendingSaveData) {
+            return { hadPendingSave: false };
+        }
+        
+        const snapshot = JSON.parse(pendingSaveData);
+        console.log('⚠️ Found unsaved snapshot from previous session, verifying integrity...');
+        
+        // Show sync overlay to block UI
+        showSyncOverlay(true, 'Verifying saved data...');
+        
+        // CRITICAL: Verify signature to prevent tampering
+        // IMPORTANT: Pending snapshot is ALWAYS more recent than Firebase data
+        // We MUST load it locally, but only sync to Firebase if signature is valid
+        
+        let signatureValid = false;
+        let shouldSyncToFirebase = false;
+        
+        // Check for signature
+        if (!snapshot.security?.signature) {
+            console.error('🚨 SECURITY BREACH: Pending snapshot has no signature!');
+            console.error('This indicates tampering or SecurityService bypass attempt');
+            
+            if (typeof SecurityService !== 'undefined') {
+                SecurityService.addFlag('missing_signature_pending_snapshot', { 
+                    reason: 'Snapshot without signature detected - possible bypass attempt',
+                    timestamp: Date.now(),
+                    snapshotTimestamp: snapshot.timestamp
+                });
+            }
+            
+            showSyncOverlay(true, '⚠️ Unsigned data detected - loading locally only');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            signatureValid = false;
+            shouldSyncToFirebase = false;
+        } else if (typeof SecurityService !== 'undefined') {
+            // Verify the signature
+            const verification = await SecurityService.verifyLoadedSave(snapshot);
+            
+            if (!verification.valid) {
+                // Signature invalid - snapshot might be tampered with!
+                console.error('🚨 SIGNATURE MISMATCH: Pending snapshot signature invalid!');
+                console.error('Reason:', verification.reason);
+                SecurityService.addFlag('invalid_signature_pending_snapshot', { 
+                    reason: verification.reason,
+                    timestamp: Date.now(),
+                    snapshotTimestamp: snapshot.timestamp
+                });
+                
+                showSyncOverlay(true, '⚠️ Data integrity issue - loading locally only');
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                signatureValid = false;
+                shouldSyncToFirebase = false;
+            } else {
+                console.log('✅ Signature verified - snapshot is authentic');
+                signatureValid = true;
+                shouldSyncToFirebase = true;
+            }
+        } else {
+            // SecurityService not available - CRITICAL SECURITY ISSUE
+            console.error('🚨 SECURITY ERROR: SecurityService unavailable during verification!');
+            showSyncOverlay(true, '⚠️ Security system unavailable - loading locally only');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            signatureValid = false;
+            shouldSyncToFirebase = false;
+        }
+        
+        // LOAD SNAPSHOT LOCALLY REGARDLESS OF SIGNATURE STATUS
+        // This preserves the most recent state (prevents save-scumming via failed verification)
+        console.log(`Loading pending snapshot locally (${signatureValid ? 'signed' : 'unsigned/invalid'})`);
+        
+        // If signature is invalid, we need to RE-SIGN and sync before allowing gameplay
+        if (!shouldSyncToFirebase) {
+            console.warn('⚠️ Snapshot has invalid/missing signature - will re-sign and sync');
+            showSyncOverlay(true, 'Re-signing data...');
+            
+            // Re-sign the snapshot with a fresh signature
+            if (typeof SecurityService !== 'undefined') {
+                try {
+                    // Strip security field and re-sign
+                    const { security, ...dataToSign } = snapshot;
+                    const freshSigned = await SecurityService.prepareSaveData(dataToSign);
+                    
+                    showSyncOverlay(true, 'Syncing re-signed data to cloud...');
+                    
+                    // Bypass rate limit for boot-time re-sync
+                    SecurityService.resetSubmissionTimer();
+                    
+                    // Sync the RE-SIGNED snapshot to Firebase
+                    await FirebaseService.saveUserData(playerId, playerName, freshSigned.payload);
+                    
+                    console.log('✅ Re-signed snapshot synced to Firebase successfully');
+                    showSyncOverlay(true, 'Sync complete!');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Clear old pending snapshot
+                    localStorage.removeItem(PENDING_SAVE_KEY);
+                    showSyncOverlay(false);
+                    
+                    // Return the re-signed data to load
+                    return { 
+                        hadPendingSave: true, 
+                        success: true, 
+                        snapshot: freshSigned.payload,
+                        loadLocally: true,
+                        resignedAndSynced: true
+                    };
+                } catch (error) {
+                    console.error('❌ Failed to re-sign and sync:', error);
+                    showSyncOverlay(true, '⚠️ Sync failed - data saved locally only');
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    showSyncOverlay(false);
+                    
+                    // Still load locally, but flag that sync failed
+                    return { 
+                        hadPendingSave: true, 
+                        success: false, 
+                        snapshot: snapshot,
+                        loadLocally: true,
+                        signatureValid: false,
+                        syncFailed: true
+                    };
+                }
+            } else {
+                console.error('🚨 Cannot re-sign: SecurityService unavailable');
+                showSyncOverlay(false);
+                return { 
+                    hadPendingSave: true, 
+                    success: false, 
+                    snapshot: snapshot,
+                    loadLocally: true,
+                    signatureValid: false
+                };
+            }
+        }
+        
+        showSyncOverlay(true, 'Syncing previous session...');
+        
+        // Force sync to Firebase (bypass rate limit for boot-time sync)
+        if (typeof SecurityService !== 'undefined') {
+            SecurityService.resetSubmissionTimer();
+        }
+        
+        // Add small delay for visual feedback
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        showSyncOverlay(true, 'Uploading to cloud...');
+        await FirebaseService.saveUserData(playerId, playerName, snapshot);
+        
+        // Success - clear pending snapshot
+        localStorage.removeItem(PENDING_SAVE_KEY);
+        console.log('✅ Pending snapshot synced to Firebase successfully');
+        
+        showSyncOverlay(true, 'Sync complete!');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Hide overlay
+        showSyncOverlay(false);
+        
+        return { hadPendingSave: true, success: true };
+    } catch (error) {
+        console.error('❌ Failed to sync pending snapshot:', error);
+        
+        showSyncOverlay(true, 'Sync failed - proceeding with local data');
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        showSyncOverlay(false);
+        
+        // Keep snapshot for next attempt (unless it was tampered)
+        return { hadPendingSave: true, success: false, error };
     }
 }
 
@@ -342,8 +579,38 @@ async function loadGameState() {
     let saveData = null;
     let source = 'none';
     
-    // STEP 1: If logged in, check Firebase first (for cross-device access)
-    if (isLoggedIn && playerId && typeof FirebaseService !== 'undefined') {
+    // STEP 0: Sync pending save snapshot from previous session (CRITICAL!)
+    // This prevents save-scumming by ensuring last state is synced before loading
+    const pendingSync = await syncPendingSaveSnapshot();
+    
+    // If pending snapshot exists and was loaded (either synced or re-signed), use it
+    if (pendingSync.hadPendingSave && pendingSync.loadLocally && pendingSync.snapshot) {
+        if (pendingSync.resignedAndSynced) {
+            console.log('✅ Loading re-signed pending snapshot (synced to Firebase)');
+        } else if (pendingSync.syncFailed) {
+            console.warn('⚠️ Loading pending snapshot locally (sync failed, will retry later)');
+        } else {
+            console.warn('⚠️ Loading pending snapshot locally (signature was invalid)');
+        }
+        
+        saveData = pendingSync.snapshot;
+        source = 'pendingSnapshot';
+        
+        // Clear the pending snapshot since we're loading it (unless sync failed)
+        if (!pendingSync.syncFailed) {
+            localStorage.removeItem(PENDING_SAVE_KEY);
+        }
+        
+        // Skip Firebase load - use this more recent local state
+    } else if (pendingSync.hadPendingSave && pendingSync.success) {
+        // Snapshot was synced successfully, load from Firebase for consistency
+        console.log('✅ Pending snapshot synced, will load from Firebase for consistency');
+    } else if (pendingSync.hadPendingSave && !pendingSync.success) {
+        console.warn('⚠️ Could not process pending snapshot, continuing with normal load');
+    }
+    
+    // STEP 1: If not already loaded from pending snapshot, check Firebase
+    if (!saveData && isLoggedIn && playerId && typeof FirebaseService !== 'undefined') {
         try {
             const result = await FirebaseService.loadUserData(playerId, playerName);
             if (result.success && result.data) {
@@ -356,7 +623,7 @@ async function loadGameState() {
         }
     }
     
-    // STEP 2: If no cloud data, try localStorage (local device)
+    // STEP 2: If no cloud data and not from pending snapshot, try localStorage
     if (!saveData) {
         try {
             const savedData = localStorage.getItem(SAVE_KEY);
@@ -372,6 +639,11 @@ async function loadGameState() {
     
     // STEP 3: Restore state if we found data
     if (saveData) {
+        console.log(`📦 Loading game state from: ${source}`);
+        if (source === 'pendingSnapshot') {
+            console.warn('⚠️ Loaded from pending snapshot - signature was invalid, not synced to cloud');
+            console.warn('⚠️ Account flagged for security review');
+        }
         // Restore banking state
         state.bankBalance = saveData.bankBalance !== undefined ? saveData.bankBalance : STARTING_BANK_BALANCE;
         state.totalEarnings = saveData.totalEarnings || 0;

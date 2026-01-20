@@ -927,6 +927,70 @@
 /* ===========================================
    LOGIN CARD INTERFACE
    =========================================== */
+/* Sync Overlay - Blocks UI during pending save sync */
+.sync-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, #0a0a15 0%, #12121f 100%);
+    border-radius: 36px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 1;
+    visibility: visible;
+    transition: all 0.3s ease;
+}
+
+.sync-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.sync-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.sync-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: syncSpin 0.8s linear infinite;
+}
+
+@keyframes syncSpin {
+    to { transform: rotate(360deg); }
+}
+
+.sync-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.sync-message {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.sync-status {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+}
+
 .login-card-container {
     position: absolute;
     top: 0;
