@@ -705,7 +705,11 @@
             btn.disabled = true;
             
             try {
-                const result = await FirebaseService.adminUnflagPlayer(player.playerName);
+                const result = await FirebaseService.adminUnflagPlayer({
+                    docId: player.docId,
+                    gameUserId: player.gameUserId,
+                    playerName: player.playerName
+                });
                 
                 if (result.success) {
                     alert(`✓ Successfully unflagged ${player.playerName}`);
@@ -734,6 +738,9 @@
             const modalBody = document.getElementById('deleteModalBody');
             modalBody.innerHTML = `
                 <p>Are you sure you want to permanently delete <strong>${escapeHtml(player.playerName)}</strong>?</p>
+                <p style="color: #94a3b8; font-size: 13px; margin-top: 6px;">
+                    Game User ID: ${escapeHtml(player.gameUserId || 'Unknown')}
+                </p>
                 <div style="background: #0f172a; padding: 12px; margin-top: 12px; border-radius: 6px; border-left: 3px solid #dc2626;">
                     <p style="color: #94a3b8; font-size: 13px; margin-bottom: 8px;">This will delete:</p>
                     <ul style="color: #94a3b8; font-size: 13px; margin-left: 20px;">
@@ -759,7 +766,11 @@
             if (!playerToDelete) return;
             
             try {
-                const result = await FirebaseService.adminDeletePlayer(playerToDelete.playerName);
+                const result = await FirebaseService.adminDeletePlayer({
+                    docId: playerToDelete.docId,
+                    gameUserId: playerToDelete.gameUserId,
+                    playerName: playerToDelete.playerName
+                });
                 
                 if (result.success) {
                     alert(`✓ Successfully deleted player: ${playerToDelete.playerName}`);

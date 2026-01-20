@@ -126,6 +126,13 @@ const FirebaseService = {
                     const validate = firebase.functions().httpsCallable('validateSubmission');
                     const result = await validate({ userId: docId, payload });
                     console.log('✅ Cloud validation passed');
+                    if (typeof SecurityService !== 'undefined') {
+                        const clearedPayload = { ...payload, securityStatus: { flagged: false, flags: [] } };
+                        const signed = await SecurityService.prepareSaveData(clearedPayload);
+                        payload = signed.payload;
+                    } else {
+                        payload.securityStatus = { flagged: false, flags: [] };
+                    }
                 } catch (error) {
                     const errorMessage = error?.message || String(error);
                     const errorDetails = error?.details || {};
@@ -311,6 +318,9 @@ const FirebaseService = {
             snapshot.forEach(doc => {
                 const data = doc.data();
                 stats.push({
+                    docId: doc.id,
+                    gameUserId: data.gameUserId || null,
+                    firebaseUid: data.firebaseUid || null,
                     playerName: data.playerName || doc.id,
                     bankBalance: data.bankBalance || 0,
                     totalEarnings: data.totalEarnings || 0,
@@ -400,32 +410,50 @@ const FirebaseService = {
     },
 
     // Admin function: Delete player by playerName (for admin dashboard)
-    async adminDeletePlayer(playerName) {
+    async adminDeletePlayer(playerIdentifier) {
         if (!this.isAvailable()) {
             return { success: false, error: 'Firebase not initialized' };
         }
 
         try {
+            const identifier = typeof playerIdentifier === 'string'
+                ? { playerName: playerIdentifier }
+                : (playerIdentifier || {});
+            const { docId, gameUserId, playerName } = identifier;
+
             // Ensure Firebase Auth is set up
             const firebaseUser = await ensureFirebaseAuth();
             if (!firebaseUser) {
                 return { success: false, error: 'Authentication required' };
             }
 
-            // Query for all documents with this player name
-            const querySnapshot = await db.collection('users')
-                .where('playerName', '==', playerName)
-                .get();
+            const deletePromises = [];
 
-            if (querySnapshot.empty) {
-                return { success: false, error: 'Player not found' };
+            if (docId) {
+                deletePromises.push(db.collection('users').doc(docId).delete());
             }
 
-            // Delete all matching documents
-            const deletePromises = [];
-            querySnapshot.forEach(doc => {
-                deletePromises.push(doc.ref.delete());
-            });
+            if (gameUserId) {
+                const gameUserSnapshot = await db.collection('users')
+                    .where('gameUserId', '==', gameUserId)
+                    .get();
+                gameUserSnapshot.forEach(doc => {
+                    deletePromises.push(doc.ref.delete());
+                });
+            }
+
+            if (playerName) {
+                const nameSnapshot = await db.collection('users')
+                    .where('playerName', '==', playerName)
+                    .get();
+                nameSnapshot.forEach(doc => {
+                    deletePromises.push(doc.ref.delete());
+                });
+            }
+
+            if (deletePromises.length === 0) {
+                return { success: false, error: 'Player not found' };
+            }
 
             await Promise.all(deletePromises);
             
@@ -438,34 +466,56 @@ const FirebaseService = {
     },
 
     // Admin function: Unflag player (clear security flags)
-    async adminUnflagPlayer(playerName) {
+    async adminUnflagPlayer(playerIdentifier) {
         if (!this.isAvailable()) {
             return { success: false, error: 'Firebase not initialized' };
         }
 
         try {
+            const identifier = typeof playerIdentifier === 'string'
+                ? { playerName: playerIdentifier }
+                : (playerIdentifier || {});
+            const { docId, gameUserId, playerName } = identifier;
+
             // Ensure Firebase Auth is set up
             const firebaseUser = await ensureFirebaseAuth();
             if (!firebaseUser) {
                 return { success: false, error: 'Authentication required' };
             }
 
-            // Query for all documents with this player name
-            const querySnapshot = await db.collection('users')
-                .where('playerName', '==', playerName)
-                .get();
-
-            if (querySnapshot.empty) {
-                return { success: false, error: 'Player not found' };
-            }
-
-            // Update all matching documents
             const updatePromises = [];
-            querySnapshot.forEach(doc => {
-                updatePromises.push(doc.ref.update({
+
+            if (docId) {
+                updatePromises.push(db.collection('users').doc(docId).update({
                     securityStatus: { flagged: false, flags: [] }
                 }));
-            });
+            }
+
+            if (gameUserId) {
+                const gameUserSnapshot = await db.collection('users')
+                    .where('gameUserId', '==', gameUserId)
+                    .get();
+                gameUserSnapshot.forEach(doc => {
+                    updatePromises.push(doc.ref.update({
+                        securityStatus: { flagged: false, flags: [] }
+                    }));
+                });
+            }
+
+            if (playerName) {
+                const nameSnapshot = await db.collection('users')
+                    .where('playerName', '==', playerName)
+                    .get();
+                nameSnapshot.forEach(doc => {
+                    updatePromises.push(doc.ref.update({
+                        securityStatus: { flagged: false, flags: [] }
+                    }));
+                });
+            }
+
+            if (updatePromises.length === 0) {
+                return { success: false, error: 'Player not found' };
+            }
 
             await Promise.all(updatePromises);
             
