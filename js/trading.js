@@ -205,6 +205,9 @@ function handleDrop(event) {
     // Set as active cookie for unpacking
     state.cookie = cookie;
     
+    // Reset unwrap animation to first frame
+    state.cookieUnwrapFrame = 0;
+    
     // Play cookie dropped sound
     AudioManager.playCookieDropped();
     
@@ -355,33 +358,60 @@ function renderSignal() {
         return;
     }
     
-    // Show cookie ready to crack
+    // Initialize unwrapping animation state
+    if (state.cookieUnwrapFrame === undefined) {
+        state.cookieUnwrapFrame = 0;
+    }
+    
+    // Get current frame image path
+    const frameImage = `images/trading/1_cookie_${state.cookieUnwrapFrame}.png`;
+    
+    // Show cookie animation frame
     reveal.innerHTML = `
-        <div class="cookie-3d" id="cookie3d" onclick="crackCookie()"></div>
-        <div class="fortune-paper" id="fortunePaper"></div>
-        <div class="signal-hint">Click the cookie to reveal your prophecy</div>
+        <div class="cookie-unwrap-container" id="cookieUnwrapContainer" onclick="crackCookie()">
+            <img src="${frameImage}" class="cookie-unwrap-frame" id="cookieUnwrapFrame" alt="Fortune Cookie">
+            <div class="cookie-unwrap-hint">Click to unwrap your prophecy (${state.cookieUnwrapFrame}/5)</div>
+        </div>
     `;
 }
 
 function crackCookie() {
     if (!state.cookie) return;
 
-    const cookie = document.getElementById('cookie3d');
-    const paper = document.getElementById('fortunePaper');
+    // Play click sound for each unwrap step
+    AudioManager.playClick();
     
-    // Play cookie opened sound
-    AudioManager.playCookieOpened();
+    // Advance to next frame
+    state.cookieUnwrapFrame = (state.cookieUnwrapFrame || 0) + 1;
     
-    cookie.classList.add('cracking');
-    
-    setTimeout(() => {
+    // If we've shown all 6 frames (0-5), create the prophecy and reset
+    if (state.cookieUnwrapFrame > 5) {
+        // Play cookie opened sound on final reveal
+        AudioManager.playCookieOpened();
+        
         // Create the prophecy
         createProphecy(state.cookie);
-        state.cookie = null;
         
-        // Return to initial drag-and-drop area (no empty panel)
+        // Reset cookie state
+        state.cookie = null;
+        state.cookieUnwrapFrame = 0;
+        
+        // Return to initial drag-and-drop area
         renderSignal();
-    }, 500);
+    } else {
+        // Update to show next frame
+        const frameImage = `images/trading/1_cookie_${state.cookieUnwrapFrame}.png`;
+        const frameEl = document.getElementById('cookieUnwrapFrame');
+        const hintEl = document.querySelector('.cookie-unwrap-hint');
+        
+        if (frameEl) {
+            frameEl.src = frameImage;
+        }
+        
+        if (hintEl) {
+            hintEl.textContent = `Click to unwrap your prophecy (${state.cookieUnwrapFrame}/5)`;
+        }
+    }
 }
 
 // Generate the secret info text (type + target) that gets decrypted

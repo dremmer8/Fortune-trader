@@ -490,9 +490,9 @@ async function loadLeaderboard() {
 
         const filteredStats = stats.filter(player => !(player.securityStatus && player.securityStatus.flagged));
         const sortedStats = [...filteredStats].sort((a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0));
-        const topStats = sortedStats.slice(0, 10);
+        const topStats = sortedStats.slice(0, 4);
         if (statusEl) {
-            statusEl.textContent = `Showing top ${topStats.length} of ${filteredStats.length} eligible players.`;
+            statusEl.style.display = 'none';
         }
 
         if (listEl) {
@@ -500,19 +500,23 @@ async function loadLeaderboard() {
             listEl.innerHTML = topStats.map((player, index) => {
                 const safeName = escapeHtml(player.playerName || 'Unknown');
                 const rankNumber = index + 1;
-                const rankEmoji = rankNumber === 1 ? '🥇' : rankNumber === 2 ? '🥈' : rankNumber === 3 ? '🥉' : '';
 
                 return `
                     <div class="leaderboard-card">
                         <div class="leaderboard-rank">
-                            <span class="leaderboard-rank-emoji">${rankEmoji}</span>
                             <span class="leaderboard-rank-number">#${rankNumber}</span>
                         </div>
                         <div class="leaderboard-player">
                             <div class="leaderboard-player-name">${safeName}</div>
                             <div class="leaderboard-player-stats">
-                                <div class="leaderboard-stat">Balance <strong>$${formatCompactNumber(player.bankBalance)}</strong></div>
-                                <div class="leaderboard-stat">Earnings <strong>$${formatCompactNumber(player.totalEarnings)}</strong></div>
+                                <div class="leaderboard-stat">
+                                    <span class="leaderboard-stat-label">Balance</span>
+                                    <strong>$${formatCompactNumber(player.bankBalance)}</strong>
+                                </div>
+                                <div class="leaderboard-stat">
+                                    <span class="leaderboard-stat-label">Earnings</span>
+                                    <strong>$${formatCompactNumber(player.totalEarnings)}</strong>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1042,6 +1046,16 @@ function renderOwnedLuxuryItems() {
     `).join('');
 }
 
+// Format price with K/M abbreviations
+function formatShopPrice(price) {
+    if (price >= 1000000) {
+        return '$' + (price / 1000000).toFixed(price % 1000000 === 0 ? 0 : 1) + 'M';
+    } else if (price >= 1000) {
+        return '$' + (price / 1000).toFixed(price % 1000 === 0 ? 0 : 0) + 'K';
+    }
+    return '$' + price.toLocaleString();
+}
+
 // Render luxury shop items
 function renderLuxuryShopItems() {
     const container = document.getElementById('shopItemsList');
@@ -1051,7 +1065,6 @@ function renderLuxuryShopItems() {
     
     container.innerHTML = filteredItems.map(item => {
         const owned = state.ownedItems.some(ownedItem => ownedItem.id === item.id);
-        const locked = state.tradingRounds < item.prestigeRequired;
         const canAfford = state.bankBalance >= item.price;
         
         let statusClass = '';
@@ -1062,26 +1075,21 @@ function renderLuxuryShopItems() {
             statusClass = 'owned';
             buttonText = 'Owned';
             buttonDisabled = true;
-        } else if (locked) {
-            statusClass = 'locked';
-            buttonText = 'Locked';
-            buttonDisabled = true;
         } else if (!canAfford) {
             buttonDisabled = true;
             buttonText = 'Buy';
         }
         
         return `
-            <div class="shop-item ${statusClass}" data-tooltip="${item.description}">
+            <div class="shop-item ${statusClass}">
                 <div class="shop-item-icon">${item.icon}</div>
                 <div class="shop-item-info">
                     <div class="shop-item-name">${item.name}</div>
+                    <div class="shop-item-price">
+                        <div class="shop-item-price-value">${formatShopPrice(item.price)}</div>
+                    </div>
+                    <button class="shop-buy-btn" ${buttonDisabled ? 'disabled' : ''} onclick="buyShopItem('${item.id}')">${buttonText}</button>
                 </div>
-                <div class="shop-item-price">
-                    <div class="shop-item-price-value">$${item.price.toLocaleString()}</div>
-                    ${item.prestigeRequired > 0 ? `<div class="shop-item-req">${item.prestigeRequired} rounds</div>` : ''}
-                </div>
-                <button class="shop-buy-btn" ${buttonDisabled ? 'disabled' : ''} onclick="buyShopItem('${item.id}')">${buttonText}</button>
             </div>
         `;
     }).join('');
@@ -1094,12 +1102,6 @@ function buyShopItem(itemId) {
     
     // Check if already owned
     if (state.ownedItems.some(ownedItem => ownedItem.id === itemId)) {
-        return;
-    }
-    
-    // Check prestige requirement
-    if (state.tradingRounds < item.prestigeRequired) {
-        showNotification(`Requires ${item.prestigeRequired} prestige rounds!`, 'error');
         return;
     }
     

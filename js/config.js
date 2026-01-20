@@ -190,9 +190,9 @@ const SHOP_ITEMS = [
     // HOME OWNERSHIP (eliminates rent expense)
     {
       id: 'micro_flat',
-      name: 'City Micro-Apartment (Ownership)',
+      name: 'City Micro-Apartment',
       category: 'estate',
-      icon: '🏢',
+      icon: '<img src="images/shop/City Micro-Apartment.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 220000,
       description: 'Small owned flat in an urban area. Eliminates rent expense.',
       prestigeRequired: 0
@@ -201,7 +201,7 @@ const SHOP_ITEMS = [
       id: 'new_build_flat',
       name: 'New-Build City Apartment',
       category: 'estate',
-      icon: '🏙️',
+      icon: '<img src="images/shop/New-Build City Apartment.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 650000,
       description: 'Modern new-build apartment in a prime district. Eliminates rent expense.',
       prestigeRequired: 6
@@ -210,7 +210,7 @@ const SHOP_ITEMS = [
       id: 'family_house',
       name: 'Detached Family House (Outskirts)',
       category: 'estate',
-      icon: '🏡',
+      icon: '<img src="images/shop/Detached Family House (Outskirts).png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 750000,
       description: 'Detached house with garden outside the city core. Eliminates rent expense.',
       prestigeRequired: 12
@@ -219,7 +219,7 @@ const SHOP_ITEMS = [
       id: 'villa_estate',
       name: 'Prestige Villa Estate',
       category: 'estate',
-      icon: '🏰',
+      icon: '<img src="images/shop/Villa.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 3000000,
       description: 'High-end villa with land and privacy. Eliminates rent expense.',
       prestigeRequired: 22
@@ -230,7 +230,7 @@ const SHOP_ITEMS = [
       id: 'compact_used',
       name: 'Used Compact Car',
       category: 'car',
-      icon: '🚗',
+      icon: '<img src="images/shop/Used Compact Car.jpg" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 12000,
       description: 'Basic used car for everyday driving. Eliminates transport expense.',
       prestigeRequired: 0
@@ -239,7 +239,7 @@ const SHOP_ITEMS = [
       id: 'performance_car',
       name: 'Performance Coupe',
       category: 'car',
-      icon: '🏎️',
+      icon: '<img src="images/shop/Performance Coupe.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 70000,
       description: 'Quick, loud, and attention-grabbing. Eliminates transport expense.',
       prestigeRequired: 6
@@ -248,7 +248,7 @@ const SHOP_ITEMS = [
       id: 'executive_vehicle',
       name: 'Executive Luxury Vehicle',
       category: 'car',
-      icon: '🚙',
+      icon: '<img src="images/shop/Executive Luxury Vehicle.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 110000,
       description: 'Premium comfort and status. Eliminates transport expense.',
       prestigeRequired: 12
@@ -257,7 +257,7 @@ const SHOP_ITEMS = [
       id: 'exotic_supercar',
       name: 'Exotic Supercar',
       category: 'car',
-      icon: '🏁',
+      icon: '<img src="images/shop/Exotic Supercar.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 350000,
       description: 'Extreme performance and prestige. Eliminates transport expense.',
       prestigeRequired: 22
@@ -268,7 +268,7 @@ const SHOP_ITEMS = [
       id: 'mechanical_watch',
       name: 'Mechanical Watch',
       category: 'luxury',
-      icon: '⌚',
+      icon: '<img src="images/shop/Mechanical Watch.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 4000,
       description: 'High-end timepiece. Pure status symbol.',
       prestigeRequired: 0
@@ -277,7 +277,7 @@ const SHOP_ITEMS = [
       id: 'fine_jewelry',
       name: 'Fine Jewelry Set',
       category: 'luxury',
-      icon: '💍',
+      icon: '<img src="images/shop/Fine Jewelry Set.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 12000,
       description: 'Precious metals and stones. Flashy but classic.',
       prestigeRequired: 4
@@ -286,7 +286,7 @@ const SHOP_ITEMS = [
       id: 'tailored_wardrobe',
       name: 'Tailored Wardrobe Upgrade',
       category: 'luxury',
-      icon: '👔',
+      icon: '<img src="images/shop/Tailored Wardrobe Upgrade.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 9000,
       description: 'Custom-fit clothing collection. Look like money.',
       prestigeRequired: 6
@@ -295,7 +295,7 @@ const SHOP_ITEMS = [
       id: 'original_art',
       name: 'Original Contemporary Artwork',
       category: 'luxury',
-      icon: '🖼️',
+      icon: '<img src="images/shop/Original Contemporary Artwork.png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 25000,
       description: 'Original piece from a respected artist. Conversation starter.',
       prestigeRequired: 9
@@ -304,7 +304,7 @@ const SHOP_ITEMS = [
       id: 'motor_yacht',
       name: 'Motor Yacht (25m Class)',
       category: 'luxury',
-      icon: '🛥️',
+      icon: '<img src="images/shop/Motor Yacht (25m Class).png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 1500000,
       description: 'Private yacht for serious leisure and flex.',
       prestigeRequired: 16
@@ -313,7 +313,7 @@ const SHOP_ITEMS = [
       id: 'private_jet',
       name: 'Private Jet (Light-Class)',
       category: 'luxury',
-      icon: '✈️',
+      icon: '<img src="images/shop/Private Jet (Light-Class).png" style="width: 100%; height: 100%; object-fit: cover;">',
       price: 4500000,
       description: 'Private air travel. Ultimate convenience and prestige.',
       prestigeRequired: 26
@@ -1088,6 +1088,6 @@ const stockConfig = {
     'APLS': { name: 'APLS', tag: 'Apples Corp.', basePrice: 180 },
     'LOOGL': { name: 'LOOGL', tag: 'Loogle Inc.', basePrice: 140 },
     'MASFT': { name: 'MASFT', tag: 'Macrosoft Corp.', basePrice: 380 },
-    'OZN': { name: 'OZN', tag: 'Ozon Inc.', basePrice: 175 },
+    'LST': { name: 'LST', tag: 'List Inc.', basePrice: 175 },
     'NWTN': { name: 'NWTN', tag: 'Newton Inc.', basePrice: 250 }
 };
