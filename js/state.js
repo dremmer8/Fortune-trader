@@ -319,18 +319,9 @@ async function saveGameState() {
         cookieInventory: state.cookieInventory || []
     };
 
-    let payload = saveData;
-    if (typeof SecurityService !== 'undefined') {
-        const result = await SecurityService.prepareSaveData(saveData);
-        payload = result.payload;
-        if (!result.validation.ok) {
-            console.warn('Save validation issues detected:', result.validation.issues);
-        }
-    }
-    
     // PRIMARY: Save to localStorage (fast, works offline)
     try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
+        localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
         console.log('Game saved to localStorage');
     } catch (e) {
         console.error('Failed to save to localStorage:', e);
@@ -340,7 +331,7 @@ async function saveGameState() {
     // Only sync if logged in and Firebase is available
     if (isLoggedIn && playerId && typeof FirebaseService !== 'undefined') {
         // Fire and forget - don't block on Firebase save
-        FirebaseService.saveUserData(playerId, playerName, payload).catch(err => {
+        FirebaseService.saveUserData(playerId, playerName, saveData).catch(err => {
             console.warn('Firebase sync failed (localStorage saved):', err);
         });
     }
@@ -403,7 +394,7 @@ async function loadGameState() {
         state.purchasedUpgrades = saveData.purchasedUpgrades || [];
         state.cookieInventory = saveData.cookieInventory || [];
 
-        if (typeof SecurityService !== 'undefined') {
+        if (typeof SecurityService !== 'undefined' && saveData?.security?.signature) {
             SecurityService.verifyLoadedSave(saveData).then(result => {
                 if (!result.valid) {
                     console.warn('Loaded save failed signature verification:', result.reason);
