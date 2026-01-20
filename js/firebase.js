@@ -102,7 +102,7 @@ const FirebaseService = {
             const docId = firebaseUser ? `${userId}_${firebaseUser.uid}` : userId;
             const userRef = db.collection('users').doc(docId);
             
-            const payload = {
+            let payload = {
                 ...gameData,
                 playerName: playerName,
                 gameUserId: userId, // Store the game's user ID separately
@@ -111,6 +111,14 @@ const FirebaseService = {
                 syncedAt: Date.now(),
                 securityStatus: typeof SecurityService !== 'undefined' ? SecurityService.getSecuritySummary() : { flagged: false, flags: [] }
             };
+
+            if (typeof SecurityService !== 'undefined') {
+                const signed = await SecurityService.prepareSaveData(payload);
+                payload = signed.payload;
+                if (!signed.validation.ok) {
+                    console.warn('Save validation issues detected:', signed.validation.issues);
+                }
+            }
 
             // Validate with Cloud Function if available
             if (functions && firebaseUser) {
