@@ -5405,6 +5405,13 @@ body {
     padding: 24px;
     overflow-y: auto;
     flex: 1;
+    /* Hide scrollbar but keep scrolling functionality */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+.overlay-content::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 /* Portfolio Summary */
@@ -5464,6 +5471,62 @@ body {
 .summary-row.highlight .summary-value {
     font-size: 16px;
     color: var(--accent);
+}
+
+/* Portfolio Actions */
+.portfolio-actions {
+    margin-bottom: 20px;
+}
+
+.portfolio-actions-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.portfolio-action-btn {
+    flex: 1;
+    padding: 12px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    color: var(--text-primary);
+}
+
+.portfolio-action-btn:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.portfolio-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.portfolio-action-btn-all {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.portfolio-action-btn-all:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.portfolio-action-btn-profitable {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.portfolio-action-btn-profitable:hover:not(:disabled) {
+    background: var(--success-bg);
 }
 
 /* Portfolio Holdings */

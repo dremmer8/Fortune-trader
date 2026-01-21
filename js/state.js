@@ -47,6 +47,8 @@ const state = {
     selectedProphecyId: null, // Currently selected prophecy for decoding
     purchasedUpgrades: [], // Array of purchased upgrade IDs
     positions: [],
+    // Predictions - in-memory only (not saved until resolved to prevent save scumming)
+    predictions: [], // Array of active predictions { id, price, intervalMin, intervalMax, amount, startTick, stockSymbol, resolved }
     // Stock holdings - keyed by stock symbol
     stockHoldings: {}, // { symbol: { shares: number, avgPrice: number, totalInvested: number } }
     dataMode: 'APLS', // Current stock symbol
@@ -689,6 +691,11 @@ async function loadGameState() {
         state.betIndex = saveData.betIndex || 0;
         state.purchasedUpgrades = saveData.purchasedUpgrades || [];
         state.cookieInventory = saveData.cookieInventory || [];
+        
+        // Initialize predictions array (always empty on load - predictions are in-memory only)
+        if (!state.predictions) {
+            state.predictions = [];
+        }
 
         if (typeof SecurityService !== 'undefined' && saveData?.security?.signature) {
             SecurityService.verifyLoadedSave(saveData).then(result => {

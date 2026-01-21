@@ -502,9 +502,9 @@ const PROPHECY_CONFIG = {
         icon: '📈',
         category: 'trend',
         // Duration (seconds)
-        duration: { min: 45, max: 60 },
+        duration: { min: 25, max: 35 },
         // Trend strength (percentage per tick)
-        strength: { min: 0.1, max: 0.8 }
+        strength: { min: 0.3, max: 0.6 }
     },
     
     // ---- TREND DOWN ----
@@ -514,9 +514,9 @@ const PROPHECY_CONFIG = {
         icon: '📉',
         category: 'trend',
         // Duration (seconds)
-        duration: { min: 45, max: 60 },
+        duration: { min: 25, max: 35 },
         // Trend strength (percentage per tick)
-        strength: { min: 0.1, max: 0.8 }
+        strength: { min: 0.3, max: 0.6 }
     },
     
     // ---- LOWER SHORE (Price Floor) ----
@@ -526,7 +526,7 @@ const PROPHECY_CONFIG = {
         icon: '🛡️',
         category: 'shore',
         // Duration (seconds)
-        duration: { min: 45, max: 60 },
+        duration: { min: 25, max: 35 },
         // Distance from current price (percentage)
         distance: { min: 0.5, max: 3.0 },
         // Interval width (percentage)
@@ -540,7 +540,7 @@ const PROPHECY_CONFIG = {
         icon: '🔒',
         category: 'shore',
         // Duration (seconds)
-        duration: { min: 45, max: 60 },
+        duration: { min: 25, max: 35 },
         // Distance from current price (percentage)
         distance: { min: 0.5, max: 3.0 },
         // Interval width (percentage)
@@ -554,7 +554,7 @@ const PROPHECY_CONFIG = {
         icon: '🎯',
         category: 'zone',
         // Duration (seconds)
-        duration: { min: 45, max: 60 },
+        duration: { min: 25, max: 35 },
         // Distance from current price (percentage)
         distance: { min: 0.3, max: 0.5 },
         // Interval width (percentage) - wider = easier to hit
@@ -569,14 +569,10 @@ const PROPHECY_CONFIG = {
         description: 'High volatility incoming',
         icon: '⚡',
         category: 'volatility',
-        // Duration (seconds) - 3x longer than other prophecies
-        duration: { min: 45, max: 90 },
+        // Duration (seconds)
+        duration: { min: 25, max: 35 },
         // Volatility multiplier range
-        volatilityMultiplier: { min: 2.0, max: 4.0 },
-        // Time window when effect starts (seconds from prophecy start)
-        windowStart: { min: 5, max: 15 },
-        // Duration of the volatility effect window (seconds)
-        windowDuration: { min: 15, max: 45 }
+        volatilityMultiplier: { min: 4.0, max: 8.0 }
     },
     
     // ---- VOLATILITY CALM ----
@@ -585,14 +581,10 @@ const PROPHECY_CONFIG = {
         description: 'Low volatility period',
         icon: '🌊',
         category: 'volatility',
-        // Duration (seconds) - 3x longer than other prophecies
-        duration: { min: 45, max: 90 },
+        // Duration (seconds)
+        duration: { min: 25, max: 35 },
         // Volatility multiplier range (lower = calmer)
-        volatilityMultiplier: { min: 0.2, max: 0.5 },
-        // Time window when effect starts (seconds from prophecy start)
-        windowStart: { min: 5, max: 15 },
-        // Duration of the volatility effect window (seconds)
-        windowDuration: { min: 15, max: 45 }
+        volatilityMultiplier: { min: 0.1, max: 0.2 }
     }
 };
 
@@ -674,7 +666,7 @@ const SHOP_UPGRADES = {
     },
     cookieDiscount2: {
         name: 'Cookie Discount II',
-        description: '20% off fortune cookies',
+        description: '25% off fortune cookies',
         icon: '🎫',
         price: 1200,
         order: 3,
@@ -686,7 +678,7 @@ const SHOP_UPGRADES = {
     },
     cookieDiscount3: {
         name: 'Cookie Discount III',
-        description: '30% off fortune cookies',
+        description: '50% off fortune cookies',
         icon: '💳',
         price: 3000,
         order: 4,
@@ -907,7 +899,7 @@ const FORTUNE_COOKIE_TIERS = {
         price: 800,
         // Premium quality prophecies
         modifiers: {
-            durationMultiplier: 1.6,      // 60% longer prophecies
+            durationMultiplier: 2,      // 100% longer prophecies
             intervalTightness: 0.5,       // 50% tighter intervals (very precise)
             strengthBonus: 0.3,           // +0.3% stronger trend effects
         }

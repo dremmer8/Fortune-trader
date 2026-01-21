@@ -397,6 +397,7 @@ function togglePortfolioOverlay() {
 
 function renderPortfolioOverlay() {
     const summaryEl = document.getElementById('portfolioSummary');
+    const actionsEl = document.getElementById('portfolioActions');
     const holdingsEl = document.getElementById('portfolioHoldings');
     
     // Calculate totals
@@ -457,6 +458,23 @@ function renderPortfolioOverlay() {
         </div>
         ` : ''}
     `;
+    
+    // Render action buttons (only if there are holdings)
+    if (holdings.length > 0) {
+        const profitableCount = holdings.filter(h => h.pnl > 0).length;
+        actionsEl.innerHTML = `
+            <div class="portfolio-actions-buttons">
+                <button class="portfolio-action-btn portfolio-action-btn-all" onclick="sellAllStocks()">
+                    Send All Stock
+                </button>
+                <button class="portfolio-action-btn portfolio-action-btn-profitable" onclick="sellAllProfitableStocks()" ${profitableCount === 0 ? 'disabled' : ''}>
+                    Send All Profitable Stock${profitableCount > 0 ? ` (${profitableCount})` : ''}
+                </button>
+            </div>
+        `;
+    } else {
+        actionsEl.innerHTML = '';
+    }
     
     // Render holdings
     if (holdings.length === 0) {

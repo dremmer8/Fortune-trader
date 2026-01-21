@@ -169,6 +169,30 @@ const SecurityService = (() => {
                 }
                 break;
             }
+            case 'createPrediction': {
+                if (payload.totalCost !== undefined && payload.totalCost > payload.balance) {
+                    return { ok: false, reason: 'Insufficient balance for prediction' };
+                }
+                if (payload.amount > payload.balance) {
+                    return { ok: false, reason: 'Insufficient balance for prediction' };
+                }
+                if (!Number.isFinite(payload.price) || payload.price <= 0) {
+                    return { ok: false, reason: 'Invalid prediction price' };
+                }
+                break;
+            }
+            case 'resolvePrediction': {
+                if (!Number.isFinite(payload.currentPrice) || payload.currentPrice <= 0) {
+                    return { ok: false, reason: 'Invalid current price' };
+                }
+                if (!Number.isFinite(payload.intervalMin) || !Number.isFinite(payload.intervalMax)) {
+                    return { ok: false, reason: 'Invalid prediction interval' };
+                }
+                if (payload.intervalMin >= payload.intervalMax) {
+                    return { ok: false, reason: 'Invalid interval range' };
+                }
+                break;
+            }
             default:
                 break;
         }

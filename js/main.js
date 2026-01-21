@@ -2289,6 +2289,11 @@ function updateAllCharts() {
             changeEl.textContent = (changePercent >= 0 ? '+' : '') + changePercent.toFixed(2) + '%';
             changeEl.className = 'price-change ' + (changePercent >= 0 ? 'up' : 'down');
         }
+        
+        // Trigger prediction updates when chart ticks (synchronized shrinking)
+        if (typeof updatePredictions === 'function') {
+            updatePredictions();
+        }
     }
 }
 
@@ -2307,7 +2312,7 @@ function getProphecyEffectsForSymbol(symbol) {
     if (!state.deals) return { volatilityMultiplier, trendBias };
     
     state.deals.forEach(prophecy => {
-        if (prophecy.resolved || prophecy.targetStock !== symbol) return;
+        if (prophecy.resolved || prophecy.targetStock !== symbol || !prophecy.isDecoded) return;
         
         const elapsed = (now - prophecy.startTime) / 1000;
         const remaining = Math.max(0, prophecy.duration - elapsed);
@@ -2325,17 +2330,13 @@ function getProphecyEffectsForSymbol(symbol) {
             trendBias -= avgStrength * timeWeight;
             prophecyCount++;
         }
-        // Volatility prophecies - check if in time window
+        // Volatility prophecies - active immediately when decoded
         else if (prophecy.prophecyType === 'volatilitySpike') {
-            if (elapsed >= prophecy.windowStart && elapsed <= prophecy.windowEnd) {
-                hasSpike = true;
-                spikeValue = Math.max(spikeValue, prophecy.trueVolatility);
-            }
+            hasSpike = true;
+            spikeValue = Math.max(spikeValue, prophecy.trueVolatility);
         } else if (prophecy.prophecyType === 'volatilityCalm') {
-            if (elapsed >= prophecy.windowStart && elapsed <= prophecy.windowEnd) {
-                hasCalm = true;
-                calmValue = Math.min(calmValue, prophecy.trueVolatility);
-            }
+            hasCalm = true;
+            calmValue = Math.min(calmValue, prophecy.trueVolatility);
         }
     });
     
@@ -2372,7 +2373,7 @@ function calculateProphecyEffects() {
     };
     
     state.deals.forEach(prophecy => {
-        if (prophecy.resolved || prophecy.targetStock !== state.dataMode) return;
+        if (prophecy.resolved || prophecy.targetStock !== state.dataMode || !prophecy.isDecoded) return;
         
         const elapsed = (now - prophecy.startTime) / 1000;
         const remaining = Math.max(0, prophecy.duration - elapsed);
@@ -2416,17 +2417,13 @@ function calculateProphecyEffects() {
                 break;
             }
             case 'volatilitySpike': {
-                // Check if we're in the time window
-                if (elapsed >= prophecy.windowStart && elapsed <= prophecy.windowEnd) {
-                    effects.volatilityMultiplier = Math.max(effects.volatilityMultiplier, prophecy.trueVolatility);
-                }
+                // Active immediately when decoded
+                effects.volatilityMultiplier = Math.max(effects.volatilityMultiplier, prophecy.trueVolatility);
                 break;
             }
             case 'volatilityCalm': {
-                // Check if we're in the time window
-                if (elapsed >= prophecy.windowStart && elapsed <= prophecy.windowEnd) {
-                    effects.volatilityMultiplier = Math.min(effects.volatilityMultiplier, prophecy.trueVolatility);
-                }
+                // Active immediately when decoded
+                effects.volatilityMultiplier = Math.min(effects.volatilityMultiplier, prophecy.trueVolatility);
                 break;
             }
         }
@@ -2556,6 +2553,7 @@ function initGameSystems() {
     setInterval(updatePrice, 2000); // Update all charts every 2 seconds
     setInterval(updateDeals, 1000);
     setInterval(updatePositions, 1000);
+    // updatePredictions is now called from updateAllCharts when chart ticks (synchronized)
     
     // Auto-save every 30 seconds
     setInterval(autoSave, 30000);

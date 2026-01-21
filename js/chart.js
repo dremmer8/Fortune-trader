@@ -6,6 +6,149 @@ let ctx;
 function initChart() {
     canvas = document.getElementById('chart');
     ctx = canvas.getContext('2d');
+    
+    // Add event handlers for predictions on right edge
+    if (canvas) {
+        canvas.addEventListener('click', handleChartClick);
+        canvas.addEventListener('mousemove', handleChartMouseMove);
+        canvas.addEventListener('mouseleave', handleChartMouseLeave);
+    }
+}
+
+// Track mouse position for preview
+let mouseX = 0;
+let mouseY = 0;
+let isMouseOverChart = false;
+
+// Handle mouse move for preview
+function handleChartMouseMove(event) {
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    mouseX = event.clientX - rect.left;
+    mouseY = event.clientY - rect.top;
+    
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = { top: 20, right: 60, bottom: 30, left: 20 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    
+    // Check if mouse is in the right edge zone (within 20px of right edge)
+    const rightEdgeStart = padding.left + chartWidth - 20;
+    const scaleX = canvas.width / rect.width;
+    const x = mouseX * scaleX;
+    
+    isMouseOverChart = (x >= rightEdgeStart && x <= width - padding.right) && 
+                       (mouseY >= padding.top && mouseY <= padding.top + chartHeight);
+    
+    // Trigger redraw for preview
+    if (typeof drawChartSmooth === 'function') {
+        drawChartSmooth();
+    }
+}
+
+// Handle mouse leave
+function handleChartMouseLeave() {
+    isMouseOverChart = false;
+    if (typeof drawChartSmooth === 'function') {
+        drawChartSmooth();
+    }
+}
+
+// Handle clicks on chart - create predictions on right edge
+function handleChartClick(event) {
+    if (!canvas) return;
+    
+    // Initialize predictions array if it doesn't exist
+    if (!state.predictions) {
+        state.predictions = [];
+    }
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    // Convert click coordinates to canvas coordinates
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+    
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = { top: 20, right: 60, bottom: 30, left: 20 };
+    const chartWidth = width - padding.left - padding.right;
+    const chartHeight = height - padding.top - padding.bottom;
+    
+    // Check if click is on the right edge (within 20px of right edge)
+    const rightEdgeStart = padding.left + chartWidth - 20;
+    if (x < rightEdgeStart || x > width - padding.right) return;
+    
+    // Check if click is within chart area vertically
+    if (y < padding.top || y > padding.top + chartHeight) return;
+    
+    // Calculate price from Y position
+    // Use the SAME price range calculation as drawChartSmooth to ensure alignment
+    if (state.prices.length < 1) return;
+    
+    const targetCount = typeof CHART_VISIBLE_POINTS !== 'undefined' ? CHART_VISIBLE_POINTS : 100;
+    
+    // Use display price for the most recent point (same as chart drawing)
+    let prices;
+    if (state.prices.length === 0) {
+        prices = new Array(targetCount).fill(state.displayPrice);
+    } else if (state.prices.length < targetCount) {
+        const firstPrice = state.prices[0];
+        const paddingCount = targetCount - state.prices.length - 1;
+        const paddingArray = paddingCount > 0 ? new Array(paddingCount).fill(firstPrice) : [];
+        prices = [...paddingArray, ...state.prices, state.displayPrice];
+        if (prices.length > targetCount) {
+            prices = prices.slice(-targetCount);
+        }
+    } else {
+        prices = [...state.prices.slice(-(targetCount - 1)), state.displayPrice];
+    }
+    
+    // Include prophecies in range calculation (same as chart)
+    const prophecies = typeof getActivePropheciesForChart === 'function' ? getActivePropheciesForChart() : [];
+    const prophecyPrices = [];
+    prophecies.forEach(p => {
+        if (p.intervalMin !== undefined) prophecyPrices.push(p.intervalMin);
+        if (p.intervalMax !== undefined) prophecyPrices.push(p.intervalMax);
+    });
+    
+    // Include predictions in min/max calculation
+    const activePredictions = state.predictions.filter(p => !p.resolved && p.stockSymbol === state.dataMode);
+    const predictionPrices = [];
+    activePredictions.forEach(p => {
+        predictionPrices.push(p.intervalMin, p.intervalMax, p.price);
+    });
+    
+    const activeDeals = state.deals.filter(d => !d.resolved && d.remaining > 0 && d.stockSymbol === state.dataMode);
+    const activePositions = state.positions.filter(p => p.remaining > 0 && p.stockSymbol === state.dataMode);
+    const dealPrices = activeDeals.map(d => d.entryPrice);
+    const positionPrices = activePositions.map(p => p.entryPrice);
+    
+    const stockHolding = typeof getCurrentStockHolding === 'function' ? getCurrentStockHolding() : null;
+    const stockAvgPrice = stockHolding && stockHolding.shares > 0 ? [stockHolding.avgPrice] : [];
+    
+    // Use EXACT same calculation as drawChartSmooth
+    const allPrices = [...prices, ...dealPrices, ...positionPrices, ...stockAvgPrice, ...prophecyPrices, ...predictionPrices];
+    
+    // Ensure we have valid prices
+    if (allPrices.length === 0) {
+        allPrices.push(state.displayPrice || 100);
+    }
+    
+    const min = Math.min(...allPrices) * 0.998;
+    const max = Math.max(...allPrices) * 1.002;
+    const range = max - min || 1;
+    
+    // Calculate price from Y coordinate using the same formula as chart drawing
+    const normalizedY = 1 - ((y - padding.top) / chartHeight);
+    const clickedPrice = min + (normalizedY * range);
+    
+    // Create prediction
+    createPrediction(clickedPrice);
 }
 
 // Get active prophecies for current chart (for effects calculation - includes undecoded)
@@ -514,6 +657,164 @@ function drawVolatilityProphecyIndicators(ctx, padding, chartWidth, chartHeight)
     });
 }
 
+// Draw prediction intervals on chart
+function drawPredictions(ctx, padding, chartWidth, chartHeight, min, max, range) {
+    const now = Date.now();
+    const currentTick = typeof getCurrentTickNumber === 'function' ? getCurrentTickNumber() : 0;
+    
+    // Draw preview zone on right edge if mouse is hovering
+    if (isMouseOverChart && canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleY = canvas.height / rect.height;
+        const y = mouseY * scaleY;
+        
+        if (y >= padding.top && y <= padding.top + chartHeight) {
+            // Calculate price from Y position using the same range as the chart
+            const normalizedY = 1 - ((y - padding.top) / chartHeight);
+            const previewPrice = min + (normalizedY * range);
+            
+            // Calculate interval around preview price (2% range)
+            const intervalWidth = previewPrice * 0.02;
+            const previewIntervalMin = previewPrice - intervalWidth / 2;
+            const previewIntervalMax = previewPrice + intervalWidth / 2;
+            
+            // Calculate Y positions for preview interval
+            const previewMinY = padding.top + chartHeight * (1 - (previewIntervalMin - min) / range);
+            const previewMaxY = padding.top + chartHeight * (1 - (previewIntervalMax - min) / range);
+            
+            const previewZoneHeight = Math.abs(previewMinY - previewMaxY);
+            const previewZoneTop = Math.min(previewMinY, previewMaxY);
+            
+            // Draw preview zone (right edge only, 20px wide)
+            const previewZoneWidth = 20;
+            const previewZoneX = padding.left + chartWidth - previewZoneWidth;
+            
+            const previewColor = { r: 139, g: 92, b: 246 }; // Purple
+            // Use 75% transparency for preview (25% opacity)
+            ctx.fillStyle = `rgba(${previewColor.r}, ${previewColor.g}, ${previewColor.b}, 0.25)`;
+            ctx.fillRect(previewZoneX, previewZoneTop, previewZoneWidth, previewZoneHeight);
+            
+            // Draw preview boundary lines
+            ctx.setLineDash([4, 4]);
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = `rgba(${previewColor.r}, ${previewColor.g}, ${previewColor.b}, 0.25)`;
+            
+            ctx.beginPath();
+            ctx.moveTo(previewZoneX, previewMinY);
+            ctx.lineTo(previewZoneX + previewZoneWidth, previewMinY);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(previewZoneX, previewMaxY);
+            ctx.lineTo(previewZoneX + previewZoneWidth, previewMaxY);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+        }
+    }
+    
+    if (!state.predictions || !Array.isArray(state.predictions) || state.predictions.length === 0) return;
+    
+    // Filter predictions for current stock and validate data
+    const activePredictions = state.predictions.filter(p => 
+        p && 
+        !p.resolved && 
+        p.stockSymbol === state.dataMode &&
+        typeof p.intervalMin === 'number' && 
+        typeof p.intervalMax === 'number' && 
+        typeof p.price === 'number' &&
+        !isNaN(p.intervalMin) && 
+        !isNaN(p.intervalMax) && 
+        !isNaN(p.price)
+    );
+    
+    if (activePredictions.length === 0) return;
+    
+    activePredictions.forEach(prediction => {
+        // Calculate ticks remaining based on last shrink tick (synced with chart updates)
+        const ticksElapsed = prediction.lastShrinkTick - prediction.startTick;
+        const ticksRemaining = Math.max(0, 10 - ticksElapsed);
+        
+        // Calculate horizontal shrink: discrete steps tied to chart ticks
+        // Each tick shrinks by 1/10th of the width
+        const shrinkProgress = ticksRemaining / 10; // 1.0 when 0 ticks elapsed, 0.0 when 10 ticks elapsed
+        const currentWidth = chartWidth * shrinkProgress; // Shrinks from left to right
+        
+        // If width is 0 or less, trigger resolution (should already be handled, but double-check)
+        if (currentWidth <= 0 && !prediction.resolved) {
+            // This will be handled by updatePredictions, but we skip drawing
+            return;
+        }
+        
+        // Calculate Y positions for the interval
+        const intervalMinY = padding.top + chartHeight * (1 - (prediction.intervalMin - min) / range);
+        const intervalMaxY = padding.top + chartHeight * (1 - (prediction.intervalMax - min) / range);
+        
+        // Clamp to chart area
+        const clampedMinY = Math.max(padding.top, Math.min(padding.top + chartHeight, intervalMinY));
+        const clampedMaxY = Math.max(padding.top, Math.min(padding.top + chartHeight, intervalMaxY));
+        
+        const zoneHeight = Math.abs(clampedMinY - clampedMaxY);
+        const zoneTop = Math.min(clampedMinY, clampedMaxY);
+        const zoneCenterY = (clampedMinY + clampedMaxY) / 2;
+        
+        // Color: purple/blue for predictions
+        const color = { r: 139, g: 92, b: 246 }; // Purple
+        
+        // Draw interval zone with 75% transparency (25% opacity) and horizontal shrinking
+        const zoneOpacity = 0.05; // Fixed 75% transparency (25% opacity)
+        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${zoneOpacity})`;
+        // Shrink from left to right: start X moves right as width decreases
+        const startX = padding.left + chartWidth - currentWidth;
+        ctx.fillRect(startX, zoneTop, currentWidth, zoneHeight);
+        
+        // Draw boundary lines (also shrink horizontally)
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${zoneOpacity})`;
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, clampedMinY);
+        ctx.lineTo(startX + currentWidth, clampedMinY);
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, clampedMaxY);
+        ctx.lineTo(startX + currentWidth, clampedMaxY);
+        ctx.stroke();
+        
+        ctx.setLineDash([]);
+        
+        // Draw center line (prediction price) - also shrinks
+        const centerY = padding.top + chartHeight * (1 - (prediction.price - min) / range);
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${zoneOpacity})`;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([2, 2]);
+        ctx.moveTo(startX, centerY);
+        ctx.lineTo(startX + currentWidth, centerY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Draw ticks remaining (only if there's space)
+        if (currentWidth > 30) {
+            ctx.font = '10px JetBrains Mono, monospace';
+            ctx.fillStyle = '#a0a0b0';
+            ctx.textAlign = 'right';
+            ctx.fillText(`${ticksRemaining}T`, startX + currentWidth - 5, zoneCenterY - 8);
+        }
+        
+        // Price labels (only if there's space)
+        if (currentWidth > 60) {
+            ctx.font = '9px JetBrains Mono, monospace';
+            ctx.fillStyle = '#a0a0b0';
+            ctx.textAlign = 'right';
+            ctx.fillText(`$${prediction.intervalMin.toFixed(2)}`, startX + currentWidth - 5, clampedMinY + 10);
+            ctx.fillText(`$${prediction.intervalMax.toFixed(2)}`, startX + currentWidth - 5, clampedMaxY - 2);
+        }
+    });
+}
+
 // Helper function to ensure we always have exactly CHART_VISIBLE_POINTS points
 // Generates simulated historical values if fewer points exist
 function getPaddedPrices(rawPrices, currentPrice) {
@@ -828,16 +1129,38 @@ function drawChartSmooth() {
         if (p.intervalMax !== undefined) prophecyPrices.push(p.intervalMax);
     });
     
-    // Safe min/max calculation (handle empty prophecyPrices array)
-    const allPreCalcPrices = prophecyPrices.length > 0 
-        ? [...preCalcPrices, ...prophecyPrices] 
-        : preCalcPrices;
+    // Include predictions in pre-calculation for proper range
+    const preCalcActivePredictions = (state.predictions && Array.isArray(state.predictions)) 
+        ? state.predictions.filter(p => p && !p.resolved && p.stockSymbol === state.dataMode && 
+            typeof p.intervalMin === 'number' && typeof p.intervalMax === 'number' && typeof p.price === 'number') 
+        : [];
+    const preCalcPredictionPrices = [];
+    preCalcActivePredictions.forEach(p => {
+        if (p.intervalMin && p.intervalMax && p.price) {
+            preCalcPredictionPrices.push(p.intervalMin, p.intervalMax, p.price);
+        }
+    });
+    
+    // Safe min/max calculation (handle empty arrays)
+    const allPreCalcPrices = [...preCalcPrices];
+    if (prophecyPrices.length > 0) allPreCalcPrices.push(...prophecyPrices);
+    if (preCalcPredictionPrices.length > 0) allPreCalcPrices.push(...preCalcPredictionPrices);
+    
+    // Ensure we have valid prices
+    if (allPreCalcPrices.length === 0) {
+        allPreCalcPrices.push(state.displayPrice || 100);
+    }
+    
     const preCalcMin = Math.min(...allPreCalcPrices) * 0.998;
     const preCalcMax = Math.max(...allPreCalcPrices) * 1.002;
     const preCalcRange = preCalcMax - preCalcMin || 1;
     
     // Draw prophecy indicators FIRST (as background layer)
-    drawProphecyIndicators(ctx, padding, chartWidth, chartHeight, preCalcMin, preCalcMax, preCalcRange, preCalcPrices);
+    try {
+        drawProphecyIndicators(ctx, padding, chartWidth, chartHeight, preCalcMin, preCalcMax, preCalcRange, preCalcPrices);
+    } catch (e) {
+        console.warn('Error drawing prophecy indicators:', e);
+    }
     
     // Use display price for the most recent point for smooth animation
     // Always ensure targetCount points, padded if needed
@@ -871,12 +1194,45 @@ function drawChartSmooth() {
     const stockHolding = typeof getCurrentStockHolding === 'function' ? getCurrentStockHolding() : null;
     const stockAvgPrice = stockHolding && stockHolding.shares > 0 ? [stockHolding.avgPrice] : [];
     
+    // Include predictions in price range calculation
+    const activePredictions = (state.predictions && Array.isArray(state.predictions)) 
+        ? state.predictions.filter(p => 
+            p && 
+            !p.resolved && 
+            p.stockSymbol === state.dataMode &&
+            typeof p.intervalMin === 'number' && 
+            typeof p.intervalMax === 'number' && 
+            typeof p.price === 'number'
+        ) 
+        : [];
+    const predictionPrices = [];
+    activePredictions.forEach(p => {
+        if (p.intervalMin && p.intervalMax && p.price) {
+            predictionPrices.push(p.intervalMin, p.intervalMax, p.price);
+        }
+    });
+    
     // Include prophecy intervals in the price range
-    const allPrices = [...prices, ...dealPrices, ...positionPrices, ...stockAvgPrice, ...prophecyPrices];
+    const allPrices = [...prices, ...dealPrices, ...positionPrices, ...stockAvgPrice, ...prophecyPrices, ...predictionPrices];
+    
+    // Ensure we have valid prices
+    if (allPrices.length === 0) {
+        allPrices.push(state.displayPrice || 100);
+    }
     
     const min = Math.min(...allPrices) * 0.998;
     const max = Math.max(...allPrices) * 1.002;
     const range = max - min || 1;
+
+    // Draw predictions using the FINAL min/max/range (same as chart line)
+    // This ensures predictions align correctly with the chart axis
+    try {
+        if (typeof drawPredictions === 'function') {
+            drawPredictions(ctx, padding, chartWidth, chartHeight, min, max, range);
+        }
+    } catch (e) {
+        console.warn('Error drawing predictions:', e);
+    }
 
     // Combine deals and positions into unified bets array
     const allBets = [

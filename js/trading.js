@@ -77,26 +77,19 @@ function buyCookie() {
     const targetStock = stockKeys[Math.floor(Math.random() * stockKeys.length)];
     const targetStockConfig = stockConfig[targetStock];
     
-    // Get current price for this stock (use base price if not active)
-    const currentStockPrice = targetStock === state.dataMode 
-        ? state.currentPrice 
-        : stockConfig[targetStock].basePrice;
-
-    // Generate type-specific prophecy data using per-prophecy config and tier modifiers
-    const prophecyData = generateProphecyData(prophecyType, currentStockPrice, duration, tierConfig.modifiers);
-
-    // Create cookie object and add to inventory
+    // Don't calculate prophecy values yet - will be calculated when decoded
+    // Store only metadata needed for later calculation
     const cookie = { 
         id: Date.now(),
         tier: tier,
         tierConfig: tierConfig,
         prophecyType,
         typeConfig,
-        ...prophecyData,
         duration,
         targetStock,
         targetStockName: targetStockConfig.name,
-        targetStockTag: targetStockConfig.tag
+        targetStockTag: targetStockConfig.tag,
+        tierModifiers: tierConfig.modifiers  // Store modifiers for later calculation
     };
     
     state.cookieInventory.push(cookie);
@@ -287,7 +280,8 @@ function generateProphecyData(prophecyType, currentPrice, duration, tierModifier
             const trueZone = currentPrice * (1 + direction * distance / 100);
             // Apply interval tightness from tier
             const intervalWidth = (intervalConfig.min + Math.random() * (intervalConfig.max - intervalConfig.min)) * intervalTightness;
-            const intervalHalf = (currentPrice * intervalWidth / 100) / 2;
+            // Calculate interval half based on trueZone, not currentPrice, so interval is centered on the zone
+            const intervalHalf = (trueZone * intervalWidth / 100) / 2;
             return {
                 trueValue: trueZone,
                 intervalMin: parseFloat((trueZone - intervalHalf).toFixed(2)),
@@ -300,18 +294,11 @@ function generateProphecyData(prophecyType, currentPrice, duration, tierModifier
         case 'volatilitySpike': {
             // Get volatility spike config (with fallbacks)
             const volConfig = config.volatilityMultiplier || { min: 2.0, max: 4.0 };
-            const windowStartConfig = config.windowStart || { min: 5, max: 15 };
-            const windowDurationConfig = config.windowDuration || { min: 15, max: 45 };
-            // Volatility spike window
-            const windowStart = windowStartConfig.min + Math.random() * (windowStartConfig.max - windowStartConfig.min);
-            const windowDuration = windowDurationConfig.min + Math.random() * (windowDurationConfig.max - windowDurationConfig.min);
             // Apply interval tightness to volatility range (tighter = more precise prediction)
             const volRange = (volConfig.max - volConfig.min) * intervalTightness;
             const volatilityMin = volConfig.min + Math.random() * volRange * 0.3;
             const volatilityMax = volatilityMin + Math.random() * (volConfig.min + volRange - volatilityMin);
             return {
-                windowStart: parseFloat(windowStart.toFixed(1)),
-                windowEnd: parseFloat((windowStart + windowDuration).toFixed(1)),
                 volatilityMin: parseFloat(volatilityMin.toFixed(1)),
                 volatilityMax: parseFloat(volatilityMax.toFixed(1)),
                 trueVolatility: volatilityMin + Math.random() * (volatilityMax - volatilityMin)
@@ -321,18 +308,11 @@ function generateProphecyData(prophecyType, currentPrice, duration, tierModifier
         case 'volatilityCalm': {
             // Get volatility calm config (with fallbacks)
             const volConfig = config.volatilityMultiplier || { min: 0.2, max: 0.5 };
-            const windowStartConfig = config.windowStart || { min: 5, max: 15 };
-            const windowDurationConfig = config.windowDuration || { min: 15, max: 45 };
-            // Volatility calm window
-            const windowStart = windowStartConfig.min + Math.random() * (windowStartConfig.max - windowStartConfig.min);
-            const windowDuration = windowDurationConfig.min + Math.random() * (windowDurationConfig.max - windowDurationConfig.min);
             // Apply interval tightness to volatility range
             const volRange = (volConfig.max - volConfig.min) * intervalTightness;
             const volatilityMin = volConfig.min + Math.random() * volRange * 0.5;
             const volatilityMax = volatilityMin + Math.random() * (volConfig.min + volRange - volatilityMin);
             return {
-                windowStart: parseFloat(windowStart.toFixed(1)),
-                windowEnd: parseFloat((windowStart + windowDuration).toFixed(1)),
                 volatilityMin: parseFloat(volatilityMin.toFixed(1)),
                 volatilityMax: parseFloat(volatilityMax.toFixed(1)),
                 trueVolatility: volatilityMin + Math.random() * (volatilityMax - volatilityMin)
@@ -485,7 +465,7 @@ function createProphecy(cookie) {
         prophecyType: cookie.prophecyType,
         typeConfig: cookie.typeConfig,
         duration: cookie.duration,
-        startTime: now,
+        startTime: null,  // Will be set when decoded
         targetStock: cookie.targetStock,
         targetStockName: cookie.targetStockName,
         targetStockTag: cookie.targetStockTag,
@@ -500,29 +480,56 @@ function createProphecy(cookie) {
         isDecoded: false,
         autoRevealing: autoRevealEnabled,       // Track if auto-revealing
         lastAutoRevealTick: autoRevealEnabled ? (typeof getCurrentTickNumber === 'function' ? getCurrentTickNumber() : 0) : null,
-        // Type-specific data (spread from cookie)
-        ...(cookie.strengthMin !== undefined && { strengthMin: cookie.strengthMin }),
-        ...(cookie.strengthMax !== undefined && { strengthMax: cookie.strengthMax }),
-        ...(cookie.trueValue !== undefined && { trueValue: cookie.trueValue }),
-        ...(cookie.intervalMin !== undefined && { intervalMin: cookie.intervalMin }),
-        ...(cookie.intervalMax !== undefined && { intervalMax: cookie.intervalMax }),
-        ...(cookie.touched !== undefined && { touched: cookie.touched }),
-        ...(cookie.windowStart !== undefined && { windowStart: cookie.windowStart }),
-        ...(cookie.windowEnd !== undefined && { windowEnd: cookie.windowEnd }),
-        ...(cookie.volatilityMin !== undefined && { volatilityMin: cookie.volatilityMin }),
-        ...(cookie.volatilityMax !== undefined && { volatilityMax: cookie.volatilityMax }),
-        ...(cookie.trueVolatility !== undefined && { trueVolatility: cookie.trueVolatility })
+        // Store cookie metadata for later calculation (values will be calculated when decoded)
+        cookieMetadata: {
+            tierModifiers: cookie.tierModifiers || cookie.tierConfig?.modifiers || {}
+        }
     };
     
     // Computed remaining for backwards compatibility
     Object.defineProperty(prophecy, 'remaining', {
         get: function() {
+            if (!this.startTime) return this.duration; // Not decoded yet, show full duration
             return Math.max(0, this.duration - (Date.now() - this.startTime) / 1000);
         }
     });
     
     state.deals.push(prophecy);
     renderDeals();
+}
+
+// Calculate prophecy values when decoded, using current price at decode time
+function calculateProphecyValues(prophecy) {
+    if (prophecy.isDecoded) return; // Already calculated
+    
+    const now = Date.now();
+    
+    // Get current price for the target stock
+    const currentStockPrice = prophecy.targetStock === state.dataMode
+        ? state.currentPrice
+        : (state.chartPrices && state.chartPrices[prophecy.targetStock] 
+            ? state.chartPrices[prophecy.targetStock].currentPrice 
+            : stockConfig[prophecy.targetStock]?.basePrice || 100);
+    
+    // Get tier modifiers from stored metadata
+    const tierModifiers = prophecy.cookieMetadata?.tierModifiers || {};
+    
+    // Generate prophecy data using current price at decode time
+    const prophecyData = generateProphecyData(
+        prophecy.prophecyType, 
+        currentStockPrice, 
+        prophecy.duration, 
+        tierModifiers
+    );
+    
+    // Apply the calculated values to the prophecy
+    Object.assign(prophecy, prophecyData);
+    
+    // Set start time when decoded (prophecy starts now)
+    prophecy.startTime = now;
+    
+    // Mark as decoded
+    prophecy.isDecoded = true;
 }
 
 // Auto-decode all existing undecoded prophecies (when Auto Reveal is purchased)
@@ -576,7 +583,8 @@ function handleDecodeKeypress(event) {
     if (!expectedChar) {
         // Finished typing - reveal all remaining
         prophecy.encryptableIndices.forEach(idx => prophecy.revealedIndices.add(idx));
-        prophecy.isDecoded = true;
+        // Calculate prophecy values using current price at decode time
+        calculateProphecyValues(prophecy);
         state.selectedProphecyId = null;
         AudioManager.playProphecyDecoded();
         showNotification('Prophecy decoded!', 'success');
@@ -609,7 +617,8 @@ function handleDecodeKeypress(event) {
                 prophecy.encryptableIndices.length === 0) {
                 // Reveal any remaining
                 prophecy.encryptableIndices.forEach(idx => prophecy.revealedIndices.add(idx));
-                prophecy.isDecoded = true;
+                // Calculate prophecy values using current price at decode time
+                calculateProphecyValues(prophecy);
                 state.selectedProphecyId = null;
                 AudioManager.playProphecyDecoded();
                 showNotification('Prophecy decoded!', 'success');
@@ -722,9 +731,13 @@ function getProphecyCategoryClass(deal) {
 
 // Render prophecy-specific details (compact version)
 function renderProphecyDetails(deal) {
+    // Safety check - only render if decoded and values exist
+    if (!deal.isDecoded) return '';
+    
     switch (deal.prophecyType) {
         case 'trendUp':
         case 'trendDown':
+            if (deal.strengthMin === undefined || deal.strengthMax === undefined) return '';
             return `
                 <div class="prophecy-detail-row">
                     <span class="detail-label">Strength:</span>
@@ -733,6 +746,7 @@ function renderProphecyDetails(deal) {
             `;
         
         case 'lowerShore':
+            if (deal.intervalMin === undefined || deal.intervalMax === undefined) return '';
             return `
                 <div class="prophecy-detail-row">
                     <span class="detail-label">Floor:</span>
@@ -741,6 +755,7 @@ function renderProphecyDetails(deal) {
             `;
         
         case 'upperShore':
+            if (deal.intervalMin === undefined || deal.intervalMax === undefined) return '';
             return `
                 <div class="prophecy-detail-row">
                     <span class="detail-label">Ceiling:</span>
@@ -749,6 +764,7 @@ function renderProphecyDetails(deal) {
             `;
         
         case 'inevitableZone':
+            if (deal.intervalMin === undefined || deal.intervalMax === undefined) return '';
             return `
                 <div class="prophecy-detail-row">
                     <span class="detail-label">Zone:</span>
@@ -758,11 +774,8 @@ function renderProphecyDetails(deal) {
             `;
         
         case 'volatilitySpike':
+            if (deal.volatilityMin === undefined || deal.volatilityMax === undefined) return '';
             return `
-                <div class="prophecy-detail-row">
-                    <span class="detail-label">Window:</span>
-                    <span class="detail-value time-interval">${deal.windowStart.toFixed(0)}s-${deal.windowEnd.toFixed(0)}s</span>
-                </div>
                 <div class="prophecy-detail-row">
                     <span class="detail-label">Vol:</span>
                     <span class="detail-value vol-interval">${deal.volatilityMin.toFixed(1)}x-${deal.volatilityMax.toFixed(1)}x</span>
@@ -770,11 +783,8 @@ function renderProphecyDetails(deal) {
             `;
         
         case 'volatilityCalm':
+            if (deal.volatilityMin === undefined || deal.volatilityMax === undefined) return '';
             return `
-                <div class="prophecy-detail-row">
-                    <span class="detail-label">Window:</span>
-                    <span class="detail-value time-interval">${deal.windowStart.toFixed(0)}s-${deal.windowEnd.toFixed(0)}s</span>
-                </div>
                 <div class="prophecy-detail-row">
                     <span class="detail-label">Vol:</span>
                     <span class="detail-value vol-interval">${deal.volatilityMin.toFixed(1)}x-${deal.volatilityMax.toFixed(1)}x</span>
@@ -816,7 +826,8 @@ function updateDeals() {
                     
                     // Check if fully revealed
                     if (deal.encryptableIndices.length === 0 && !deal.isDecoded) {
-                        deal.isDecoded = true;
+                        // Calculate prophecy values using current price at decode time
+                        calculateProphecyValues(deal);
                         needsRender = true;
                         // Play prophecy decoded sound for auto-reveal completion
                         AudioManager.playProphecyDecoded();
@@ -828,6 +839,11 @@ function updateDeals() {
 
     state.deals = state.deals.filter(deal => {
         if (deal.resolved) return false;
+        
+        // Only check expiration for decoded prophecies (startTime is set when decoded)
+        if (!deal.isDecoded || !deal.startTime) {
+            return true; // Keep undecoded prophecies
+        }
         
         const elapsed = (now - deal.startTime) / 1000;
         const remaining = deal.duration - elapsed;
@@ -843,6 +859,86 @@ function updateDeals() {
     });
 
     if (needsRender) renderDeals();
+}
+
+// Create a prediction at the clicked price
+function createPrediction(clickedPrice) {
+    // Check timing lock
+    if (!canPlaceBet()) {
+        const remaining = getBetLockRemaining();
+        showNotification(`Please wait ${remaining}s before betting again`, 'error');
+        return;
+    }
+
+    // Prediction bet is 2x current bet
+    const baseAmount = getCurrentBet();
+    const amount = baseAmount * 2;
+
+    if (amount > state.balance) {
+        showNotification('Insufficient funds', 'error');
+        return;
+    }
+
+    // Play click sound for placing prediction
+    AudioManager.playClick();
+    
+    state.balance -= amount;
+    updateBalance();
+
+    // Calculate interval around clicked price (2% range)
+    const intervalWidth = clickedPrice * 0.02; // 2% of price
+    const intervalMin = clickedPrice - intervalWidth / 2;
+    const intervalMax = clickedPrice + intervalWidth / 2;
+
+    const now = Date.now();
+    const currentTick = typeof getCurrentTickNumber === 'function' ? getCurrentTickNumber() : 0;
+    
+    const prediction = {
+        id: now,
+        price: clickedPrice,
+        intervalMin: intervalMin,
+        intervalMax: intervalMax,
+        amount: amount,
+        startTick: currentTick,
+        targetTick: currentTick + 10, // Resolve after 10 ticks
+        stockSymbol: state.dataMode,
+        resolved: false,
+        startTime: now,
+        lastShrinkTick: currentTick // Track last tick when we shrunk this prediction
+    };
+
+    // Security validation
+    if (typeof SecurityService !== 'undefined') {
+        const validation = SecurityService.validateTransaction('createPrediction', {
+            amount: amount,
+            balance: state.balance,
+            price: clickedPrice
+        });
+        if (!validation.ok) {
+            SecurityService.addFlag('invalid_prediction', { amount, price: clickedPrice });
+            // Refund the bet
+            state.balance += amount;
+            updateBalance();
+            showNotification(validation.reason, 'error');
+            return;
+        }
+        SecurityService.logTransaction('createPrediction', { amount, price: clickedPrice });
+    }
+
+    // Initialize predictions array if it doesn't exist
+    if (!state.predictions) {
+        state.predictions = [];
+    }
+
+    state.predictions.push(prediction);
+    state.lastBetTime = now; // Update bet lock timer
+    
+    // Re-render chart to show prediction
+    if (typeof drawChartSmooth === 'function') {
+        drawChartSmooth();
+    }
+    
+    showNotification(`Prediction placed at $${clickedPrice.toFixed(2)}`, 'success');
 }
 
 function openPosition(direction) {
@@ -888,6 +984,125 @@ function openPosition(direction) {
     state.lastBetTime = now; // Update bet lock timer
     renderPositions();
     showNotification(`${direction.toUpperCase()} position opened`, 'success');
+}
+
+// Update predictions - check if 10 ticks have passed
+// Only shrinks when chart actually updates (new tick occurs)
+function updatePredictions() {
+    if (!state.predictions || state.predictions.length === 0) return;
+    
+    const currentTick = typeof getCurrentTickNumber === 'function' ? getCurrentTickNumber() : 0;
+    
+    state.predictions.forEach(prediction => {
+        if (prediction.resolved) return;
+        
+        // Only update shrinking when a new tick occurs (chart has updated)
+        // Check if we've moved to a new tick since last shrink
+        if (currentTick > prediction.lastShrinkTick) {
+            // Update last shrink tick to current
+            prediction.lastShrinkTick = currentTick;
+        }
+        
+        // Check if target tick has been reached
+        if (currentTick >= prediction.targetTick) {
+            resolvePrediction(prediction);
+        }
+    });
+}
+
+// Resolve a prediction - check if current price is within interval
+function resolvePrediction(prediction) {
+    if (prediction.resolved) return;
+    
+    // Get current price for the prediction's stock
+    const currentPrice = prediction.stockSymbol === state.dataMode
+        ? state.currentPrice
+        : (state.chartPrices && state.chartPrices[prediction.stockSymbol]
+            ? state.chartPrices[prediction.stockSymbol].currentPrice
+            : stockConfig[prediction.stockSymbol]?.basePrice || 100);
+    
+    // Security validation
+    if (typeof SecurityService !== 'undefined') {
+        const validation = SecurityService.validateTransaction('resolvePrediction', {
+            amount: prediction.amount,
+            currentPrice: currentPrice,
+            intervalMin: prediction.intervalMin,
+            intervalMax: prediction.intervalMax
+        });
+        if (!validation.ok) {
+            SecurityService.addFlag('invalid_prediction_resolution', { 
+                id: prediction.id, 
+                reason: validation.reason 
+            });
+            return;
+        }
+    }
+    
+    // Check if price is within interval
+    const isInside = currentPrice >= prediction.intervalMin && currentPrice <= prediction.intervalMax;
+    
+    // Mark as resolved
+    prediction.resolved = true;
+    prediction.resultPrice = currentPrice;
+    prediction.won = isInside;
+    
+    if (isInside) {
+        // Player wins - get 2x reward (4x total: 2x bet back + 2x profit)
+        const winnings = Math.floor(prediction.amount * 2);
+        state.balance += winnings;
+        updateBalance();
+        const profit = winnings - prediction.amount;
+        prediction.result = profit;
+        
+        if (typeof SecurityService !== 'undefined') {
+            SecurityService.logTransaction('prediction_win', { 
+                id: prediction.id, 
+                profit, 
+                winnings 
+            });
+        }
+        
+        handleWin(); // Increase streak and bet
+        flashTradingScreen(true); // Green flash for win
+        AudioManager.playSuccessfulDeal(); // Play success sound
+        showNotification(`Prediction won! +$${profit.toLocaleString()} 🔥`, 'success');
+    } else {
+        // Player loses - bet is already deducted
+        prediction.result = -prediction.amount;
+        
+        if (typeof SecurityService !== 'undefined') {
+            SecurityService.logTransaction('prediction_loss', { 
+                id: prediction.id, 
+                loss: prediction.amount,
+                currentPrice: currentPrice,
+                intervalMin: prediction.intervalMin,
+                intervalMax: prediction.intervalMax
+            });
+        }
+        
+        handleLoss(); // Reset streak and bet
+        flashTradingScreen(false); // Red flash for loss
+        showNotification(`Prediction lost -$${prediction.amount.toLocaleString()}`, 'error');
+    }
+    
+    // Remove prediction after 4 seconds
+    setTimeout(() => {
+        const index = state.predictions.indexOf(prediction);
+        if (index > -1) {
+            state.predictions.splice(index, 1);
+            // Re-render chart
+            if (typeof drawChartSmooth === 'function') {
+                drawChartSmooth();
+            }
+        }
+    }, 4000);
+    
+    // Re-render chart to update prediction display
+    if (typeof drawChartSmooth === 'function') {
+        drawChartSmooth();
+    }
+    
+    autoSave(); // Save after prediction resolves
 }
 
 function updatePositions() {
@@ -1198,6 +1413,163 @@ function sellStock() {
         flashTradingScreen(false); // Red flash for loss
         showNotification(`Sold ${sharesSold.toFixed(4)} shares -$${Math.abs(pnl).toFixed(2)}`, 'error');
     }
+}
+
+// Helper function to sell stock by symbol
+function sellStockBySymbol(symbol) {
+    const holding = state.stockHoldings[symbol];
+    
+    if (!holding || holding.shares === 0) {
+        return { sold: false, reason: 'No shares to sell' };
+    }
+
+    // Get current price for this symbol
+    const prices = state.chartPrices[symbol];
+    const config = stockConfig[symbol];
+    const currentPrice = prices ? prices.displayPrice : (config ? config.basePrice : 0);
+    
+    if (currentPrice <= 0) {
+        return { sold: false, reason: 'Invalid price' };
+    }
+
+    if (typeof SecurityService !== 'undefined') {
+        const validation = SecurityService.validateTransaction('sellStock', {
+            amount: holding.totalInvested,
+            shares: holding.shares,
+            price: currentPrice
+        });
+        if (!validation.ok) {
+            SecurityService.addFlag('invalid_sell', { shares: holding.shares, price: currentPrice });
+            return { sold: false, reason: validation.reason };
+        }
+        SecurityService.logTransaction('sellStock', { shares: holding.shares, price: currentPrice, symbol });
+    }
+    
+    const proceeds = holding.shares * currentPrice;
+    const pnl = proceeds - holding.totalInvested;
+    
+    // Add proceeds to balance
+    state.balance += proceeds;
+    updateBalance();
+    
+    // Clear the holding
+    const sharesSold = holding.shares;
+    holding.shares = 0;
+    holding.avgPrice = 0;
+    holding.totalInvested = 0;
+    
+    // Update display if this is the current stock
+    if (state.dataMode === symbol) {
+        renderStockHolding();
+    }
+    
+    return { 
+        sold: true, 
+        symbol, 
+        sharesSold, 
+        proceeds, 
+        pnl,
+        currentPrice 
+    };
+}
+
+// Sell all stocks in portfolio
+function sellAllStocks() {
+    const holdings = Object.keys(state.stockHoldings).filter(symbol => {
+        const holding = state.stockHoldings[symbol];
+        return holding && holding.shares > 0;
+    });
+    
+    if (holdings.length === 0) {
+        showNotification('No stocks to sell', 'error');
+        return;
+    }
+    
+    AudioManager.playClick();
+    
+    let totalProceeds = 0;
+    let totalPnl = 0;
+    let soldCount = 0;
+    const results = [];
+    
+    holdings.forEach(symbol => {
+        const result = sellStockBySymbol(symbol);
+        if (result.sold) {
+            totalProceeds += result.proceeds;
+            totalPnl += result.pnl;
+            soldCount++;
+            results.push(result);
+        }
+    });
+    
+    if (soldCount === 0) {
+        showNotification('Failed to sell any stocks', 'error');
+        return;
+    }
+    
+    autoSave();
+    renderPortfolioOverlay();
+    
+    if (totalPnl >= 0) {
+        flashTradingScreen(true);
+        AudioManager.playSuccessfulDeal();
+        showNotification(`Sold ${soldCount} stock${soldCount > 1 ? 's' : ''} +$${totalPnl.toFixed(2)}`, 'success');
+    } else {
+        flashTradingScreen(false);
+        showNotification(`Sold ${soldCount} stock${soldCount > 1 ? 's' : ''} -$${Math.abs(totalPnl).toFixed(2)}`, 'error');
+    }
+}
+
+// Sell all profitable stocks in portfolio
+function sellAllProfitableStocks() {
+    const holdings = [];
+    
+    Object.keys(state.stockHoldings).forEach(symbol => {
+        const holding = state.stockHoldings[symbol];
+        if (holding && holding.shares > 0) {
+            const prices = state.chartPrices[symbol];
+            const config = stockConfig[symbol];
+            const currentPrice = prices ? prices.displayPrice : (config ? config.basePrice : 0);
+            const currentValue = holding.shares * currentPrice;
+            const pnl = currentValue - holding.totalInvested;
+            
+            if (pnl > 0) {
+                holdings.push(symbol);
+            }
+        }
+    });
+    
+    if (holdings.length === 0) {
+        showNotification('No profitable stocks to sell', 'error');
+        return;
+    }
+    
+    AudioManager.playClick();
+    
+    let totalProceeds = 0;
+    let totalPnl = 0;
+    let soldCount = 0;
+    
+    holdings.forEach(symbol => {
+        const result = sellStockBySymbol(symbol);
+        if (result.sold) {
+            totalProceeds += result.proceeds;
+            totalPnl += result.pnl;
+            soldCount++;
+        }
+    });
+    
+    if (soldCount === 0) {
+        showNotification('Failed to sell any stocks', 'error');
+        return;
+    }
+    
+    autoSave();
+    renderPortfolioOverlay();
+    
+    flashTradingScreen(true);
+    AudioManager.playSuccessfulDeal();
+    showNotification(`Sold ${soldCount} profitable stock${soldCount > 1 ? 's' : ''} +$${totalPnl.toFixed(2)}`, 'success');
 }
 
 function renderStockHolding() {
