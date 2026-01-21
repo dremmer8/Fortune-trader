@@ -815,7 +815,7 @@ function updateLoanDisplay() {
     `;
 }
 
-function takeLoan(optionId) {
+async function takeLoan(optionId) {
     if (state.activeLoan) {
         showNotification('You already have an active loan.', 'error');
         return;
@@ -855,14 +855,14 @@ function takeLoan(optionId) {
     };
     
     state.bankBalance += amount;
-    saveGameState();
+    await saveGameState();
     updateBankerDisplay();
     renderLoanOptions();
     
     showNotification(`${option.name} approved for $${amount.toLocaleString()}!`, 'success');
 }
 
-function repayLoan() {
+async function repayLoan() {
     const loan = state.activeLoan;
     if (!loan) return;
     
@@ -882,14 +882,14 @@ function repayLoan() {
         label: `Loan interest (${loan.name})`
     });
     state.activeLoan = null;
-    saveGameState();
+    await saveGameState();
     updateBankerDisplay();
     renderLoanOptions();
     
     showNotification(`Loan repaid for $${payoff.total.toLocaleString()}.`, 'success');
 }
 
-function processLoanDue() {
+async function processLoanDue() {
     const loan = state.activeLoan;
     if (!loan) return;
     
@@ -903,7 +903,7 @@ function processLoanDue() {
             label: `Loan interest (${loan.name})`
         });
         state.activeLoan = null;
-        saveGameState();
+        await saveGameState();
         updateBankerDisplay();
         renderLoanOptions();
         showNotification(`Loan auto-repaid for $${payoff.total.toLocaleString()}.`, 'info');

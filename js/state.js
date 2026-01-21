@@ -364,9 +364,10 @@ async function saveGameState() {
         // Attempt Firebase sync
         try {
             await FirebaseService.saveUserData(playerId, playerName, saveData);
-            // Success - clear pending snapshot
-            localStorage.removeItem(PENDING_SAVE_KEY);
-            console.log('✅ Firebase synced successfully, pending snapshot cleared');
+            // Success - but DON'T clear pending snapshot yet
+            // It will be cleared on next boot after we verify Firebase has the data
+            // This prevents data loss if user refreshes before Firebase write propagates
+            console.log('✅ Firebase synced successfully, pending snapshot kept for verification on next boot');
         } catch (err) {
             console.warn('⚠️ Firebase sync failed (snapshot queued for boot-time sync):', err);
             // Keep in pending queue for next boot
@@ -561,7 +562,14 @@ async function syncPendingSaveSnapshot() {
         // Hide overlay
         showSyncOverlay(false);
         
-        return { hadPendingSave: true, success: true };
+        // Return snapshot data so it can be loaded immediately (don't wait for Firebase propagation)
+        return { 
+            hadPendingSave: true, 
+            success: true,
+            loadLocally: true,
+            snapshot: snapshot,
+            syncedToFirebase: true
+        };
     } catch (error) {
         console.error('❌ Failed to sync pending snapshot:', error);
         
@@ -569,8 +577,16 @@ async function syncPendingSaveSnapshot() {
         await new Promise(resolve => setTimeout(resolve, 1500));
         showSyncOverlay(false);
         
-        // Keep snapshot for next attempt (unless it was tampered)
-        return { hadPendingSave: true, success: false, error };
+        // Keep snapshot for next attempt, but also load it locally this time
+        // to prevent losing the most recent data
+        return { 
+            hadPendingSave: true, 
+            success: false, 
+            error,
+            loadLocally: true,
+            snapshot: snapshot,
+            syncFailed: true
+        };
     }
 }
 
@@ -594,18 +610,26 @@ async function loadGameState() {
         }
         
         saveData = pendingSync.snapshot;
-        source = 'pendingSnapshot';
+        source = pendingSync.syncedToFirebase ? 'pendingSnapshot (synced)' : 'pendingSnapshot';
         
-        // Clear the pending snapshot since we're loading it (unless sync failed)
-        if (!pendingSync.syncFailed) {
+        // Clear the pending snapshot since we're loading it (unless sync failed and needs retry)
+        if (pendingSync.syncedToFirebase || pendingSync.resignedAndSynced) {
+            // Successfully synced to Firebase, can clear the pending snapshot
+            localStorage.removeItem(PENDING_SAVE_KEY);
+            console.log('✅ Pending snapshot cleared (successfully synced)');
+        } else if (pendingSync.syncFailed) {
+            // Sync failed, keep snapshot for next attempt
+            console.warn('⚠️ Pending snapshot kept for retry (sync failed)');
+        } else {
+            // Loaded locally but not synced (signature issues, etc.)
             localStorage.removeItem(PENDING_SAVE_KEY);
         }
         
         // Skip Firebase load - use this more recent local state
-    } else if (pendingSync.hadPendingSave && pendingSync.success) {
-        // Snapshot was synced successfully, load from Firebase for consistency
+    } else if (pendingSync.hadPendingSave && pendingSync.success && !pendingSync.loadLocally) {
+        // This case should rarely happen now - snapshot was synced but data wasn't returned
         console.log('✅ Pending snapshot synced, will load from Firebase for consistency');
-    } else if (pendingSync.hadPendingSave && !pendingSync.success) {
+    } else if (pendingSync.hadPendingSave && !pendingSync.success && !pendingSync.loadLocally) {
         console.warn('⚠️ Could not process pending snapshot, continuing with normal load');
     }
     
@@ -696,7 +720,8 @@ async function loadGameState() {
 function clearSaveData() {
     try {
         localStorage.removeItem(SAVE_KEY);
-        console.log('Save data cleared');
+        localStorage.removeItem(PENDING_SAVE_KEY);
+        console.log('Save data cleared (including pending snapshots)');
     } catch (e) {
         console.error('Failed to clear save data:', e);
     }

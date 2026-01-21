@@ -102,8 +102,21 @@ const FirebaseService = {
             const docId = firebaseUser ? `${userId}_${firebaseUser.uid}` : userId;
             const userRef = db.collection('users').doc(docId);
             
-            let payload = {
-                ...gameData,
+            // Sign ONLY the game data (without Firebase metadata)
+            // This matches what the cloud function expects to verify
+            let payload = gameData;
+            
+            if (typeof SecurityService !== 'undefined') {
+                const signed = await SecurityService.prepareSaveData(gameData);
+                payload = signed.payload;
+                if (!signed.validation.ok) {
+                    console.warn('Save validation issues detected:', signed.validation.issues);
+                }
+            }
+            
+            // Add Firebase metadata AFTER signing (these fields are not included in signature)
+            payload = {
+                ...payload,
                 playerName: playerName,
                 gameUserId: userId, // Store the game's user ID separately
                 firebaseUid: firebaseUser ? firebaseUser.uid : null,
@@ -112,27 +125,15 @@ const FirebaseService = {
                 securityStatus: typeof SecurityService !== 'undefined' ? SecurityService.getSecuritySummary() : { flagged: false, flags: [] }
             };
 
-            if (typeof SecurityService !== 'undefined') {
-                const signed = await SecurityService.prepareSaveData(payload);
-                payload = signed.payload;
-                if (!signed.validation.ok) {
-                    console.warn('Save validation issues detected:', signed.validation.issues);
-                }
-            }
-
             // Validate with Cloud Function if available
             if (functions && firebaseUser) {
                 try {
                     const validate = firebase.functions().httpsCallable('validateSubmission');
                     const result = await validate({ userId: docId, payload });
                     console.log('✅ Cloud validation passed');
-                    if (typeof SecurityService !== 'undefined') {
-                        const clearedPayload = { ...payload, securityStatus: { flagged: false, flags: [] } };
-                        const signed = await SecurityService.prepareSaveData(clearedPayload);
-                        payload = signed.payload;
-                    } else {
-                        payload.securityStatus = { flagged: false, flags: [] };
-                    }
+                    
+                    // After successful validation, clear security flags (but don't re-sign)
+                    payload.securityStatus = { flagged: false, flags: [] };
                 } catch (error) {
                     const errorMessage = error?.message || String(error);
                     const errorDetails = error?.details || {};
@@ -384,55 +385,29 @@ const FirebaseService = {
 
             // Ensure Firebase Auth is set up
             const firebaseUser = await ensureFirebaseAuth();
-
-            // Delete all possible document locations for this user
-            const deletePromises = [];
-
-            // 1. Try composite key format (userId_firebaseUid)
-            if (firebaseUser) {
-                const docId = `${userId}_${firebaseUser.uid}`;
-                const userRef = db.collection('users').doc(docId);
-                deletePromises.push(userRef.delete().catch(err => {
-                    console.warn(`Failed to delete composite key doc: ${err.message}`);
-                }));
-            }
-
-            // 2. Try plain userId format
-            const userRef = db.collection('users').doc(userId);
-            deletePromises.push(userRef.delete().catch(err => {
-                console.warn(`Failed to delete userId doc: ${err.message}`);
-            }));
-
-            // 3. Try legacy playerName format
-            if (playerName) {
-                const legacyRef = db.collection('users').doc(playerName);
-                deletePromises.push(legacyRef.delete().catch(err => {
-                    console.warn(`Failed to delete playerName doc: ${err.message}`);
-                }));
-            }
-
-            // 4. Query and delete any documents with matching gameUserId
-            if (userId) {
-                try {
-                    const querySnapshot = await db.collection('users')
-                        .where('gameUserId', '==', userId)
-                        .get();
-                    
-                    querySnapshot.forEach(doc => {
-                        deletePromises.push(doc.ref.delete().catch(err => {
-                            console.warn(`Failed to delete queried doc: ${err.message}`);
-                        }));
-                    });
-                } catch (queryError) {
-                    console.warn('Query deletion failed:', queryError.message);
-                }
-            }
-
-            // Wait for all deletions to complete
-            await Promise.all(deletePromises);
             
-            console.log('User data deleted from Firebase (all possible locations)');
-            return { success: true };
+            if (!firebaseUser) {
+                console.warn('Cannot delete: Firebase Auth not available');
+                return { success: false, error: 'Authentication required' };
+            }
+
+            // Only delete the document that matches the current ownership pattern
+            // This is the only document the user has permission to delete
+            const docId = `${userId}_${firebaseUser.uid}`;
+            const userRef = db.collection('users').doc(docId);
+            
+            try {
+                await userRef.delete();
+                console.log(`✅ User data deleted from Firebase: ${docId}`);
+                return { success: true };
+            } catch (err) {
+                // If the document doesn't exist or permission denied, that's okay for reset
+                if (err.code === 'not-found' || err.code === 'permission-denied') {
+                    console.log('No cloud data to delete or already deleted');
+                    return { success: true };
+                }
+                throw err;
+            }
         } catch (error) {
             console.error('Error deleting from Firebase:', error);
             return { success: false, error: error.message };
