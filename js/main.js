@@ -183,6 +183,9 @@ async function attemptLogin() {
     initExpenseSystem();
     initLoanSystem();
     
+    // Check for game over condition after loading state
+    checkGameOver();
+    
     // Update any displays that show player name
     updatePlayerDisplay();
     
@@ -747,19 +750,39 @@ function renderLoanOptions() {
     if (!container || typeof LOAN_OPTIONS === 'undefined') return;
     
     const hasLoan = !!state.activeLoan;
+    const tradingRounds = state.tradingRounds || 0;
+    const GAME_OVER_THRESHOLD = 50;
+    const portfolioValue = getTotalPortfolioValue();
+    const bankBalance = state.bankBalance;
+    
+    // Check if player is broke (both accounts < $50) - can't get loans when broke
+    const isBroke = bankBalance < GAME_OVER_THRESHOLD && portfolioValue < GAME_OVER_THRESHOLD;
     
     container.innerHTML = LOAN_OPTIONS.map(option => {
         const amountRange = `$${option.amountMin.toLocaleString()}–$${option.amountMax.toLocaleString()}`;
         const termRange = `${option.termWeeksMin}–${option.termWeeksMax} weeks`;
         const rateRange = `${Math.round(option.rateMin * 100)}–${Math.round(option.rateMax * 100)}% p.w.`;
         const inputId = `loanAmount-${option.id}`;
+        const unlockRounds = option.unlockRounds || 0;
+        const isUnlocked = tradingRounds >= unlockRounds;
+        const isDisabled = hasLoan || !isUnlocked || isBroke;
+        
+        let lockMessage = '';
+        if (!isUnlocked) {
+            lockMessage = `<div class="loan-lock-message">🔒 Locked - Requires ${unlockRounds} trading rounds (You have ${tradingRounds})</div>`;
+        } else if (isBroke) {
+            lockMessage = `<div class="loan-lock-message">🔒 Unavailable - Both accounts below $50</div>`;
+        } else if (hasLoan) {
+            lockMessage = `<div class="loan-lock-message">🔒 Unavailable - You already have an active loan</div>`;
+        }
         
         return `
-            <div class="loan-option ${hasLoan ? 'disabled' : ''}">
+            <div class="loan-option ${isDisabled ? 'disabled' : ''} ${!isUnlocked ? 'locked' : ''}">
                 <div class="loan-option-header">
                     <div class="loan-option-title">${option.name}</div>
                     <div class="loan-option-desc">${option.description}</div>
                 </div>
+                ${lockMessage}
                 <div class="loan-option-detail">Amount: ${amountRange}</div>
                 <div class="loan-option-detail">Typical term: ${termRange}</div>
                 <div class="loan-option-detail">Typical rate (per week): ${rateRange}</div>
@@ -770,10 +793,10 @@ function renderLoanOptions() {
                     min="${option.amountMin}"
                     max="${option.amountMax}"
                     value="${option.amountMin}"
-                    ${hasLoan ? 'disabled' : ''}
+                    ${isDisabled ? 'disabled' : ''}
                 />
-                <button class="loan-option-btn" onclick="takeLoan('${option.id}')" ${hasLoan ? 'disabled' : ''}>
-                    Take loan
+                <button class="loan-option-btn" onclick="takeLoan('${option.id}')" ${isDisabled ? 'disabled' : ''}>
+                    ${!isUnlocked ? 'Locked' : hasLoan ? 'Already have loan' : 'Take loan'}
                 </button>
             </div>
         `;
@@ -823,6 +846,24 @@ async function takeLoan(optionId) {
     
     const option = getLoanOptionById(optionId);
     if (!option) return;
+    
+    // Check if loan is unlocked
+    const tradingRounds = state.tradingRounds || 0;
+    const unlockRounds = option.unlockRounds || 0;
+    if (tradingRounds < unlockRounds) {
+        showNotification(`This loan requires ${unlockRounds} trading rounds. You have ${tradingRounds}.`, 'error');
+        return;
+    }
+    
+    // Check game over condition (can't get loan if broke - both accounts < $50)
+    // Note: This prevents getting a loan when you're already broke, even if you don't have a loan yet
+    const GAME_OVER_THRESHOLD = 50;
+    const portfolioValue = getTotalPortfolioValue();
+    const bankBalance = state.bankBalance;
+    if (bankBalance < GAME_OVER_THRESHOLD && portfolioValue < GAME_OVER_THRESHOLD) {
+        showNotification('You cannot get a loan in your current financial state (both accounts below $50).', 'error');
+        return;
+    }
     
     const input = document.getElementById(`loanAmount-${option.id}`);
     const amount = parseInt(input ? input.value : option.amountMin, 10);
@@ -887,6 +928,9 @@ async function repayLoan() {
     renderLoanOptions();
     
     showNotification(`Loan repaid for $${payoff.total.toLocaleString()}.`, 'success');
+    
+    // Check for game over condition after repaying loan
+    checkGameOver();
 }
 
 async function processLoanDue() {
@@ -907,6 +951,9 @@ async function processLoanDue() {
         updateBankerDisplay();
         renderLoanOptions();
         showNotification(`Loan auto-repaid for $${payoff.total.toLocaleString()}.`, 'info');
+        
+        // Check for game over condition
+        checkGameOver();
     }
 }
 
@@ -1333,6 +1380,9 @@ function initExpenseSystem() {
             setTimeout(() => {
                 showExpenseNotification(missedAmount, daysMissed);
             }, 1000);
+            
+            // Check for game over condition after missed expenses
+            checkGameOver();
         }
     }
     
@@ -1399,6 +1449,9 @@ function chargeExpenses() {
     if (state.bankBalance < 0) {
         console.log('Bank balance is negative! Debt: $' + Math.abs(state.bankBalance));
     }
+    
+    // Check for game over condition
+    checkGameOver();
 }
 
 // Show expense deduction notification
@@ -1422,6 +1475,100 @@ function showExpenseNotification(amount, days = 1) {
     setTimeout(() => {
         notif.classList.remove('show');
     }, 4000);
+}
+
+// ===========================================
+// GAME OVER CHECK
+// ===========================================
+
+let gameOverModalOpen = false;
+
+// Check if game over condition is met (bank balance < $50 AND trading balance < $50 AND no ability to get a loan)
+function checkGameOver() {
+    if (!isLoggedIn) return; // Don't check if not logged in
+    
+    const portfolioValue = getTotalPortfolioValue();
+    const bankBalance = state.bankBalance;
+    const hasActiveLoan = state.activeLoan !== null;
+    const GAME_OVER_THRESHOLD = 50; // Game over if both accounts are below $50
+    const tradingRounds = state.tradingRounds || 0;
+    
+    // Check if both accounts are below threshold
+    const isBroke = bankBalance < GAME_OVER_THRESHOLD && portfolioValue < GAME_OVER_THRESHOLD;
+    
+    if (!isBroke) return; // Not broke, no game over
+    
+    // Check if player can get any loan
+    // Player can't get a loan if:
+    // 1. They already have an active loan, OR
+    // 2. They don't have enough rounds to unlock the smallest loan (3 rounds)
+    const canGetLoan = !hasActiveLoan && tradingRounds >= 3;
+    
+    // Game over: broke AND can't get a loan
+    if (!canGetLoan) {
+        showGameOverModal();
+    }
+}
+
+// Show game over modal
+function showGameOverModal() {
+    if (gameOverModalOpen) return; // Already showing
+    
+    gameOverModalOpen = true;
+    
+    // Close all other overlays
+    if (typeof closePhoneOverlays === 'function') {
+        closePhoneOverlays();
+    }
+    
+    const modal = document.getElementById('gameOverModal');
+    const backdrop = document.getElementById('gameOverBackdrop');
+    const messageEl = document.getElementById('gameOverMessage');
+    
+    // Update message based on why game over occurred
+    const tradingRounds = state.tradingRounds || 0;
+    const hasActiveLoan = state.activeLoan !== null;
+    let reason = '';
+    
+    if (hasActiveLoan) {
+        reason = 'You already have an active loan and cannot get another one.';
+    } else if (tradingRounds < 3) {
+        reason = `You need at least 3 trading rounds to unlock loans (you have ${tradingRounds}).`;
+    } else {
+        reason = 'No loans are available to you.';
+    }
+    
+    if (messageEl) {
+        messageEl.textContent = `You have less than $50 in your bank account and less than $50 in your trading account. ${reason} Your trading journey has come to an end.`;
+    }
+    
+    if (modal && backdrop) {
+        modal.classList.add('open');
+        backdrop.classList.add('open');
+    }
+}
+
+// Close game over modal
+function closeGameOverModal() {
+    gameOverModalOpen = false;
+    const modal = document.getElementById('gameOverModal');
+    const backdrop = document.getElementById('gameOverBackdrop');
+    
+    if (modal && backdrop) {
+        modal.classList.remove('open');
+        backdrop.classList.remove('open');
+    }
+}
+
+// Restart game from game over screen (uses same logic as settings reset)
+async function restartGameFromGameOver() {
+    // Use the same reset logic as settings menu
+    if (typeof executeResetGame === 'function') {
+        await executeResetGame();
+    }
+    
+    // Close game over modal
+    closeGameOverModal();
 }
 
 // Start the game (hide hub, show game)
@@ -1615,6 +1762,9 @@ async function initHub() {
         if (loginContainer) {
             loginContainer.classList.add('hidden');
         }
+        
+        // Check for game over condition after loading state
+        checkGameOver();
         
         // Start expense system
         initExpenseSystem();

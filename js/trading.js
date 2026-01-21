@@ -1289,6 +1289,11 @@ function resolvePosition(pos) {
     // Re-render to show resolved state
     renderPositions();
     autoSave(); // Save after position resolves
+    
+    // Check for game over condition
+    if (typeof checkGameOver === 'function') {
+        checkGameOver();
+    }
 }
 
 // Stock Trading Functions
@@ -1412,6 +1417,11 @@ function sellStock() {
     } else {
         flashTradingScreen(false); // Red flash for loss
         showNotification(`Sold ${sharesSold.toFixed(4)} shares -$${Math.abs(pnl).toFixed(2)}`, 'error');
+    }
+    
+    // Check for game over condition
+    if (typeof checkGameOver === 'function') {
+        checkGameOver();
     }
 }
 

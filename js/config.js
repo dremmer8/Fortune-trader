@@ -28,6 +28,7 @@ const MIN_DEPOSIT = 100;
 const CASH_OUT_FEE_PERCENT = 0.05;
 
 // Loan options (effective weekly rates)
+// Unlock requirements: rounds needed to unlock each tier
 const LOAN_OPTIONS = [
     {
         id: 'small',
@@ -38,7 +39,8 @@ const LOAN_OPTIONS = [
         termWeeksMax: 3,
         rateMin: 0.07,
         rateMax: 0.11,
-        description: 'Short-term cash boost'
+        description: 'Short-term cash boost',
+        unlockRounds: 3 // Unlocked after 3 trading rounds
     },
     {
         id: 'average',
@@ -49,7 +51,8 @@ const LOAN_OPTIONS = [
         termWeeksMax: 6,
         rateMin: 0.06,
         rateMax: 0.1,
-        description: 'Mid-term liquidity'
+        description: 'Mid-term liquidity',
+        unlockRounds: 8 // Unlocked after 8 trading rounds
     },
     {
         id: 'big',
@@ -60,7 +63,8 @@ const LOAN_OPTIONS = [
         termWeeksMax: 10,
         rateMin: 0.06,
         rateMax: 0.09,
-        description: 'Large capital injection'
+        description: 'Large capital injection',
+        unlockRounds: 15 // Unlocked after 15 trading rounds
     }
 ];
 

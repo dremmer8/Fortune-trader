@@ -940,6 +940,24 @@
     opacity: 0.4;
 }
 
+.loan-option.locked {
+    opacity: 0.7;
+    background: var(--bg-tertiary);
+    border-color: var(--border);
+}
+
+.loan-lock-message {
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: var(--danger);
+    font-weight: 600;
+    text-align: center;
+}
+
 .loan-option-header {
     display: flex;
     justify-content: space-between;
@@ -5736,6 +5754,29 @@ body {
 
 .confirm-btn.danger:hover {
     background: #dc2626;
+}
+
+/* Game Over Modal - same z-index as reset modal */
+#gameOverBackdrop {
+    z-index: 1100;
+}
+
+#gameOverModal {
+    z-index: 1101;
+}
+
+.game-over-modal .confirm-icon {
+    font-size: 64px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 /* ===========================================

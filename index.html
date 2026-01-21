@@ -561,6 +561,18 @@
         </div>
     </div>
 
+    <!-- Game Over Modal -->
+    <div class="overlay-backdrop" id="gameOverBackdrop"></div>
+    <div class="confirm-modal game-over-modal" id="gameOverModal">
+        <div class="confirm-icon">💀</div>
+        <h3 class="confirm-title">Game Over</h3>
+        <p class="confirm-text" id="gameOverMessage">You have less than $50 in your bank account and less than $50 in your trading account. With no loan available, your trading journey has come to an end.</p>
+        <p class="confirm-text" style="margin-top: 12px; font-weight: 600;">Would you like to restart and try again?</p>
+        <div class="confirm-actions">
+            <button class="confirm-btn danger" onclick="restartGameFromGameOver()">Restart Game</button>
+        </div>
+    </div>
+
     <!-- Prestige Confirmation Modal -->
     <div class="overlay-backdrop" id="prestigeBackdrop" onclick="cancelPrestige()"></div>
     <div class="confirm-modal prestige-modal" id="prestigeModal">
