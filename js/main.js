@@ -59,6 +59,17 @@ function initAudioControls() {
     });
 }
 
+function initButtonClickSounds() {
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('button');
+        if (!button) return;
+        if (button.disabled || button.getAttribute('aria-disabled') === 'true') return;
+        if (button.dataset.clickSound === 'manual') return;
+        if (typeof AudioManager === 'undefined') return;
+        AudioManager.playClick();
+    });
+}
+
 // ===========================================
 // LOGIN CARD INTERFACE
 // ===========================================
@@ -2746,6 +2757,7 @@ function initGameSystems() {
 function initApp() {
     initVersionStamp();
     initAudioControls();
+    initButtonClickSounds();
     // Initialize the hub/phone interface first
     initHub();
     console.log('Hub initialized - waiting for app selection');

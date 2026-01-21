@@ -11,6 +11,7 @@ const AudioManager = {
     
     // Sound enabled flag
     enabled: true,
+    lastClickTimestamp: 0,
     
     // Sound file paths
     soundPaths: {
@@ -87,6 +88,11 @@ const AudioManager = {
     
     // Play click sound (uses reuse for frequent plays during typing)
     playClick() {
+        const now = Date.now();
+        if (now - this.lastClickTimestamp < 50) {
+            return;
+        }
+        this.lastClickTimestamp = now;
         this.playReuse('click', 1.0);
     },
     
