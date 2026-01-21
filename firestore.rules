@@ -8,9 +8,9 @@ service cloud.firestore {
     }
     
     function isOwner(userId) {
+      // Strict ownership check: userId must end with _firebaseUid
       return isAuthenticated() && 
-             (userId.matches('.*_' + request.auth.uid + '$') || 
-              !userId.matches('.*_.*'));
+             userId.matches('.*_' + request.auth.uid + '$');
     }
     
     function isValidNumber(value, min, max) {
@@ -19,41 +19,32 @@ service cloud.firestore {
     
     // Users collection
     match /users/{userId} {
-      // Read: any authenticated user can read
-      allow read: if isAuthenticated();
+      // Read: only the owner can read their own data
+      allow read: if isOwner(userId);
       
-      // Delete: any authenticated user can delete (for admin panel)
-      // WARNING: In production, restrict this to specific admin UIDs
-      allow delete: if isAuthenticated();
+      // Delete: only the owner can delete their own data
+      // Admin deletions must use Cloud Functions with proper authorization
+      allow delete: if isOwner(userId);
       
       // Write: only the owner can write
       allow write: if isOwner(userId);
       
-      // Special case: Allow unflagging by any authenticated user (admin panel)
-      // This only allows updating securityStatus field
-      allow update: if isAuthenticated() && 
-                       (
-                         // Admin unflag: only securityStatus is being changed
-                         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['securityStatus']) &&
-                          request.resource.data.securityStatus.flagged == false) ||
-                         
-                         // Normal user update: owner with validation
-                         (isOwner(userId) &&
-                          // Validate critical fields if they're being updated
-                          (!('bankBalance' in request.resource.data) || 
-                           isValidNumber(request.resource.data.bankBalance, 0, 1000000000)) &&
-                          (!('balance' in request.resource.data) || 
-                           isValidNumber(request.resource.data.balance, 0, 1000000000)) &&
-                          (!('totalEarnings' in request.resource.data) || 
-                           (isValidNumber(request.resource.data.totalEarnings, 0, 5000000000) &&
-                            request.resource.data.totalEarnings >= resource.data.totalEarnings)) &&
-                          (!('tradingRounds' in request.resource.data) || 
-                           (isValidNumber(request.resource.data.tradingRounds, 0, 250000) &&
-                            request.resource.data.tradingRounds >= resource.data.tradingRounds)) &&
-                          (!('timestamp' in request.resource.data) || 
-                           (request.resource.data.timestamp is number &&
-                            request.resource.data.timestamp <= request.time.toMillis() + 60000)))
-                       );
+      // Update: only owner with validation (removed admin unflag from client rules)
+      allow update: if isOwner(userId) &&
+                       // Validate critical fields if they're being updated
+                       (!('bankBalance' in request.resource.data) || 
+                        isValidNumber(request.resource.data.bankBalance, 0, 1000000000)) &&
+                       (!('balance' in request.resource.data) || 
+                        isValidNumber(request.resource.data.balance, 0, 1000000000)) &&
+                       (!('totalEarnings' in request.resource.data) || 
+                        (isValidNumber(request.resource.data.totalEarnings, 0, 5000000000) &&
+                         request.resource.data.totalEarnings >= resource.data.totalEarnings)) &&
+                       (!('tradingRounds' in request.resource.data) || 
+                        (isValidNumber(request.resource.data.tradingRounds, 0, 250000) &&
+                         request.resource.data.tradingRounds >= resource.data.tradingRounds)) &&
+                       (!('timestamp' in request.resource.data) || 
+                        (request.resource.data.timestamp is number &&
+                         request.resource.data.timestamp <= request.time.toMillis() + 60000));
     }
     
     // Deny all other access

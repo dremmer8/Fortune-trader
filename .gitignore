@@ -10,6 +10,11 @@
 # Firebase local emulator data
 .firebase/
 .firebaserc.local
+functions/.runtimeconfig.json
+
+# Firebase Functions environment variables (contains admin UIDs)
+functions/.env
+functions/.env.local
 
 # Node modules
 node_modules/

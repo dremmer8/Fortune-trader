@@ -306,36 +306,66 @@ const FirebaseService = {
     },
 
     // Get all user statistics (for admin dashboard)
+    // Get all user stats (ADMIN ONLY - uses Cloud Function)
     async getAllUserStats() {
         if (!this.isAvailable()) {
             return { success: false, error: 'Firebase not initialized' };
         }
 
         try {
-            const usersRef = db.collection('users');
-            const snapshot = await usersRef.get();
-            const stats = [];
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                stats.push({
-                    docId: doc.id,
-                    gameUserId: data.gameUserId || null,
-                    firebaseUid: data.firebaseUid || null,
-                    playerName: data.playerName || doc.id,
-                    bankBalance: data.bankBalance || 0,
-                    totalEarnings: data.totalEarnings || 0,
-                    tradingRounds: data.tradingRounds || 0,
-                    lastLogin: data.lastLogin?.toDate() || null,
-                    loginCount: data.loginCount || 0,
-                    purchasedUpgrades: data.purchasedUpgrades?.length || 0,
-                    ownedItems: data.ownedItems?.length || 0,
-                    lastSynced: data.syncedAt || null,
-                    securityStatus: data.securityStatus || { flagged: false, flags: [] }
-                });
-            });
-            return { success: true, stats: stats };
+            // Ensure Firebase Auth is set up
+            const firebaseUser = await ensureFirebaseAuth();
+            if (!firebaseUser) {
+                return { success: false, error: 'Authentication required' };
+            }
+
+            // Call admin Cloud Function
+            const getAllStats = firebase.functions().httpsCallable('getAllUserStats');
+            const result = await getAllStats();
+            
+            if (result.data.success) {
+                // Convert lastLogin timestamps if needed
+                const stats = result.data.stats.map(stat => ({
+                    ...stat,
+                    lastLogin: stat.lastLogin ? new Date(stat.lastLogin._seconds * 1000) : null
+                }));
+                return { success: true, stats };
+            } else {
+                return { success: false, error: result.data.message || 'Failed to get stats' };
+            }
         } catch (error) {
             console.error('Error getting stats:', error);
+            if (error.code === 'permission-denied') {
+                return { success: false, error: 'Admin permissions required' };
+            }
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Get public leaderboard data (available to all authenticated users)
+    async getLeaderboard() {
+        if (!this.isAvailable()) {
+            return { success: false, error: 'Firebase not initialized' };
+        }
+
+        try {
+            // Ensure Firebase Auth is set up
+            const firebaseUser = await ensureFirebaseAuth();
+            if (!firebaseUser) {
+                return { success: false, error: 'Authentication required' };
+            }
+
+            // Call public Cloud Function
+            const getLeaderboardFunc = firebase.functions().httpsCallable('getLeaderboard');
+            const result = await getLeaderboardFunc();
+            
+            if (result.data.success) {
+                return { success: true, leaderboard: result.data.leaderboard };
+            } else {
+                return { success: false, error: result.data.message || 'Failed to get leaderboard' };
+            }
+        } catch (error) {
+            console.error('Error getting leaderboard:', error);
             return { success: false, error: error.message };
         }
     },
@@ -410,6 +440,7 @@ const FirebaseService = {
     },
 
     // Admin function: Delete player by playerName (for admin dashboard)
+    // SECURITY: Uses Cloud Function with server-side authorization
     async adminDeletePlayer(playerIdentifier) {
         if (!this.isAvailable()) {
             return { success: false, error: 'Firebase not initialized' };
@@ -419,7 +450,11 @@ const FirebaseService = {
             const identifier = typeof playerIdentifier === 'string'
                 ? { playerName: playerIdentifier }
                 : (playerIdentifier || {});
-            const { docId, gameUserId, playerName } = identifier;
+            const { docId } = identifier;
+
+            if (!docId) {
+                return { success: false, error: 'Document ID required' };
+            }
 
             // Ensure Firebase Auth is set up
             const firebaseUser = await ensureFirebaseAuth();
@@ -427,45 +462,28 @@ const FirebaseService = {
                 return { success: false, error: 'Authentication required' };
             }
 
-            const deletePromises = [];
-
-            if (docId) {
-                deletePromises.push(db.collection('users').doc(docId).delete());
-            }
-
-            if (gameUserId) {
-                const gameUserSnapshot = await db.collection('users')
-                    .where('gameUserId', '==', gameUserId)
-                    .get();
-                gameUserSnapshot.forEach(doc => {
-                    deletePromises.push(doc.ref.delete());
-                });
-            }
-
-            if (playerName) {
-                const nameSnapshot = await db.collection('users')
-                    .where('playerName', '==', playerName)
-                    .get();
-                nameSnapshot.forEach(doc => {
-                    deletePromises.push(doc.ref.delete());
-                });
-            }
-
-            if (deletePromises.length === 0) {
-                return { success: false, error: 'Player not found' };
-            }
-
-            await Promise.all(deletePromises);
+            // Call secure Cloud Function instead of direct Firestore access
+            const deleteUser = firebase.functions().httpsCallable('deleteUser');
+            const result = await deleteUser({ userId: docId });
             
-            console.log(`Admin deleted player: ${playerName}`);
-            return { success: true, deletedCount: deletePromises.length };
+            if (result.data.success) {
+                console.log(`Admin deleted player: ${docId}`);
+                return { success: true };
+            } else {
+                return { success: false, error: result.data.message || 'Delete failed' };
+            }
         } catch (error) {
             console.error('Error deleting player:', error);
+            // Handle specific error codes
+            if (error.code === 'permission-denied') {
+                return { success: false, error: 'Admin permissions required' };
+            }
             return { success: false, error: error.message };
         }
     },
 
     // Admin function: Unflag player (clear security flags)
+    // SECURITY: Uses Cloud Function with server-side authorization
     async adminUnflagPlayer(playerIdentifier) {
         if (!this.isAvailable()) {
             return { success: false, error: 'Firebase not initialized' };
@@ -475,7 +493,11 @@ const FirebaseService = {
             const identifier = typeof playerIdentifier === 'string'
                 ? { playerName: playerIdentifier }
                 : (playerIdentifier || {});
-            const { docId, gameUserId, playerName } = identifier;
+            const { docId } = identifier;
+
+            if (!docId) {
+                return { success: false, error: 'Document ID required' };
+            }
 
             // Ensure Firebase Auth is set up
             const firebaseUser = await ensureFirebaseAuth();
@@ -483,46 +505,22 @@ const FirebaseService = {
                 return { success: false, error: 'Authentication required' };
             }
 
-            const updatePromises = [];
-
-            if (docId) {
-                updatePromises.push(db.collection('users').doc(docId).update({
-                    securityStatus: { flagged: false, flags: [] }
-                }));
-            }
-
-            if (gameUserId) {
-                const gameUserSnapshot = await db.collection('users')
-                    .where('gameUserId', '==', gameUserId)
-                    .get();
-                gameUserSnapshot.forEach(doc => {
-                    updatePromises.push(doc.ref.update({
-                        securityStatus: { flagged: false, flags: [] }
-                    }));
-                });
-            }
-
-            if (playerName) {
-                const nameSnapshot = await db.collection('users')
-                    .where('playerName', '==', playerName)
-                    .get();
-                nameSnapshot.forEach(doc => {
-                    updatePromises.push(doc.ref.update({
-                        securityStatus: { flagged: false, flags: [] }
-                    }));
-                });
-            }
-
-            if (updatePromises.length === 0) {
-                return { success: false, error: 'Player not found' };
-            }
-
-            await Promise.all(updatePromises);
+            // Call secure Cloud Function instead of direct Firestore access
+            const unflagUser = firebase.functions().httpsCallable('unflagUser');
+            const result = await unflagUser({ userId: docId });
             
-            console.log(`Admin unflagged player: ${playerName}`);
-            return { success: true, updatedCount: updatePromises.length };
+            if (result.data.success) {
+                console.log(`Admin unflagged player: ${docId}`);
+                return { success: true };
+            } else {
+                return { success: false, error: result.data.message || 'Unflag failed' };
+            }
         } catch (error) {
             console.error('Error unflagging player:', error);
+            // Handle specific error codes
+            if (error.code === 'permission-denied') {
+                return { success: false, error: 'Admin permissions required' };
+            }
             return { success: false, error: error.message };
         }
     }

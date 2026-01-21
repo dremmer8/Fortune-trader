@@ -121,9 +121,35 @@ exports.validateSubmission = functions.https.onCall(async (data, context) => {
 
   const cleanIssues = issues.filter(Boolean);
 
-  // Check signature if present (legacy saves might not have it)
+  // Signature validation - ENFORCE STRICT CHECKS
   const security = payload.security || {};
-  if (security.signature && security.publicKey) {
+  
+  // Migration cutoff date: 2026-02-01 00:00:00 UTC (2 weeks after fix deployment)
+  // After this date, ALL saves must have valid signatures
+  const SIGNATURE_REQUIRED_AFTER = new Date('2026-02-01T00:00:00Z').getTime();
+  const now = Date.now();
+  const strictMode = now >= SIGNATURE_REQUIRED_AFTER;
+  
+  // Check if signature and public key are present
+  if (!security.signature || !security.publicKey) {
+    if (strictMode) {
+      // After cutoff: REJECT unsigned saves
+      cleanIssues.push('Missing signature (required after migration period)');
+      console.error('REJECTED: Missing signature for user:', userId, {
+        hasSignature: !!security.signature,
+        hasPublicKey: !!security.publicKey,
+        strictMode: true
+      });
+    } else {
+      // Before cutoff: WARN but allow (transition period)
+      console.warn('Missing signature (will be required after Feb 1, 2026):', { 
+        userId, 
+        hasSignature: !!security.signature,
+        daysUntilRequired: Math.ceil((SIGNATURE_REQUIRED_AFTER - now) / (1000 * 60 * 60 * 24))
+      });
+    }
+  } else {
+    // Signature present - verify it
     const signedPayload = stripNonSignedFields(payload);
     // Recreate the exact payload that was signed on the client
     // Client signs BEFORE adding validationIssues and recentTransactions
@@ -140,6 +166,7 @@ exports.validateSubmission = functions.https.onCall(async (data, context) => {
     };
     const payloadForSignature = { ...signedPayload, security: securityForSignature };
     const signatureValid = verifySignature(payloadForSignature, security.signature, security.publicKey);
+    
     if (!signatureValid) {
       cleanIssues.push('Invalid signature');
       console.error('Signature verification failed for user:', userId, {
@@ -148,9 +175,6 @@ exports.validateSubmission = functions.https.onCall(async (data, context) => {
         securityVersion: security.version
       });
     }
-  } else if (!security.legacy) {
-    // Warn but don't fail for missing signature (transition period)
-    console.warn('Save missing security signature', { userId, hasSignature: !!security.signature });
   }
 
   const userRef = admin.firestore().collection('users').doc(userId);

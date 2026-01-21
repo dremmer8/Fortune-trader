@@ -472,7 +472,7 @@ async function loadLeaderboard() {
     }
 
     try {
-        const result = await FirebaseService.getAllUserStats();
+        const result = await FirebaseService.getLeaderboard();
         if (!result.success) {
             if (statusEl) {
                 statusEl.textContent = `Unable to load leaderboard: ${result.error || 'Unknown error'}`;
@@ -480,17 +480,16 @@ async function loadLeaderboard() {
             return;
         }
 
-        const stats = result.stats || [];
-        if (stats.length === 0) {
+        const leaderboard = result.leaderboard || [];
+        if (leaderboard.length === 0) {
             if (statusEl) {
                 statusEl.textContent = 'No players on the leaderboard yet.';
             }
             return;
         }
 
-        const filteredStats = stats.filter(player => !(player.securityStatus && player.securityStatus.flagged));
-        const sortedStats = [...filteredStats].sort((a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0));
-        const topStats = sortedStats.slice(0, 4);
+        // Leaderboard is already sorted and filtered by Cloud Function
+        const topStats = leaderboard.slice(0, 4);
         if (statusEl) {
             statusEl.style.display = 'none';
         }
