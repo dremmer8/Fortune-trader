@@ -1,6 +1,6 @@
 // Version string for the deployed build.
 // Update this value manually when a new iteration is created/pushed to the repository.
-const APP_VERSION = 'v0.008';
+const APP_VERSION = 'v0.009';
 
 if (typeof window !== 'undefined') {
     window.APP_VERSION = APP_VERSION;
