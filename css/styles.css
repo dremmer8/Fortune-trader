@@ -88,7 +88,7 @@
 .hub-logo-icon {
     width: 80px;
     height: 80px;
-    background: url('../images/traderLogo.png') center center / cover no-repeat;
+    background: url('../images/icons/traderLogo.png') center center / cover no-repeat;
     background-color: #3b82f6;
     border-radius: 20px;
     display: flex;
@@ -255,7 +255,7 @@
 }
 
 .app-icon.trader-icon {
-    background: url('../images/traderLogo.png') center center / cover no-repeat;
+    background: url('../images/icons/traderLogo.png') center center / cover no-repeat;
     background-color: #3b82f6;
 }
 
@@ -264,7 +264,7 @@
 }
 
 .app-icon.banker-icon {
-    background: url('../images/bankLogo.png') center center / cover no-repeat;
+    background: url('../images/icons/bankLogo.png') center center / cover no-repeat;
     background-color: #FFD700;
 }
 
@@ -273,7 +273,7 @@
 }
 
 .app-icon.settings-icon {
-    background: url('../images/settingsLogo.png') center center / cover no-repeat;
+    background: url('../images/icons/settingsLogo.png') center center / cover no-repeat;
     background-color: #6b7280;
     font-size: 32px;
 }
@@ -283,7 +283,7 @@
 }
 
 .app-icon.expenses-icon {
-    background: url('../images/expensesLogo.png') center center / cover no-repeat;
+    background: url('../images/icons/expensesLogo.png') center center / cover no-repeat;
     background-color: #f59e0b;
     font-size: 32px;
 }
@@ -293,7 +293,7 @@
 }
 
 .app-icon.leaderboard-icon {
-    background: url('../images/leaderBoardLogo.png') center center / cover no-repeat;
+    background: url('../images/icons/leaderBoardLogo.png') center center / cover no-repeat;
     background-color: #facc15;
     font-size: 32px;
 }
@@ -303,7 +303,7 @@
 }
 
 .app-icon.shop-icon {
-    background: url('../images/shopLogo.png') center center / cover no-repeat;
+    background: url('../images/icons/shopLogo.png') center center / cover no-repeat;
     background-color: #ff8c42;
     font-size: 32px;
 }
@@ -3022,7 +3022,7 @@ body {
 .logo-icon {
     width: 28px;
     height: 28px;
-    background: url('../images/traderLogo.png') center center / cover no-repeat;
+    background: url('../images/icons/traderLogo.png') center center / cover no-repeat;
     background-color: #3b82f6;
     border-radius: 6px;
     display: flex;
