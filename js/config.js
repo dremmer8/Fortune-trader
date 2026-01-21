@@ -27,46 +27,16 @@ const MIN_DEPOSIT = 100;
 // e.g., 0.05 = 5% fee
 const CASH_OUT_FEE_PERCENT = 0.05;
 
-// Loan options (effective weekly rates)
-// Unlock requirements: rounds needed to unlock each tier
-const LOAN_OPTIONS = [
-    {
-        id: 'small',
-        name: 'Small loan',
-        amountMin: 1160,
-        amountMax: 3480,
-        termWeeksMin: 1,
-        termWeeksMax: 3,
-        rateMin: 0.07,
-        rateMax: 0.11,
-        description: 'Short-term cash boost',
-        unlockRounds: 3 // Unlocked after 3 trading rounds
-    },
-    {
-        id: 'average',
-        name: 'Average loan',
-        amountMin: 11600,
-        amountMax: 23200,
-        termWeeksMin: 4,
-        termWeeksMax: 6,
-        rateMin: 0.06,
-        rateMax: 0.1,
-        description: 'Mid-term liquidity',
-        unlockRounds: 8 // Unlocked after 8 trading rounds
-    },
-    {
-        id: 'big',
-        name: 'Big loan',
-        amountMin: 34800,
-        amountMax: 87000,
-        termWeeksMin: 6,
-        termWeeksMax: 10,
-        rateMin: 0.06,
-        rateMax: 0.09,
-        description: 'Large capital injection',
-        unlockRounds: 15 // Unlocked after 15 trading rounds
-    }
-];
+// Loan configuration - single loan based on lifetime earnings
+// Loan amount = lifetime earnings, random interest rate, 1 week term
+const LOAN_CONFIG = {
+    id: 'loan',
+    name: 'Loan',
+    termWeeks: 1, // Fixed 1 week term
+    rateMin: 0.05, // Minimum 5% per week
+    rateMax: 0.15, // Maximum 15% per week
+    description: 'Loan amount based on your lifetime earnings'
+};
 
 // ===========================================
 // DAILY EXPENSES CONFIGURATION

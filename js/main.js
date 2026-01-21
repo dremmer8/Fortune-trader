@@ -728,8 +728,35 @@ function toggleSpendingPanel() {
 
 const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000;
 
-function getLoanOptionById(optionId) {
-    return LOAN_OPTIONS.find(option => option.id === optionId);
+// Generate deterministic interest rate based on current date
+// Same date = same rate, ensuring rate is locked when loan is taken
+function getCurrentLoanInterestRate() {
+    if (!LOAN_CONFIG) return LOAN_CONFIG.rateMin;
+    
+    // Get current date as YYYY-MM-DD string for deterministic seed
+    const today = new Date();
+    const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    // Create a simple hash from date string for deterministic randomness
+    let hash = 0;
+    for (let i = 0; i < dateString.length; i++) {
+        const char = dateString.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convert to 32-bit integer
+    }
+    
+    // Use mulberry32-like PRNG for better distribution
+    const seed = Math.abs(hash);
+    let t = seed + 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    const random = ((t ^ t >>> 14) >>> 0) / 4294967296;
+    
+    // Generate rate within min/max range
+    const rate = LOAN_CONFIG.rateMin + (random * (LOAN_CONFIG.rateMax - LOAN_CONFIG.rateMin));
+    
+    // Round to 2 decimal places (e.g., 0.0875 = 8.75%)
+    return Number(rate.toFixed(4));
 }
 
 function getLoanElapsedWeeks(loan) {
@@ -758,60 +785,54 @@ function formatLoanRate(rate) {
 
 function renderLoanOptions() {
     const container = document.getElementById('loanOptionsList');
-    if (!container || typeof LOAN_OPTIONS === 'undefined') return;
+    if (!container || typeof LOAN_CONFIG === 'undefined') return;
     
     const hasLoan = !!state.activeLoan;
-    const tradingRounds = state.tradingRounds || 0;
-    const GAME_OVER_THRESHOLD = 50;
-    const portfolioValue = getTotalPortfolioValue();
-    const bankBalance = state.bankBalance;
+    const lifetimeEarnings = state.totalEarnings || 0;
     
-    // Check if player is broke (both accounts < $50) - can't get loans when broke
-    const isBroke = bankBalance < GAME_OVER_THRESHOLD && portfolioValue < GAME_OVER_THRESHOLD;
+    // Player can take loan if they have lifetime earnings and no active loan
+    const isDisabled = hasLoan || lifetimeEarnings <= 0;
     
-    container.innerHTML = LOAN_OPTIONS.map(option => {
-        const amountRange = `$${option.amountMin.toLocaleString()}–$${option.amountMax.toLocaleString()}`;
-        const termRange = `${option.termWeeksMin}–${option.termWeeksMax} weeks`;
-        const rateRange = `${Math.round(option.rateMin * 100)}–${Math.round(option.rateMax * 100)}% p.w.`;
-        const inputId = `loanAmount-${option.id}`;
-        const unlockRounds = option.unlockRounds || 0;
-        const isUnlocked = tradingRounds >= unlockRounds;
-        const isDisabled = hasLoan || !isUnlocked || isBroke;
-        
-        let lockMessage = '';
-        if (!isUnlocked) {
-            lockMessage = `<div class="loan-lock-message">🔒 Locked - Requires ${unlockRounds} trading rounds (You have ${tradingRounds})</div>`;
-        } else if (isBroke) {
-            lockMessage = `<div class="loan-lock-message">🔒 Unavailable - Both accounts below $50</div>`;
-        } else if (hasLoan) {
-            lockMessage = `<div class="loan-lock-message">🔒 Unavailable - You already have an active loan</div>`;
-        }
-        
-        return `
-            <div class="loan-option ${isDisabled ? 'disabled' : ''} ${!isUnlocked ? 'locked' : ''}">
-                <div class="loan-option-header">
-                    <div class="loan-option-title">${option.name}</div>
-                    <div class="loan-option-desc">${option.description}</div>
+    let lockMessage = '';
+    if (lifetimeEarnings <= 0) {
+        lockMessage = `<div class="loan-lock-message">🔒 Unavailable - You need lifetime earnings to get a loan</div>`;
+    } else if (hasLoan) {
+        lockMessage = `<div class="loan-lock-message">🔒 Unavailable - You already have an active loan</div>`;
+    }
+    
+    const loanAmount = lifetimeEarnings;
+    // Get current date-based interest rate (deterministic - same date = same rate)
+    const currentRate = getCurrentLoanInterestRate();
+    const currentRatePercent = (currentRate * 100).toFixed(2);
+    
+    container.className = `loan-options ${isDisabled ? 'disabled' : ''}`;
+    container.innerHTML = `
+        ${lockMessage}
+        <div class="loan-bubbles-container">
+            <div class="loan-top-bubble">
+                <div class="loan-bubble-row">
+                    <div class="loan-bubble-item">
+                        <div class="loan-bubble-label">Term</div>
+                        <div class="loan-bubble-value">${LOAN_CONFIG.termWeeks} week</div>
+                    </div>
+                    <div class="loan-bubble-divider"></div>
+                    <div class="loan-bubble-item">
+                        <div class="loan-bubble-label">Interest Rate</div>
+                        <div class="loan-bubble-value">${currentRatePercent}%</div>
+                    </div>
                 </div>
-                ${lockMessage}
-                <div class="loan-option-detail">Amount: ${amountRange}</div>
-                <div class="loan-option-detail">Typical term: ${termRange}</div>
-                <div class="loan-option-detail">Typical rate (per week): ${rateRange}</div>
-                <input
-                    type="number"
-                    class="loan-option-input"
-                    id="${inputId}"
-                    min="${option.amountMin}"
-                    max="${option.amountMax}"
-                    value="${option.amountMin}"
-                    ${isDisabled ? 'disabled' : ''}
-                />
-                <button class="loan-option-btn" onclick="takeLoan('${option.id}')" ${isDisabled ? 'disabled' : ''}>
-                    ${!isUnlocked ? 'Locked' : hasLoan ? 'Already have loan' : 'Take loan'}
-                </button>
+                <div class="loan-bubble-hint">Today's rate (locked once loan)</div>
             </div>
-        `;
-    }).join('');
+            <div class="loan-bottom-bubble">
+                <div class="loan-bubble-label">Loan Amount</div>
+                <div class="loan-bubble-value">$${loanAmount.toLocaleString()}</div>
+                <div class="loan-bubble-hint">Based on lifetime earnings</div>
+            </div>
+        </div>
+        <button class="loan-option-btn" onclick="takeLoan()" ${isDisabled ? 'disabled' : ''}>
+            ${hasLoan ? 'Already have loan' : lifetimeEarnings <= 0 ? 'No earnings yet' : 'Take loan'}
+        </button>
+    `;
 }
 
 function updateLoanDisplay() {
@@ -849,45 +870,37 @@ function updateLoanDisplay() {
     `;
 }
 
-async function takeLoan(optionId) {
+async function takeLoan() {
     if (state.activeLoan) {
         showNotification('You already have an active loan.', 'error');
         return;
     }
     
-    const option = getLoanOptionById(optionId);
-    if (!option) return;
-    
-    // Check if loan is unlocked
-    const tradingRounds = state.tradingRounds || 0;
-    const unlockRounds = option.unlockRounds || 0;
-    if (tradingRounds < unlockRounds) {
-        showNotification(`This loan requires ${unlockRounds} trading rounds. You have ${tradingRounds}.`, 'error');
+    if (!LOAN_CONFIG) {
+        showNotification('Loan system not configured.', 'error');
         return;
     }
     
-    // Check game over condition (can't get loan if broke - both accounts < $50)
-    // Note: This prevents getting a loan when you're already broke, even if you don't have a loan yet
-    const GAME_OVER_THRESHOLD = 50;
-    const portfolioValue = getTotalPortfolioValue();
-    const bankBalance = state.bankBalance;
-    if (bankBalance < GAME_OVER_THRESHOLD && portfolioValue < GAME_OVER_THRESHOLD) {
-        showNotification('You cannot get a loan in your current financial state (both accounts below $50).', 'error');
+    // Check if player has lifetime earnings
+    const lifetimeEarnings = state.totalEarnings || 0;
+    if (lifetimeEarnings <= 0) {
+        showNotification('You need lifetime earnings to get a loan.', 'error');
         return;
     }
     
-    const input = document.getElementById(`loanAmount-${option.id}`);
-    const amount = parseInt(input ? input.value : option.amountMin, 10);
+    // No restriction on taking loans when broke - players can always take loans if they have lifetime earnings
     
-    if (Number.isNaN(amount) || amount < option.amountMin || amount > option.amountMax) {
-        showNotification(`Enter an amount between $${option.amountMin.toLocaleString()} and $${option.amountMax.toLocaleString()}.`, 'error');
-        return;
-    }
+    // Loan amount = lifetime earnings
+    const amount = lifetimeEarnings;
     
-    const termWeeks = Math.floor(Math.random() * (option.termWeeksMax - option.termWeeksMin + 1)) + option.termWeeksMin;
-    const rate = Number((Math.random() * (option.rateMax - option.rateMin) + option.rateMin).toFixed(4));
+    // Get the current date-based interest rate (same as shown in UI - locked)
+    const rate = getCurrentLoanInterestRate();
+    
+    // Fixed 1 week term
+    const termWeeks = LOAN_CONFIG.termWeeks;
     const startTimestamp = Date.now();
     const dueTimestamp = startTimestamp + termWeeks * MS_PER_WEEK;
+    
     const fullPayoff = getLoanPayoff({
         principal: amount,
         annualRate: rate,
@@ -896,8 +909,8 @@ async function takeLoan(optionId) {
     }, true);
     
     state.activeLoan = {
-        id: option.id,
-        name: option.name,
+        id: LOAN_CONFIG.id,
+        name: LOAN_CONFIG.name,
         principal: amount,
         annualRate: rate,
         termWeeks,
@@ -911,7 +924,7 @@ async function takeLoan(optionId) {
     updateBankerDisplay();
     renderLoanOptions();
     
-    showNotification(`${option.name} approved for $${amount.toLocaleString()}!`, 'success');
+    showNotification(`Loan approved for $${amount.toLocaleString()} at ${(rate * 100).toFixed(2)}% per week!`, 'success');
 }
 
 async function repayLoan() {
@@ -1502,18 +1515,18 @@ function checkGameOver() {
     const bankBalance = state.bankBalance;
     const hasActiveLoan = state.activeLoan !== null;
     const GAME_OVER_THRESHOLD = 50; // Game over if both accounts are below $50
-    const tradingRounds = state.tradingRounds || 0;
+    const lifetimeEarnings = state.totalEarnings || 0;
     
     // Check if both accounts are below threshold
     const isBroke = bankBalance < GAME_OVER_THRESHOLD && portfolioValue < GAME_OVER_THRESHOLD;
     
     if (!isBroke) return; // Not broke, no game over
     
-    // Check if player can get any loan
+    // Check if player can get a loan
     // Player can't get a loan if:
     // 1. They already have an active loan, OR
-    // 2. They don't have enough rounds to unlock the smallest loan (3 rounds)
-    const canGetLoan = !hasActiveLoan && tradingRounds >= 3;
+    // 2. They have no lifetime earnings (loan amount = lifetime earnings)
+    const canGetLoan = !hasActiveLoan && lifetimeEarnings > 0;
     
     // Game over: broke AND can't get a loan
     if (!canGetLoan) {
@@ -1537,14 +1550,14 @@ function showGameOverModal() {
     const messageEl = document.getElementById('gameOverMessage');
     
     // Update message based on why game over occurred
-    const tradingRounds = state.tradingRounds || 0;
+    const lifetimeEarnings = state.totalEarnings || 0;
     const hasActiveLoan = state.activeLoan !== null;
     let reason = '';
     
     if (hasActiveLoan) {
         reason = 'You already have an active loan and cannot get another one.';
-    } else if (tradingRounds < 3) {
-        reason = `You need at least 3 trading rounds to unlock loans (you have ${tradingRounds}).`;
+    } else if (lifetimeEarnings <= 0) {
+        reason = 'You have no lifetime earnings, so no loan is available (loan amount = lifetime earnings).';
     } else {
         reason = 'No loans are available to you.';
     }

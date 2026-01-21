@@ -128,9 +128,6 @@ const SecurityService = (() => {
 
         switch (type) {
             case 'depositToTrading': {
-                if (amount < payload.minDeposit) {
-                    return { ok: false, reason: 'Below minimum deposit' };
-                }
                 if (amount > payload.bankBalance) {
                     return { ok: false, reason: 'Deposit exceeds bank balance' };
                 }

@@ -794,8 +794,7 @@ function depositToTrading(amount) {
     if (typeof SecurityService !== 'undefined') {
         const validation = SecurityService.validateTransaction('depositToTrading', {
             amount,
-            bankBalance: state.bankBalance,
-            minDeposit: MIN_DEPOSIT
+            bankBalance: state.bankBalance
         });
         if (!validation.ok) {
             SecurityService.addFlag('invalid_deposit', { amount, bankBalance: state.bankBalance });
@@ -804,8 +803,8 @@ function depositToTrading(amount) {
         SecurityService.logTransaction('depositToTrading', { amount, bankBalance: state.bankBalance });
     }
 
-    if (amount < MIN_DEPOSIT) {
-        return { success: false, message: `Minimum deposit is $${MIN_DEPOSIT}` };
+    if (amount <= 0) {
+        return { success: false, message: 'Deposit amount must be greater than 0' };
     }
     if (amount > state.bankBalance) {
         return { success: false, message: 'Insufficient bank balance' };
