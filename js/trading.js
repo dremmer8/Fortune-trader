@@ -343,8 +343,9 @@ function renderSignal() {
         state.cookieUnwrapFrame = 0;
     }
     
-    // Get current frame image path
-    const frameImage = `images/trading/1_cookie_${state.cookieUnwrapFrame}.png`;
+    // Get current frame image path based on cookie tier
+    const cookieTier = state.cookie.tier || 1;
+    const frameImage = `images/trading/${cookieTier}_cookie_${state.cookieUnwrapFrame}.png`;
     
     // Show cookie animation frame
     reveal.innerHTML = `
@@ -380,7 +381,8 @@ function crackCookie() {
         renderSignal();
     } else {
         // Update to show next frame
-        const frameImage = `images/trading/1_cookie_${state.cookieUnwrapFrame}.png`;
+        const cookieTier = state.cookie.tier || 1;
+        const frameImage = `images/trading/${cookieTier}_cookie_${state.cookieUnwrapFrame}.png`;
         const frameEl = document.getElementById('cookieUnwrapFrame');
         const hintEl = document.querySelector('.cookie-unwrap-hint');
         
