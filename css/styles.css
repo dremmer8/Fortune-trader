@@ -1,3 +1,8 @@
+html {
+    overflow: hidden;
+    height: 100%;
+}
+
 :root {
     --bg-primary: #0a0a0f;
     --bg-secondary: #12121a;
@@ -3192,6 +3197,8 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg-primary);
     min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
     color: var(--text-primary);
     font-size: 14px;
     line-height: 1.5;
@@ -3219,6 +3226,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
 }
 
 /* Top Navigation Bar */
@@ -3398,6 +3407,9 @@ body {
     grid-template-rows: 1fr auto;
     gap: 1px;
     background: var(--border);
+    min-height: 0;
+    overflow: hidden;
+    align-items: stretch;
 }
 
 .panel {
@@ -3432,6 +3444,9 @@ body {
 .chart-panel {
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    grid-row: 1;
 }
 
 .chart-header {
@@ -3440,7 +3455,7 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .asset-info {
@@ -3500,9 +3515,11 @@ body {
     background: var(--bg-primary);
     border-radius: 8px;
     border: 1px solid var(--border);
-    padding: 16px;
-    min-height: 280px;
+    padding: 12px;
+    min-height: 260px;
+    max-height: 100%;
     position: relative;
+    overflow: hidden;
 }
 
 .chart-loading-overlay {
@@ -3644,11 +3661,12 @@ body {
 
 /* Trade Controls */
 .trade-section {
-    margin-top: 16px;
+    margin-top: 8px;
     display: flex;
     gap: 12px;
-    align-items: stretch;
+    align-items: center;
     justify-content: flex-end;
+    flex-wrap: wrap;
 }
 
 .trade-buttons {
@@ -3658,7 +3676,7 @@ body {
 
 .trade-btn {
     flex: 1;
-    padding: 14px 24px;
+    padding: 8px 20px;
     font-family: 'Inter', sans-serif;
     font-size: 13px;
     font-weight: 600;
@@ -3725,22 +3743,26 @@ body {
 
 /* Active Positions */
 .positions-row {
-    margin-top: 12px;
+    margin: 0;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    align-items: center;
+    flex: 0 0 auto;
 }
 
 .position-chip {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
+    gap: 8px;
+    padding: 6px 10px;
     background: var(--bg-primary);
     border: 1px solid var(--border);
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
     transition: all 0.3s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .position-chip.long {
@@ -3993,6 +4015,8 @@ body {
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--border);
+    grid-row: 1 / -1;
+    min-height: 0;
 }
 
 /* Oracle Actions Row - Cookie Buy + Shop Button */
@@ -4492,7 +4516,7 @@ body {
 
 /* Signal Reveal Area */
 .signal-reveal {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -4500,9 +4524,11 @@ body {
     background: var(--bg-primary);
     border: 2px dashed var(--border);
     border-radius: 8px;
-    min-height: 200px;
+    width: 100%;
+    aspect-ratio: 852 / 607;
     position: relative;
     transition: all 0.3s ease;
+    overflow: hidden;
 }
 
 .signal-reveal.drag-active {
@@ -4615,28 +4641,31 @@ body {
     width: 100%;
     height: 100%;
     padding: 0;
+    min-height: 0;
 }
 
 .cookie-unwrap-frame {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    object-position: center;
     filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4));
 }
 
 .cookie-unwrap-hint {
     position: absolute;
-    bottom: 20px;
+    bottom: 12px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-primary);
     background: rgba(0, 0, 0, 0.75);
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 6px;
     backdrop-filter: blur(8px);
     white-space: nowrap;
     pointer-events: none;
+    z-index: 10;
 }
 
 .signal-hint {
@@ -4672,15 +4701,27 @@ body {
 
 /* Deals Panel */
 .deals-panel {
-    grid-column: 1 / -1;
+    grid-column: 1;
     border-top: 1px solid var(--border);
+    max-height: 200px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 12px 20px;
+}
+
+.deals-panel .panel-header {
+    margin-bottom: 8px;
 }
 
 .deals-scroll {
     display: flex;
     gap: 12px;
     overflow-x: auto;
+    overflow-y: hidden;
     padding-bottom: 8px;
+    flex: 1;
+    min-height: 0;
 }
 
 .deals-scroll::-webkit-scrollbar {
@@ -4755,7 +4796,8 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 12px;
+    margin-bottom: 0;
+    margin-top: 4px;
 }
 
 .timer-label {
@@ -4870,8 +4912,8 @@ body {
     max-width: 280px;
     background: var(--bg-primary);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
+    border-radius: 8px;
+    padding: 8px 10px;
     flex-shrink: 0;
     transition: all 0.3s ease;
     cursor: pointer;
@@ -4905,9 +4947,9 @@ body {
 .prophecy-decode-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
+    gap: 8px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
     border-bottom: 1px solid var(--border);
     position: relative;
 }
@@ -4954,8 +4996,8 @@ body {
 .fortune-text-container {
     background: var(--bg-tertiary);
     border-radius: 6px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
+    padding: 6px 10px;
+    margin-bottom: 6px;
     border: 1px solid transparent;
     transition: all 0.2s ease;
 }
@@ -4966,10 +5008,10 @@ body {
 }
 
 .fortune-quote {
-    font-size: 12px;
+    font-size: 11px;
     font-style: italic;
     color: var(--text-secondary);
-    line-height: 1.4;
+    line-height: 1.3;
     text-align: center;
 }
 
@@ -4998,10 +5040,10 @@ body {
 
 /* Decode Progress */
 .decode-progress-bar {
-    height: 4px;
+    height: 3px;
     background: var(--bg-primary);
     border-radius: 2px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     overflow: hidden;
 }
 
@@ -5177,8 +5219,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
-    padding: 3px 0;
+    margin-bottom: 2px;
+    padding: 2px 0;
 }
 
 .detail-label {
@@ -5227,8 +5269,8 @@ body {
     color: var(--text-secondary);
     font-style: italic;
     text-align: center;
-    padding: 4px 8px;
-    margin-bottom: 6px;
+    padding: 3px 6px;
+    margin-bottom: 4px;
     background: var(--bg-tertiary);
     border-radius: 4px;
     border-left: 2px solid var(--border);
