@@ -71,6 +71,14 @@ function purchaseUpgrade(upgradeId) {
         }
     }
     
+    // Special handling for News Access upgrades
+    if (upgradeId === 'newsAccess1' || upgradeId === 'newsAccess2' || upgradeId === 'newsAccess3') {
+        // Re-render news to show updated visibility
+        if (typeof renderNews === 'function') {
+            renderNews();
+        }
+    }
+    
     // Update UI to show purchased state and refresh shop items
     updateShopItemStates();
     
@@ -441,20 +449,20 @@ function renderPortfolioOverlay() {
     summaryEl.innerHTML = `
         <div class="summary-row">
             <span class="summary-label">Cash</span>
-            <span class="summary-value">$${state.balance.toFixed(2)}</span>
+            <span class="summary-value" id="portfolioCash">$${state.balance.toFixed(2)}</span>
         </div>
         <div class="summary-row">
             <span class="summary-label">Stock Holdings</span>
-            <span class="summary-value">$${totalStockValue.toFixed(2)}</span>
+            <span class="summary-value" id="portfolioStockHoldings">$${totalStockValue.toFixed(2)}</span>
         </div>
         <div class="summary-row highlight">
             <span class="summary-label">Total Portfolio</span>
-            <span class="summary-value">$${totalPortfolio.toFixed(2)}</span>
+            <span class="summary-value" id="portfolioTotal">$${totalPortfolio.toFixed(2)}</span>
         </div>
         ${totalInvested > 0 ? `
-        <div class="summary-row ${totalPnl >= 0 ? 'positive' : 'negative'}">
+        <div class="summary-row ${totalPnl >= 0 ? 'positive' : 'negative'}" id="portfolioTotalPnLRow">
             <span class="summary-label">Total P&L</span>
-            <span class="summary-value">${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)} (${totalPnl >= 0 ? '+' : ''}${totalPnlPercent.toFixed(2)}%)</span>
+            <span class="summary-value" id="portfolioTotalPnL">${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)} (${totalPnl >= 0 ? '+' : ''}${totalPnlPercent.toFixed(2)}%)</span>
         </div>
         ` : ''}
     `;
@@ -496,22 +504,119 @@ function renderPortfolioOverlay() {
                 <span>P&L</span>
             </div>
             ${holdings.map(h => `
-                <div class="holding-row ${state.dataMode === h.symbol ? 'active' : ''}">
+                <div class="holding-row ${state.dataMode === h.symbol ? 'active' : ''}" data-symbol="${h.symbol}">
                     <div class="holding-stock">
                         <span class="holding-symbol">${h.name}</span>
                         <span class="holding-tag">${h.tag}</span>
                     </div>
                     <span class="holding-shares">${h.shares.toFixed(4)}</span>
                     <span class="holding-avg">$${h.avgPrice.toFixed(2)}</span>
-                    <span class="holding-current">$${h.currentPrice.toFixed(2)}</span>
-                    <span class="holding-value">$${h.currentValue.toFixed(2)}</span>
-                    <span class="holding-pnl ${h.pnl >= 0 ? 'positive' : 'negative'}">
+                    <span class="holding-current" data-symbol="${h.symbol}">$${h.currentPrice.toFixed(2)}</span>
+                    <span class="holding-value" data-symbol="${h.symbol}">$${h.currentValue.toFixed(2)}</span>
+                    <span class="holding-pnl ${h.pnl >= 0 ? 'positive' : 'negative'}" data-symbol="${h.symbol}">
                         ${h.pnl >= 0 ? '+' : ''}$${h.pnl.toFixed(2)}
                         <br><small>(${h.pnl >= 0 ? '+' : ''}${h.pnlPercent.toFixed(2)}%)</small>
                     </span>
                 </div>
             `).join('')}
         `;
+    }
+}
+
+// Update portfolio overlay values in real-time (lightweight update, no full re-render)
+function updatePortfolioOverlay() {
+    // Only update if portfolio overlay is open
+    if (!portfolioOverlayOpen) return;
+    
+    // Calculate totals
+    let totalStockValue = 0;
+    let totalInvested = 0;
+    
+    Object.keys(state.stockHoldings).forEach(symbol => {
+        const holding = state.stockHoldings[symbol];
+        if (holding && holding.shares > 0) {
+            const config = stockConfig[symbol];
+            const prices = state.chartPrices[symbol];
+            const currentPrice = prices ? prices.displayPrice : (config ? config.basePrice : 0);
+            const currentValue = holding.shares * currentPrice;
+            const pnl = currentValue - holding.totalInvested;
+            const pnlPercent = holding.totalInvested > 0 ? (pnl / holding.totalInvested) * 100 : 0;
+            
+            totalStockValue += currentValue;
+            totalInvested += holding.totalInvested;
+            
+            // Update individual holding row values
+            const currentEl = document.querySelector(`.holding-current[data-symbol="${symbol}"]`);
+            const valueEl = document.querySelector(`.holding-value[data-symbol="${symbol}"]`);
+            const pnlEl = document.querySelector(`.holding-pnl[data-symbol="${symbol}"]`);
+            const rowEl = document.querySelector(`.holding-row[data-symbol="${symbol}"]`);
+            
+            if (currentEl) {
+                currentEl.textContent = `$${currentPrice.toFixed(2)}`;
+            }
+            if (valueEl) {
+                valueEl.textContent = `$${currentValue.toFixed(2)}`;
+            }
+            if (pnlEl) {
+                const pnlClass = pnl >= 0 ? 'positive' : 'negative';
+                pnlEl.className = `holding-pnl ${pnlClass}`;
+                pnlEl.innerHTML = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}<br><small>(${pnl >= 0 ? '+' : ''}${pnlPercent.toFixed(2)}%)</small>`;
+            }
+            if (rowEl) {
+                // Update active class if this is the current stock
+                rowEl.classList.toggle('active', state.dataMode === symbol);
+            }
+        }
+    });
+    
+    const totalPnl = totalStockValue - totalInvested;
+    const totalPnlPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
+    const totalPortfolio = state.balance + totalStockValue;
+    
+    // Update summary values
+    const cashEl = document.getElementById('portfolioCash');
+    const stockHoldingsEl = document.getElementById('portfolioStockHoldings');
+    const totalEl = document.getElementById('portfolioTotal');
+    const totalPnLEl = document.getElementById('portfolioTotalPnL');
+    const totalPnLRowEl = document.getElementById('portfolioTotalPnLRow');
+    
+    if (cashEl) {
+        cashEl.textContent = `$${state.balance.toFixed(2)}`;
+    }
+    if (stockHoldingsEl) {
+        stockHoldingsEl.textContent = `$${totalStockValue.toFixed(2)}`;
+    }
+    if (totalEl) {
+        totalEl.textContent = `$${totalPortfolio.toFixed(2)}`;
+    }
+    if (totalPnLEl && totalPnLRowEl) {
+        const pnlClass = totalPnl >= 0 ? 'positive' : 'negative';
+        totalPnLRowEl.className = `summary-row ${pnlClass}`;
+        totalPnLEl.textContent = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)} (${totalPnl >= 0 ? '+' : ''}${totalPnlPercent.toFixed(2)}%)`;
+    }
+    
+    // Update profitable count for action button
+    if (totalInvested > 0) {
+        const holdings = [];
+        Object.keys(state.stockHoldings).forEach(symbol => {
+            const holding = state.stockHoldings[symbol];
+            if (holding && holding.shares > 0) {
+                const prices = state.chartPrices[symbol];
+                const config = stockConfig[symbol];
+                const currentPrice = prices ? prices.displayPrice : (config ? config.basePrice : 0);
+                const currentValue = holding.shares * currentPrice;
+                const pnl = currentValue - holding.totalInvested;
+                if (pnl > 0) {
+                    holdings.push(symbol);
+                }
+            }
+        });
+        const profitableBtn = document.querySelector('.portfolio-action-btn-profitable');
+        if (profitableBtn) {
+            const profitableCount = holdings.length;
+            profitableBtn.disabled = profitableCount === 0;
+            profitableBtn.textContent = `Send All Profitable Stock${profitableCount > 0 ? ` (${profitableCount})` : ''}`;
+        }
     }
 }
 

@@ -802,6 +802,42 @@ const SHOP_UPGRADES = {
             unlocksT3Cookies: true
         }
     },
+    newsAccess1: {
+        name: 'News Access I',
+        description: 'Unlock 25% of news articles',
+        icon: '📰',
+        price: 3000,
+        order: 17,
+        visible: true,
+        locked: false,
+        effects: {
+            newsVisibility: 0.25  // 25% visible
+        }
+    },
+    newsAccess2: {
+        name: 'News Access II',
+        description: 'Unlock 50% of news articles',
+        icon: '📺',
+        price: 7000,
+        order: 18,
+        visible: true,
+        locked: false,
+        effects: {
+            newsVisibility: 0.50  // 50% visible
+        }
+    },
+    newsAccess3: {
+        name: 'News Access III',
+        description: 'Unlock 100% of news articles',
+        icon: '📡',
+        price: 12000,
+        order: 19,
+        visible: true,
+        locked: false,
+        effects: {
+            newsVisibility: 1.0  // 100% visible
+        }
+    },
     fortuneMultiplier: {
         name: 'Fortune Multiplier',
         description: 'Double prophecy effects',

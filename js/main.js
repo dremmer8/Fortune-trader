@@ -1913,6 +1913,11 @@ function smoothAnimationLoop() {
         lastPnlUpdate = now;
     }
     
+    // Update portfolio overlay in real-time if open
+    if (typeof updatePortfolioOverlay === 'function') {
+        updatePortfolioOverlay();
+    }
+    
     // Redraw chart with interpolated values
     drawChartSmooth();
     
@@ -2423,6 +2428,11 @@ function updateAllCharts() {
     // Update all symbols
     Object.keys(stockConfig).forEach(symbol => {
         updateSymbolPrice(symbol);
+        
+        // Check for news events after price update
+        if (typeof checkForNewsEvents === 'function') {
+            checkForNewsEvents(symbol);
+        }
     });
     
     // Sync active chart state to global state
@@ -2762,6 +2772,11 @@ function initGameSystems() {
     renderDeals();
     renderPositions();
     renderStockHolding();
+    
+    // Initialize news system
+    if (typeof initNewsSystem === 'function') {
+        initNewsSystem();
+    }
     
     console.log('All charts initialized and running in background');
 }
