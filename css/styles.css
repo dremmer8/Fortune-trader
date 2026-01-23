@@ -2236,6 +2236,32 @@ html {
     font-weight: 600;
 }
 
+.shop-sell-btn {
+    background: #dc2626;
+    color: white;
+    border: none;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+    width: 100%;
+}
+
+.shop-sell-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.shop-sell-btn:active {
+    transform: translateY(0);
+}
+
 .shop-app-overlay .shop-items {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

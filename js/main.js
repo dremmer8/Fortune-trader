@@ -1119,16 +1119,22 @@ function renderOwnedLuxuryItems() {
     
     section.style.display = 'block';
     
-    container.innerHTML = state.ownedItems.map(item => `
+    container.innerHTML = state.ownedItems.map(item => {
+        // Calculate potential sell return range for display
+        const minReturn = Math.floor(item.price * ITEM_SELL_RETURN_PERCENT.min);
+        const maxReturn = Math.floor(item.price * ITEM_SELL_RETURN_PERCENT.max);
+        
+        return `
         <div class="shop-owned-item">
             <div class="shop-owned-item-icon">${item.icon}</div>
             <div class="shop-owned-item-info">
                 <div class="shop-owned-item-name">${item.name}</div>
-                <div class="shop-owned-item-desc">${item.description}</div>
+                <div class="shop-owned-item-desc">Sell: $${minReturn.toLocaleString()}-${maxReturn.toLocaleString()}</div>
             </div>
-            <div class="shop-owned-badge">OWNED</div>
+            <button class="shop-sell-btn" onclick="sellShopItem('${item.id}')">Sell</button>
         </div>
-    `).join('');
+    `;
+    }).join('');
 }
 
 // Format price with K/M abbreviations
@@ -1233,6 +1239,61 @@ function buyShopItem(itemId) {
         message += ' Rent expense eliminated!';
     } else if (item.category === 'car') {
         message += ' Transport expense eliminated!';
+    }
+    
+    showNotification(message, 'success');
+}
+
+// Sell shop item
+function sellShopItem(itemId) {
+    const itemIndex = state.ownedItems.findIndex(item => item.id === itemId);
+    if (itemIndex === -1) {
+        showNotification('Item not found!', 'error');
+        return;
+    }
+    
+    const item = state.ownedItems[itemIndex];
+    
+    // Calculate random return percentage within configured spread
+    const returnPercent = ITEM_SELL_RETURN_PERCENT.min + 
+        Math.random() * (ITEM_SELL_RETURN_PERCENT.max - ITEM_SELL_RETURN_PERCENT.min);
+    const returnAmount = Math.floor(item.price * returnPercent);
+    
+    // Play click sound for sale
+    AudioManager.playClick();
+    
+    // Add return amount to bank balance
+    state.bankBalance += returnAmount;
+    
+    // Track earnings
+    addSpendingEntry({
+        amount: -returnAmount, // Negative for earnings
+        type: 'luxury',
+        label: `Item sold: ${item.name}`
+    });
+    
+    // Remove from owned items
+    state.ownedItems.splice(itemIndex, 1);
+    
+    // Save game state
+    saveGameState();
+    
+    // Update displays
+    updateLuxuryShopDisplay();
+    updateBankerDisplay();
+    updateExpensesDisplay();
+    renderExpensesList();
+    renderLuxuryShopItems();
+    
+    // Show notification with return amount
+    const returnPercentDisplay = Math.round(returnPercent * 100);
+    let message = `Sold ${item.name} for $${returnAmount.toLocaleString()} (${returnPercentDisplay}% of original price)`;
+    
+    // Warn if selling estate or car (expenses will return)
+    if (item.category === 'estate') {
+        message += '. Rent expense will return!';
+    } else if (item.category === 'car') {
+        message += '. Transport expense will return!';
     }
     
     showNotification(message, 'success');

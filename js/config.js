@@ -294,6 +294,16 @@ const SHOP_ITEMS = [
     }
   ];
 
+// ===========================================
+// ITEM SELL CONFIGURATION
+// ===========================================
+// When selling items, players receive a random percentage of the original purchase price
+// The return percentage is randomly selected between min and max values
+const ITEM_SELL_RETURN_PERCENT = {
+    min: 0.40,  // Minimum 40% of original price
+    max: 0.70   // Maximum 70% of original price
+};
+
 // Stock purchase fee (fixed amount per transaction)
 // This encourages buying stocks in bulk to save on fees
 // Note: Short and Long bets are NOT affected by fees

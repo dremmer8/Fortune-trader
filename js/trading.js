@@ -1,5 +1,110 @@
 // Trading, deals, and positions logic
 
+// Confetti animation for max combo achievement
+function triggerConfetti() {
+    // Create confetti particles
+    const particleCount = 150;
+    const particles = [];
+    // Green color variations
+    const colors = ['#00FF00', '#32CD32', '#00CC00', '#66FF66', '#00AA00', '#7FFF00', '#90EE90', '#98FB98'];
+    
+    // Remove existing canvas if present (to start fresh)
+    let existingCanvas = document.getElementById('confettiCanvas');
+    if (existingCanvas) {
+        existingCanvas.parentNode.removeChild(existingCanvas);
+    }
+    
+    // Create canvas for confetti
+    const canvas = document.createElement('canvas');
+    canvas.id = 'confettiCanvas';
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '9999';
+    document.body.appendChild(canvas);
+    
+    const ctx = canvas.getContext('2d');
+    const updateCanvasSize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    };
+    updateCanvasSize();
+    
+    // Handle window resize
+    const resizeHandler = () => updateCanvasSize();
+    window.addEventListener('resize', resizeHandler);
+    
+    // Create particles - spawn from top and slowly lower down
+    for (let i = 0; i < particleCount; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: -10 - Math.random() * 50, // Stagger spawn from top
+            vx: (Math.random() - 0.5) * 1.5, // Slower horizontal movement
+            vy: Math.random() * 0.8 + 0.3, // Much slower vertical velocity (0.3-1.1)
+            size: Math.random() * 8 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: (Math.random() - 0.5) * 0.1, // Slower rotation
+            shape: Math.random() > 0.5 ? 'circle' : 'square'
+        });
+    }
+    
+    // Animation loop
+    let animationId;
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        let activeParticles = 0;
+        particles.forEach(particle => {
+            if (particle.y < canvas.height + 20) {
+                activeParticles++;
+                
+                // Update position - slow gentle fall
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.vy += 0.03; // Much lighter gravity for slow descent
+                particle.rotation += particle.rotationSpeed;
+                
+                // Draw particle
+                ctx.save();
+                ctx.translate(particle.x, particle.y);
+                ctx.rotate(particle.rotation);
+                ctx.fillStyle = particle.color;
+                
+                if (particle.shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, particle.size / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size);
+                }
+                
+                ctx.restore();
+            }
+        });
+        
+        if (activeParticles > 0) {
+            animationId = requestAnimationFrame(animate);
+        } else {
+            // Clean up canvas after animation
+            window.removeEventListener('resize', resizeHandler);
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            setTimeout(() => {
+                if (canvas && canvas.parentNode) {
+                    canvas.parentNode.removeChild(canvas);
+                }
+            }, 100);
+        }
+    }
+    
+    animate();
+}
+
 // Flash the screen background (green for win/profit, red for loss)
 function flashTradingScreen(isWin) {
     // Get or create the flash overlay
@@ -1130,18 +1235,26 @@ function resolvePrediction(prediction) {
             });
         }
         
-        // Check if at max combo before handling win
+        // Check if at max combo after handling win
         const betAmounts = typeof getCurrentBetAmounts === 'function' ? getCurrentBetAmounts() : BET_AMOUNTS;
-        const isMaxCombo = state.betIndex >= betAmounts.length - 1;
         
         handleWin(); // Increase streak and bet
+        
+        // Check if player is at max combo
+        const nowAtMaxCombo = state.betIndex >= betAmounts.length - 1;
+        
         flashTradingScreen(true); // Green flash for win
         
         // Play appropriate sound based on combo level
-        if (isMaxCombo) {
+        if (nowAtMaxCombo) {
             AudioManager.playSuccessfulDealMaxCombo(); // Play max combo sound
         } else {
             AudioManager.playSuccessfulDeal(); // Play regular success sound
+        }
+        
+        // Trigger confetti animation whenever player wins at max combo
+        if (nowAtMaxCombo) {
+            triggerConfetti();
         }
         
         showNotification(`Prediction won! +$${profit.toLocaleString()} 🔥`, 'success');
@@ -1355,18 +1468,26 @@ function resolvePosition(pos) {
         
         // Only affect streak for manual positions
         if (!isBotPosition) {
-            // Check if at max combo before handling win
+            // Check if at max combo after handling win
             const betAmounts = typeof getCurrentBetAmounts === 'function' ? getCurrentBetAmounts() : BET_AMOUNTS;
-            const isMaxCombo = state.betIndex >= betAmounts.length - 1;
             
             handleWin(); // Increase streak and bet
+            
+            // Check if player is at max combo
+            const nowAtMaxCombo = state.betIndex >= betAmounts.length - 1;
+            
             flashTradingScreen(true); // Green flash for win
             
             // Play appropriate sound based on combo level
-            if (isMaxCombo) {
+            if (nowAtMaxCombo) {
                 AudioManager.playSuccessfulDealMaxCombo(); // Play max combo sound
             } else {
                 AudioManager.playSuccessfulDeal(); // Play regular success sound
+            }
+            
+            // Trigger confetti animation whenever player wins at max combo
+            if (nowAtMaxCombo) {
+                triggerConfetti();
             }
             
             showNotification(`+$${profit.toLocaleString()} 🔥`, 'success');
