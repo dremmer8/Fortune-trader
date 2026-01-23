@@ -301,7 +301,9 @@ function generateProphecyData(prophecyType, currentPrice, duration, tierModifier
             return {
                 volatilityMin: parseFloat(volatilityMin.toFixed(1)),
                 volatilityMax: parseFloat(volatilityMax.toFixed(1)),
-                trueVolatility: volatilityMin + Math.random() * (volatilityMax - volatilityMin)
+                trueVolatility: volatilityMin + Math.random() * (volatilityMax - volatilityMin),
+                windowStart: 0,  // Active immediately
+                windowEnd: duration  // Active for full duration
             };
         }
         
@@ -315,7 +317,9 @@ function generateProphecyData(prophecyType, currentPrice, duration, tierModifier
             return {
                 volatilityMin: parseFloat(volatilityMin.toFixed(1)),
                 volatilityMax: parseFloat(volatilityMax.toFixed(1)),
-                trueVolatility: volatilityMin + Math.random() * (volatilityMax - volatilityMin)
+                trueVolatility: volatilityMin + Math.random() * (volatilityMax - volatilityMin),
+                windowStart: 0,  // Active immediately
+                windowEnd: duration  // Active for full duration
             };
         }
         
