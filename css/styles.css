@@ -3770,6 +3770,34 @@ body {
     font-size: 8px;
 }
 
+.bet-marker.margin .bet-marker-dot {
+    border: 2px solid currentColor;
+    background: transparent;
+}
+
+.bet-marker.margin.long .bet-marker-dot {
+    border-color: #f59e0b;
+    color: #f59e0b;
+}
+
+.bet-marker.margin.short .bet-marker-dot {
+    border-color: #a855f7;
+    color: #a855f7;
+}
+
+.bet-marker.margin.long .bet-marker-id {
+    color: #f59e0b;
+}
+
+.bet-marker.margin.short .bet-marker-id {
+    color: #a855f7;
+}
+
+.bet-marker.margin .bet-marker-id::before {
+    content: '⚡ ';
+    font-size: 8px;
+}
+
 /* Trade Controls */
 .trade-section {
     margin-top: 8px;
@@ -3778,6 +3806,11 @@ body {
     align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
+}
+
+.trade-section > * {
+    display: flex;
+    align-items: center;
 }
 
 .trade-buttons {
@@ -3803,6 +3836,8 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0;
+    height: 40px;
+    box-sizing: border-box;
 }
 
 .trade-btn.long {
@@ -3836,6 +3871,7 @@ body {
     background: var(--accent);
     color: white;
     flex-direction: column;
+    height: 40px;
 }
 
 .trade-btn.stock-buy:hover {
@@ -3853,6 +3889,8 @@ body {
     background: transparent;
     border: 2px solid var(--accent);
     color: var(--accent);
+    height: 40px;
+    box-sizing: border-box;
 }
 
 .trade-btn.stock-sell:hover {
@@ -3917,6 +3955,156 @@ body {
 .trade-btn.stock-sell.locked:hover {
     background: transparent;
     border-color: var(--accent);
+}
+
+/* Margin Trading Buttons */
+.margin-trade-buttons {
+    display: flex;
+    gap: 8px;
+    margin-left: 16px;
+    padding-left: 16px;
+    border-left: 1px solid var(--border);
+}
+
+.margin-trade-buttons.hidden {
+    display: none;
+}
+
+.trade-btn.margin-long {
+    background: #f59e0b;
+    color: white;
+    height: 40px;
+    min-width: 140px;
+    white-space: nowrap;
+}
+
+.trade-btn.margin-long:hover {
+    background: #d97706;
+}
+
+.trade-btn.margin-short {
+    background: #a855f7;
+    color: white;
+    height: 40px;
+    min-width: 140px;
+    white-space: nowrap;
+}
+
+.trade-btn.margin-short:hover {
+    background: #9333ea;
+}
+
+/* Margin Close Button */
+.margin-close-button-container {
+    margin-left: 16px;
+    padding-left: 16px;
+    border-left: 1px solid var(--border);
+    width: auto;
+    min-width: 200px;
+}
+
+.trade-btn.margin-close {
+    width: 100%;
+    padding: 8px 20px 11px 20px;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border);
+    color: var(--text-primary);
+    position: relative;
+    overflow: hidden;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.trade-btn.margin-close:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--border-light);
+    transform: translateY(-1px);
+}
+
+.trade-btn.margin-close:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.margin-close-content {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.margin-close-text {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.margin-close-pnl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.margin-close-pnl.positive {
+    color: var(--success);
+}
+
+.margin-close-pnl.negative {
+    color: var(--danger);
+}
+
+/* Margin Timer Bar */
+.margin-timer-bar {
+    width: calc(100% - 40px);
+    height: 3px;
+    background: var(--bg-primary);
+    border-radius: 2px;
+    overflow: hidden;
+    position: absolute;
+    bottom: 3px;
+    left: 20px;
+    right: 20px;
+}
+
+.margin-timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-hover) 100%);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+    position: relative;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+.margin-timer-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 /* Active Positions */

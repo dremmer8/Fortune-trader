@@ -1989,6 +1989,11 @@ function smoothAnimationLoop() {
         lastPnlUpdate = now;
     }
     
+    // Update margin position UI smoothly
+    if (typeof renderMarginPosition === 'function') {
+        renderMarginPosition();
+    }
+    
     // Update portfolio overlay in real-time if open
     if (typeof updatePortfolioOverlay === 'function') {
         updatePortfolioOverlay();
@@ -2814,6 +2819,11 @@ function initGameSystems() {
     setInterval(updatePrice, 2000); // Update all charts every 2 seconds
     setInterval(updateDeals, 1000);
     setInterval(updatePositions, 1000);
+    setInterval(() => {
+        if (typeof updateMarginPosition === 'function') {
+            updateMarginPosition();
+        }
+    }, 2000); // Update margin position every 2 seconds (on tick)
     // Execute bots after price updates (every 2 seconds)
     setInterval(() => {
         if (typeof executeBots === 'function') {
@@ -2855,6 +2865,11 @@ function initGameSystems() {
     renderDeals();
     renderPositions();
     renderStockHolding();
+    if (typeof renderMarginPosition === 'function') {
+        renderMarginPosition();
+    }
+    // Update button states on init
+    updateBetLockButtons();
     
     // Initialize news system
     if (typeof initNewsSystem === 'function') {

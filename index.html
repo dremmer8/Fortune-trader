@@ -467,6 +467,27 @@
                         </button>
                         <button class="trade-btn stock-sell" onclick="sellStock()">Sell All Stock</button>
                     </div>
+                    <div class="margin-trade-buttons" id="marginTradeButtons">
+                        <button class="trade-btn margin-long" onclick="openMarginPosition('long')">
+                            Long Margin
+                            <kbd class="btn-shortcut">Z</kbd>
+                        </button>
+                        <button class="trade-btn margin-short" onclick="openMarginPosition('short')">
+                            Short Margin
+                            <kbd class="btn-shortcut">C</kbd>
+                        </button>
+                    </div>
+                    <div class="margin-close-button-container" id="marginCloseButtonContainer" style="display: none;">
+                        <button class="trade-btn margin-close" id="marginCloseButton" onclick="closeMarginPosition()">
+                            <div class="margin-close-content">
+                                <div class="margin-close-text" id="marginCloseText">Close Position</div>
+                                <div class="margin-close-pnl" id="marginClosePnl">$0.00</div>
+                            </div>
+                            <div class="margin-timer-bar" id="marginTimerBar">
+                                <div class="margin-timer-fill" id="marginTimerFill"></div>
+                            </div>
+                        </button>
+                    </div>
                 </div>
             </section>
 

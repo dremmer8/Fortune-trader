@@ -310,6 +310,16 @@ const ITEM_SELL_RETURN_PERCENT = {
 const STOCK_PURCHASE_FEE = 25;
 
 // ===========================================
+// MARGIN TRADING CONFIGURATION
+// ===========================================
+// Margin trading allows players to bet with 10x multiplier
+// First phase: locked for 25 ticks (player cannot close)
+// Second phase: closable for 25 ticks (player can close)
+const MARGIN_TICKS_PHASE_1 = 25; // First phase: locked, waiting
+const MARGIN_TICKS_PHASE_2 = 25; // Second phase: closable
+const MARGIN_MULTIPLIER = 25; // Win/loss multiplier
+
+// ===========================================
 // DETERMINISTIC SEEDED RANDOM NUMBER GENERATOR
 // ===========================================
 // This ensures stock prices are the same for everyone and can't be
@@ -873,6 +883,54 @@ const SHOP_UPGRADES = {
             unlocksStockTrading: true
         }
     },
+    marginTradingUnlock: {
+        name: 'Margin Trading Unlock',
+        description: 'Unlock margin trading (x25 multiplier)',
+        icon: '⚡',
+        price: 5000,
+        order: 21,
+        visible: true,
+        locked: false,
+        effects: {
+            unlocksMarginTrading: true
+        }
+    },
+    marginMultiplier1: {
+        name: 'Margin Multiplier I',
+        description: 'Increase margin multiplier to 30x',
+        icon: '⚡',
+        price: 10000,
+        order: 22,
+        visible: true,
+        locked: false,
+        effects: {
+            marginMultiplier: 30
+        }
+    },
+    marginMultiplier2: {
+        name: 'Margin Multiplier II',
+        description: 'Increase margin multiplier to 40x',
+        icon: '⚡',
+        price: 20000,
+        order: 23,
+        visible: true,
+        locked: false,
+        effects: {
+            marginMultiplier: 40
+        }
+    },
+    marginMultiplier3: {
+        name: 'Margin Multiplier III',
+        description: 'Increase margin multiplier to 55x',
+        icon: '⚡',
+        price: 35000,
+        order: 24,
+        visible: true,
+        locked: false,
+        effects: {
+            marginMultiplier: 55
+        }
+    },
     newsTabUnlock: {
         name: 'News Tab Unlock',
         description: 'Unlock the news tab',
@@ -1079,6 +1137,32 @@ function getCurrentBetAmounts() {
 function isStockTradingUnlocked() {
     if (!state.purchasedUpgrades) return false;
     return state.purchasedUpgrades.includes('stockTradingUnlock');
+}
+
+// Check if margin trading is unlocked
+function isMarginTradingUnlocked() {
+    if (!state.purchasedUpgrades) return false;
+    return state.purchasedUpgrades.includes('marginTradingUnlock');
+}
+
+// Get current margin multiplier based on purchased upgrades
+function getMarginMultiplier() {
+    if (!state.purchasedUpgrades) return MARGIN_MULTIPLIER;
+    
+    // Check for tier 3 first (highest)
+    if (state.purchasedUpgrades.includes('marginMultiplier3')) {
+        return 55;
+    }
+    // Check for tier 2
+    if (state.purchasedUpgrades.includes('marginMultiplier2')) {
+        return 40;
+    }
+    // Check for tier 1
+    if (state.purchasedUpgrades.includes('marginMultiplier1')) {
+        return 30;
+    }
+    // Default multiplier from config
+    return MARGIN_MULTIPLIER;
 }
 
 // Check if news tab is unlocked

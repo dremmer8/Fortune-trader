@@ -802,6 +802,24 @@ function handleTradingShortcuts(event) {
         return;
     }
     
+    // 'z' key - long margin position
+    if (key === 'z') {
+        event.preventDefault();
+        if (typeof openMarginPosition === 'function') {
+            openMarginPosition('long');
+        }
+        return;
+    }
+    
+    // 'c' key - short margin position
+    if (key === 'c') {
+        event.preventDefault();
+        if (typeof openMarginPosition === 'function') {
+            openMarginPosition('short');
+        }
+        return;
+    }
+    
     // space - buy stock
     if (key === ' ') {
         event.preventDefault();
@@ -1920,5 +1938,331 @@ function updateStockHoldingDisplay() {
     if (pnlEl) {
         pnlEl.className = `stock-compact-pnl ${pnlClass}`;
         pnlEl.textContent = `${pnlSign}$${pnl.value.toFixed(2)} (${pnlSign}${pnl.percent.toFixed(2)}%)`;
+    }
+}
+
+// ===========================================
+// MARGIN TRADING FUNCTIONS
+// ===========================================
+// Margin trading constants are defined in config.js:
+// - MARGIN_TICKS_PHASE_1
+// - MARGIN_TICKS_PHASE_2
+// - MARGIN_MULTIPLIER
+
+// Open a margin position
+function openMarginPosition(direction) {
+    // Check if margin trading is unlocked
+    if (typeof isMarginTradingUnlocked === 'function' && !isMarginTradingUnlocked()) {
+        showNotification('Purchase "Margin Trading Unlock" upgrade to unlock margin trading', 'error');
+        AudioManager.playError();
+        return;
+    }
+    
+    // Check if there's already an active margin position
+    if (state.marginPosition) {
+        showNotification('Close your current margin position first', 'error');
+        return;
+    }
+    
+    // Check timing lock
+    if (!canPlaceBet()) {
+        const remaining = getBetLockRemaining();
+        showNotification(`Please wait ${remaining}s before trading again`, 'error');
+        return;
+    }
+    
+    const amount = getCurrentBet();
+    
+    if (amount > state.balance) {
+        showNotification('Insufficient funds', 'error');
+        return;
+    }
+    
+    // Play click sound
+    AudioManager.playClick();
+    
+    // Deduct bet amount
+    state.balance -= amount;
+    updateBalance();
+    
+    const now = Date.now();
+    const currentTick = typeof getCurrentTickNumber === 'function' ? getCurrentTickNumber() : 0;
+    
+    // Create margin position
+    state.marginPosition = {
+        id: now,
+        direction: direction,
+        amount: amount,
+        entryPrice: state.currentPrice,
+        startTick: currentTick,
+        stockSymbol: state.dataMode,
+        phase: 'locked' // 'locked' or 'closable'
+    };
+    
+    state.lastBetTime = now; // Update bet lock timer
+    
+    // Hide margin buttons, show close button
+    renderMarginPosition();
+    
+    const multiplier = typeof getMarginMultiplier === 'function' ? getMarginMultiplier() : MARGIN_MULTIPLIER;
+    showNotification(`${direction.toUpperCase()} margin position opened (x${multiplier})`, 'success');
+    autoSave();
+}
+
+// Close margin position
+function closeMarginPosition() {
+    if (!state.marginPosition) return;
+    
+    // Check if position is in closable phase
+    if (state.marginPosition.phase === 'locked') {
+        showNotification('Position is still locked. Wait for the timer to finish.', 'error');
+        return;
+    }
+    
+    resolveMarginPosition();
+}
+
+// Resolve margin position (called on close, margin call, or timeout)
+function resolveMarginPosition() {
+    if (!state.marginPosition) return;
+    
+    const position = state.marginPosition;
+    
+    // Get current price for the position's stock symbol
+    const currentPrice = position.stockSymbol === state.dataMode
+        ? state.currentPrice
+        : (state.chartPrices && state.chartPrices[position.stockSymbol]
+            ? state.chartPrices[position.stockSymbol].currentPrice
+            : stockConfig[position.stockSymbol]?.basePrice || 100);
+    
+    // Calculate price change
+    const priceChange = (currentPrice - position.entryPrice) / position.entryPrice;
+    const won = 
+        (position.direction === 'long' && priceChange > 0) ||
+        (position.direction === 'short' && priceChange < 0);
+    
+    // Calculate P&L (percentage change multiplied by bet amount and multiplier)
+    const priceChangePercent = Math.abs(priceChange) * 100; // Convert to percentage
+    const multiplier = typeof getMarginMultiplier === 'function' ? getMarginMultiplier() : MARGIN_MULTIPLIER;
+    const pnl = won 
+        ? position.amount * (priceChangePercent / 100) * multiplier
+        : -position.amount * (priceChangePercent / 100) * multiplier;
+    
+    // Round to 2 decimal places
+    const roundedPnl = Math.round(pnl * 100) / 100;
+    
+    // Apply P&L to balance
+    state.balance += position.amount + roundedPnl;
+    updateBalance();
+    
+    // Flash screen
+    flashTradingScreen(won);
+    
+    // Play sound
+    if (won) {
+        AudioManager.playSuccessfulDeal();
+        showNotification(`Margin position closed! +$${roundedPnl.toFixed(2)} 🔥`, 'success');
+    } else {
+        AudioManager.playError();
+        showNotification(`Margin position closed. -$${Math.abs(roundedPnl).toFixed(2)}`, 'error');
+    }
+    
+    // Update streak (only for wins)
+    if (won) {
+        handleWin();
+    } else {
+        handleLoss();
+    }
+    
+    // Clear margin position
+    state.marginPosition = null;
+    
+    // Show margin buttons, hide close button
+    renderMarginPosition();
+    
+    autoSave();
+    
+    // Check for game over condition
+    if (typeof checkGameOver === 'function') {
+        checkGameOver();
+    }
+}
+
+// Check for margin call (auto-close if balance insufficient to cover loss)
+function checkMarginCall() {
+    if (!state.marginPosition) return false;
+    
+    const position = state.marginPosition;
+    
+    // Get current price
+    const currentPrice = position.stockSymbol === state.dataMode
+        ? state.currentPrice
+        : (state.chartPrices && state.chartPrices[position.stockSymbol]
+            ? state.chartPrices[position.stockSymbol].currentPrice
+            : stockConfig[position.stockSymbol]?.basePrice || 100);
+    
+    // Calculate potential loss
+    const priceChange = (currentPrice - position.entryPrice) / position.entryPrice;
+    const isLosing = 
+        (position.direction === 'long' && priceChange < 0) ||
+        (position.direction === 'short' && priceChange > 0);
+    
+    if (!isLosing) return false; // Only margin call on losing positions
+    
+    // Calculate potential loss (percentage change multiplied by bet amount and multiplier)
+    const priceChangePercent = Math.abs(priceChange) * 100; // Convert to percentage
+    const multiplier = typeof getMarginMultiplier === 'function' ? getMarginMultiplier() : MARGIN_MULTIPLIER;
+    const potentialLoss = position.amount * (priceChangePercent / 100) * multiplier;
+    
+    // Check if current balance can cover the loss
+    // If balance < potentialLoss, margin call triggers
+    if (state.balance < potentialLoss) {
+        // Margin call - close position and set balance to 0
+        const multiplier = typeof getMarginMultiplier === 'function' ? getMarginMultiplier() : MARGIN_MULTIPLIER;
+        const loss = position.amount * (priceChangePercent / 100) * multiplier;
+        const roundedLoss = Math.round(loss * 100) / 100;
+        
+        // Set balance to 0 (player loses everything)
+        state.balance = 0;
+        updateBalance();
+        
+        // Flash screen red
+        flashTradingScreen(false);
+        AudioManager.playError();
+        showNotification(`Margin call! Position closed. Balance: $0`, 'error');
+        
+        // Reset streak
+        handleLoss();
+        
+        // Clear margin position
+        state.marginPosition = null;
+        
+        // Show margin buttons, hide close button
+        renderMarginPosition();
+        
+        autoSave();
+        
+        // Check for game over condition
+        if (typeof checkGameOver === 'function') {
+            checkGameOver();
+        }
+        
+        return true;
+    }
+    
+    return false;
+}
+
+// Update margin position (called every tick)
+function updateMarginPosition() {
+    if (!state.marginPosition) return;
+    
+    // Check for margin call first
+    if (checkMarginCall()) {
+        return; // Position was closed by margin call
+    }
+    
+    const position = state.marginPosition;
+    const currentTick = typeof getCurrentTickNumber === 'function' ? getCurrentTickNumber() : 0;
+    const ticksElapsed = currentTick - position.startTick;
+    
+    // Phase 1: First 25 ticks (locked)
+    if (ticksElapsed < MARGIN_TICKS_PHASE_1) {
+        position.phase = 'locked';
+    }
+    // Phase 2: Next 25 ticks (closable)
+    else if (ticksElapsed < MARGIN_TICKS_PHASE_1 + MARGIN_TICKS_PHASE_2) {
+        position.phase = 'closable';
+    }
+    // Phase 3: Timeout - auto-close
+    else {
+        // Auto-close after second phase ends
+        resolveMarginPosition();
+        return;
+    }
+    
+    // Update UI
+    renderMarginPosition();
+}
+
+// Render margin position UI
+function renderMarginPosition() {
+    const marginButtons = document.getElementById('marginTradeButtons');
+    const closeContainer = document.getElementById('marginCloseButtonContainer');
+    const closeButton = document.getElementById('marginCloseButton');
+    const closeText = document.getElementById('marginCloseText');
+    const closePnl = document.getElementById('marginClosePnl');
+    const timerBar = document.getElementById('marginTimerBar');
+    const timerFill = document.getElementById('marginTimerFill');
+    
+    if (!state.marginPosition) {
+        // No active position - show margin buttons, hide close button
+        if (marginButtons) marginButtons.style.display = 'flex';
+        if (closeContainer) closeContainer.style.display = 'none';
+        return;
+    }
+    
+    // Active position - hide margin buttons, show close button
+    if (marginButtons) marginButtons.style.display = 'none';
+    if (closeContainer) closeContainer.style.display = 'block';
+    
+    const position = state.marginPosition;
+    const currentTick = typeof getCurrentTickNumber === 'function' ? getCurrentTickNumber() : 0;
+    const ticksElapsed = currentTick - position.startTick;
+    
+    // Calculate P&L
+    const currentPrice = position.stockSymbol === state.dataMode
+        ? state.currentPrice
+        : (state.chartPrices && state.chartPrices[position.stockSymbol]
+            ? state.chartPrices[position.stockSymbol].currentPrice
+            : stockConfig[position.stockSymbol]?.basePrice || 100);
+    
+    const priceChange = (currentPrice - position.entryPrice) / position.entryPrice;
+    const won = 
+        (position.direction === 'long' && priceChange > 0) ||
+        (position.direction === 'short' && priceChange < 0);
+    
+    // Calculate P&L (percentage change multiplied by bet amount and multiplier)
+    const priceChangePercent = Math.abs(priceChange) * 100; // Convert to percentage
+    const multiplier = typeof getMarginMultiplier === 'function' ? getMarginMultiplier() : MARGIN_MULTIPLIER;
+    const pnl = won 
+        ? position.amount * (priceChangePercent / 100) * multiplier
+        : -position.amount * (priceChangePercent / 100) * multiplier;
+    const roundedPnl = Math.round(pnl * 100) / 100;
+    
+    // Update P&L display
+    if (closePnl) {
+        const pnlClass = roundedPnl >= 0 ? 'positive' : 'negative';
+        const pnlSign = roundedPnl >= 0 ? '+' : '';
+        closePnl.className = `margin-close-pnl ${pnlClass}`;
+        closePnl.textContent = `${pnlSign}$${Math.abs(roundedPnl).toFixed(2)}`;
+    }
+    
+    // Update button state
+    if (closeButton) {
+        if (position.phase === 'locked') {
+            closeButton.disabled = true;
+            if (closeText) closeText.textContent = 'Position Locked';
+        } else {
+            closeButton.disabled = false;
+            if (closeText) closeText.textContent = 'Close Position';
+        }
+    }
+    
+    // Update timer bar
+    if (timerBar && timerFill) {
+        let progress = 0;
+        
+        if (position.phase === 'locked') {
+            // First phase: 0 to 100% (left to right)
+            progress = ticksElapsed / MARGIN_TICKS_PHASE_1;
+        } else {
+            // Second phase: 0 to 100% (left to right) - bar resets visually
+            const phase2Ticks = ticksElapsed - MARGIN_TICKS_PHASE_1;
+            progress = phase2Ticks / MARGIN_TICKS_PHASE_2;
+        }
+        
+        progress = Math.min(1, Math.max(0, progress));
+        timerFill.style.width = `${progress * 100}%`;
     }
 }

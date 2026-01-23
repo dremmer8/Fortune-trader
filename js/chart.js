@@ -689,7 +689,7 @@ function drawPredictions(ctx, padding, chartWidth, chartHeight, min, max, range)
             const previewZoneWidth = 20;
             const previewZoneX = padding.left + chartWidth - previewZoneWidth;
             
-            const previewColor = { r: 139, g: 92, b: 246 }; // Purple
+            const previewColor = { r: 255, g: 255, b: 255 }; // White
             // Use 75% transparency for preview (25% opacity)
             ctx.fillStyle = `rgba(${previewColor.r}, ${previewColor.g}, ${previewColor.b}, 0.25)`;
             ctx.fillRect(previewZoneX, previewZoneTop, previewZoneWidth, previewZoneHeight);
@@ -758,8 +758,8 @@ function drawPredictions(ctx, padding, chartWidth, chartHeight, min, max, range)
         const zoneTop = Math.min(clampedMinY, clampedMaxY);
         const zoneCenterY = (clampedMinY + clampedMaxY) / 2;
         
-        // Color: purple/blue for predictions
-        const color = { r: 139, g: 92, b: 246 }; // Purple
+        // Color: white for predictions
+        const color = { r: 255, g: 255, b: 255 }; // White
         
         // Draw interval zone with 75% transparency (25% opacity) and horizontal shrinking
         const zoneOpacity = 0.05; // Fixed 75% transparency (25% opacity)
@@ -1054,15 +1054,24 @@ function renderBetMarkers(bets, closestBet, min, max, chartHeight, paddingTop) {
         const yPercent = (1 - (bet.entryPrice - min) / range) * 100;
         const isClosest = closestBet && bet.id === closestBet.id && bet.type === closestBet.type;
         const shortId = String(bet.id).slice(-4);
-        const typeClass = bet.type; // 'prophecy' or 'position'
-        const amountLabel = bet.type === 'prophecy' 
-            ? (bet.invested > 0 ? `$${bet.invested}` : 'No bet')
-            : `$${bet.amount}`;
+        const typeClass = bet.type; // 'prophecy', 'position', or 'margin'
+        let amountLabel;
+        let typeLabel;
+        if (bet.type === 'prophecy') {
+            amountLabel = bet.invested > 0 ? `$${bet.invested}` : 'No bet';
+            typeLabel = 'Prophecy';
+        } else if (bet.type === 'margin') {
+            amountLabel = `$${bet.amount} (x10)`;
+            typeLabel = 'Margin';
+        } else {
+            amountLabel = `$${bet.amount}`;
+            typeLabel = 'Position';
+        }
         
         return `
             <div class="bet-marker ${bet.direction} ${typeClass} ${isClosest ? 'closest' : ''}" 
                  style="top: ${yPercent}%"
-                 title="${bet.type === 'prophecy' ? 'Prophecy' : 'Position'} #${shortId}&#10;Entry: $${bet.entryPrice.toFixed(2)}&#10;Amount: ${amountLabel}&#10;Time: ${bet.remaining}s">
+                 title="${typeLabel} #${shortId}&#10;Entry: $${bet.entryPrice.toFixed(2)}&#10;Amount: ${amountLabel}&#10;Time: ${Math.ceil(bet.remaining)}s">
                 <div class="bet-marker-info">
                     <span class="bet-marker-id">#${shortId}</span>
                     <span class="bet-marker-price">$${bet.entryPrice.toFixed(2)}</span>
@@ -1187,8 +1196,10 @@ function drawChartSmooth() {
     // Filter by current stock symbol
     const activeDeals = state.deals.filter(d => !d.resolved && d.remaining > 0 && d.stockSymbol === state.dataMode);
     const activePositions = state.positions.filter(p => p.remaining > 0 && p.stockSymbol === state.dataMode);
+    const activeMarginPosition = state.marginPosition && state.marginPosition.stockSymbol === state.dataMode ? [state.marginPosition] : [];
     const dealPrices = activeDeals.map(d => d.entryPrice);
     const positionPrices = activePositions.map(p => p.entryPrice);
+    const marginPrices = activeMarginPosition.map(m => m.entryPrice);
     
     // Get stock holding for current symbol
     const stockHolding = typeof getCurrentStockHolding === 'function' ? getCurrentStockHolding() : null;
@@ -1213,7 +1224,7 @@ function drawChartSmooth() {
     });
     
     // Include prophecy intervals in the price range
-    const allPrices = [...prices, ...dealPrices, ...positionPrices, ...stockAvgPrice, ...prophecyPrices, ...predictionPrices];
+    const allPrices = [...prices, ...dealPrices, ...positionPrices, ...marginPrices, ...stockAvgPrice, ...prophecyPrices, ...predictionPrices];
     
     // Ensure we have valid prices
     if (allPrices.length === 0) {
@@ -1234,11 +1245,29 @@ function drawChartSmooth() {
         console.warn('Error drawing predictions:', e);
     }
 
-    // Combine deals and positions into unified bets array
+    // Combine deals, positions, and margin positions into unified bets array
     const allBets = [
         ...activeDeals.map(d => ({ ...d, type: 'prophecy' })),
         ...activePositions.map(p => ({ ...p, type: 'position' }))
     ];
+    
+    // Add margin position if active
+    if (activeMarginPosition.length > 0) {
+        const marginPos = activeMarginPosition[0];
+        const currentTick = typeof getCurrentTickNumber === 'function' ? getCurrentTickNumber() : 0;
+        const ticksElapsed = currentTick - marginPos.startTick;
+        // Use constants from config.js
+        const totalTicks = (typeof MARGIN_TICKS_PHASE_1 !== 'undefined' ? MARGIN_TICKS_PHASE_1 : 25) + 
+                          (typeof MARGIN_TICKS_PHASE_2 !== 'undefined' ? MARGIN_TICKS_PHASE_2 : 25);
+        const ticksRemaining = Math.max(0, totalTicks - ticksElapsed);
+        const remainingSeconds = ticksRemaining * 2; // 2 seconds per tick
+        
+        allBets.push({
+            ...marginPos,
+            type: 'margin',
+            remaining: remainingSeconds
+        });
+    }
 
     // Find the closest bet to closing
     let closestBet = null;
@@ -1303,12 +1332,24 @@ function drawChartSmooth() {
         const entryY = padding.top + chartHeight * (1 - (closestBet.entryPrice - min) / range);
         const currentY = padding.top + chartHeight * (1 - (state.displayPrice - min) / range);
         const isLong = closestBet.direction === 'long';
-        
-        // Line color based on bet direction
-        const lineColor = isLong ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)';
-        // Fill color based on price position: green if higher, red if lower
+        const isMargin = closestBet.type === 'margin';
         const isPriceHigher = state.displayPrice > closestBet.entryPrice;
-        const fillColor = isPriceHigher ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)';
+        
+        // Line color based on bet direction and type
+        let lineColor;
+        if (isMargin) {
+            lineColor = isLong ? 'rgba(245, 158, 11, 0.8)' : 'rgba(168, 85, 247, 0.8)'; // Yellow for long margin, purple for short margin
+        } else {
+            lineColor = isLong ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)'; // Green for long, red for short
+        }
+        
+        // Fill color based on price position and type
+        let fillColor;
+        if (isMargin) {
+            fillColor = isPriceHigher ? 'rgba(245, 158, 11, 0.25)' : 'rgba(168, 85, 247, 0.25)';
+        } else {
+            fillColor = isPriceHigher ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)';
+        }
         const transparentColor = 'rgba(0, 0, 0, 0)';
         
         const fillTop = Math.min(entryY, currentY);

@@ -47,6 +47,8 @@ const state = {
     selectedProphecyId: null, // Currently selected prophecy for decoding
     purchasedUpgrades: [], // Array of purchased upgrade IDs
     positions: [],
+    // Margin trading
+    marginPosition: null, // Active margin position { id, direction, amount, entryPrice, startTick, stockSymbol, phase: 'locked' | 'closable' }
     // Auto trading bots
     bots: [], // Array of bot configurations { id, name, enabled, strategy, params, stockSymbol, createdAt, lastTradeTime }
     // Predictions - in-memory only (not saved until resolved to prevent save scumming)
@@ -762,6 +764,7 @@ function resetGameState() {
     state.cookieInventory = [];
     state.deals = [];
     state.positions = [];
+    state.marginPosition = null;
     state.cookie = null;
     
     clearSaveData();

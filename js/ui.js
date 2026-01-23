@@ -36,6 +36,123 @@ function purchaseUpgrade(upgradeId) {
         return;
     }
     
+    // Check upgrade dependencies
+    // Cookie Discount tiers
+    if (upgradeId === 'cookieDiscount2') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('cookieDiscount')) {
+            showNotification('Purchase "Cookie Discount I" upgrade first', 'error');
+            return;
+        }
+    }
+    if (upgradeId === 'cookieDiscount3') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('cookieDiscount2')) {
+            showNotification('Purchase "Cookie Discount II" upgrade first', 'error');
+            return;
+        }
+    }
+    
+    // Auto Reveal tiers
+    if (upgradeId === 'autoReveal2') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('autoReveal')) {
+            showNotification('Purchase "Auto Reveal I" upgrade first', 'error');
+            return;
+        }
+    }
+    if (upgradeId === 'autoReveal3') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('autoReveal2')) {
+            showNotification('Purchase "Auto Reveal II" upgrade first', 'error');
+            return;
+        }
+    }
+    
+    // Bet Combo tiers
+    if (upgradeId === 'betCombo2') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('betCombo1')) {
+            showNotification('Purchase "Bet Combo I" upgrade first', 'error');
+            return;
+        }
+    }
+    if (upgradeId === 'betCombo3') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('betCombo2')) {
+            showNotification('Purchase "Bet Combo II" upgrade first', 'error');
+            return;
+        }
+    }
+    
+    // Cookie tiers
+    if (upgradeId === 'diamondCookie') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('goldenCookie')) {
+            showNotification('Purchase "Golden Cookie" upgrade first', 'error');
+            return;
+        }
+    }
+    
+    // News Access tiers - require news tab unlock and previous tiers
+    if (upgradeId === 'newsAccess1' || upgradeId === 'newsAccess2' || upgradeId === 'newsAccess3') {
+        const newsTabUnlocked = typeof isNewsTabUnlocked === 'function' ? isNewsTabUnlocked() : false;
+        if (!newsTabUnlocked) {
+            showNotification('Purchase "News Tab Unlock" upgrade first', 'error');
+            return;
+        }
+    }
+    if (upgradeId === 'newsAccess2') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('newsAccess1')) {
+            showNotification('Purchase "News Access I" upgrade first', 'error');
+            return;
+        }
+    }
+    if (upgradeId === 'newsAccess3') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('newsAccess2')) {
+            showNotification('Purchase "News Access II" upgrade first', 'error');
+            return;
+        }
+    }
+    
+    // Bot Bet tiers - all require console unlock
+    if (upgradeId === 'botBetTier1' || upgradeId === 'botBetTier2' || upgradeId === 'botBetTier3') {
+        const consoleTabUnlocked = typeof isConsoleTabUnlocked === 'function' ? isConsoleTabUnlocked() : false;
+        if (!consoleTabUnlocked) {
+            showNotification('Purchase "Console Tab Unlock" upgrade first', 'error');
+            return;
+        }
+    }
+    if (upgradeId === 'botBetTier2') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('botBetTier1')) {
+            showNotification('Purchase "Bot Bet Tier I" upgrade first', 'error');
+            return;
+        }
+    }
+    if (upgradeId === 'botBetTier3') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('botBetTier2')) {
+            showNotification('Purchase "Bot Bet Tier II" upgrade first', 'error');
+            return;
+        }
+    }
+    
+    // Margin multiplier upgrades - require unlock first
+    if ((upgradeId === 'marginMultiplier1' || upgradeId === 'marginMultiplier2' || upgradeId === 'marginMultiplier3')) {
+        if (typeof isMarginTradingUnlocked === 'function' && !isMarginTradingUnlocked()) {
+            showNotification('Purchase "Margin Trading Unlock" upgrade first', 'error');
+            return;
+        }
+    }
+    
+    // Margin multiplier 2 requires tier 1
+    if (upgradeId === 'marginMultiplier2') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('marginMultiplier1')) {
+            showNotification('Purchase "Margin Multiplier I" upgrade first', 'error');
+            return;
+        }
+    }
+    
+    // Margin multiplier 3 requires tier 2
+    if (upgradeId === 'marginMultiplier3') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('marginMultiplier2')) {
+            showNotification('Purchase "Margin Multiplier II" upgrade first', 'error');
+            return;
+        }
+    }
+    
     // Check funds
     if (state.balance < upgrade.price) {
         showNotification('Insufficient funds', 'error');
@@ -86,6 +203,19 @@ function purchaseUpgrade(upgradeId) {
         showNotification('Stock trading unlocked! You can now buy and sell stocks.', 'success');
     }
     
+    if (upgradeId === 'marginTradingUnlock') {
+        // Update margin trading button states
+        updateBetLockButtons();
+        showNotification('Margin trading unlocked! You can now trade with leverage.', 'success');
+    }
+    
+    // Special handling for margin multiplier upgrades
+    if (upgradeId === 'marginMultiplier1' || upgradeId === 'marginMultiplier2' || upgradeId === 'marginMultiplier3') {
+        const multiplier = typeof getMarginMultiplier === 'function' ? getMarginMultiplier() : 25;
+        updateBetLockButtons();
+        showNotification(`Margin multiplier increased to x${multiplier}!`, 'success');
+    }
+    
     if (upgradeId === 'newsTabUnlock') {
         // Update tab lock states
         if (typeof updateTabLockStates === 'function') {
@@ -124,7 +254,7 @@ function purchaseUpgrade(upgradeId) {
     
     autoSave(); // Save after upgrade purchase
     
-    if (upgradeId !== 'stockTradingUnlock' && upgradeId !== 'newsTabUnlock' && upgradeId !== 'consoleTabUnlock') {
+    if (upgradeId !== 'stockTradingUnlock' && upgradeId !== 'marginTradingUnlock' && upgradeId !== 'newsTabUnlock' && upgradeId !== 'consoleTabUnlock' && upgradeId !== 'marginMultiplier1' && upgradeId !== 'marginMultiplier2' && upgradeId !== 'marginMultiplier3') {
         showNotification(`${upgrade.name} purchased!`, 'success');
     }
 }
@@ -237,8 +367,107 @@ function renderShopItems() {
     // Generate HTML for each upgrade
     const html = upgradeIds.map(upgradeId => {
         const upgrade = SHOP_UPGRADES[upgradeId];
-        const lockedClass = upgrade.locked ? 'locked' : '';
         const purchasedClass = (state.purchasedUpgrades && state.purchasedUpgrades.includes(upgradeId)) ? 'purchased' : '';
+        
+        // Check if upgrade should be locked based on dependencies
+        let isLocked = upgrade.locked || false;
+        
+        // Cookie Discount tiers
+        if (upgradeId === 'cookieDiscount2') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('cookieDiscount')) {
+                isLocked = true;
+            }
+        }
+        if (upgradeId === 'cookieDiscount3') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('cookieDiscount2')) {
+                isLocked = true;
+            }
+        }
+        
+        // Auto Reveal tiers
+        if (upgradeId === 'autoReveal2') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('autoReveal')) {
+                isLocked = true;
+            }
+        }
+        if (upgradeId === 'autoReveal3') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('autoReveal2')) {
+                isLocked = true;
+            }
+        }
+        
+        // Bet Combo tiers
+        if (upgradeId === 'betCombo2') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('betCombo1')) {
+                isLocked = true;
+            }
+        }
+        if (upgradeId === 'betCombo3') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('betCombo2')) {
+                isLocked = true;
+            }
+        }
+        
+        // Cookie tiers
+        if (upgradeId === 'diamondCookie') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('goldenCookie')) {
+                isLocked = true;
+            }
+        }
+        
+        // News Access tiers - require news tab unlock and previous tiers
+        if (upgradeId === 'newsAccess1' || upgradeId === 'newsAccess2' || upgradeId === 'newsAccess3') {
+            const newsTabUnlocked = typeof isNewsTabUnlocked === 'function' ? isNewsTabUnlocked() : false;
+            if (!newsTabUnlocked) {
+                isLocked = true;
+            }
+        }
+        if (upgradeId === 'newsAccess2') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('newsAccess1')) {
+                isLocked = true;
+            }
+        }
+        if (upgradeId === 'newsAccess3') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('newsAccess2')) {
+                isLocked = true;
+            }
+        }
+        
+        // Bot Bet tiers - all require console unlock
+        if (upgradeId === 'botBetTier1' || upgradeId === 'botBetTier2' || upgradeId === 'botBetTier3') {
+            const consoleTabUnlocked = typeof isConsoleTabUnlocked === 'function' ? isConsoleTabUnlocked() : false;
+            if (!consoleTabUnlocked) {
+                isLocked = true;
+            }
+        }
+        if (upgradeId === 'botBetTier2') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('botBetTier1')) {
+                isLocked = true;
+            }
+        }
+        if (upgradeId === 'botBetTier3') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('botBetTier2')) {
+                isLocked = true;
+            }
+        }
+        
+        // Margin multiplier upgrades
+        if (upgradeId === 'marginMultiplier1' || upgradeId === 'marginMultiplier2' || upgradeId === 'marginMultiplier3') {
+            const marginUnlocked = typeof isMarginTradingUnlocked === 'function' ? isMarginTradingUnlocked() : false;
+            if (!marginUnlocked) {
+                isLocked = true;
+            } else if (upgradeId === 'marginMultiplier2') {
+                if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('marginMultiplier1')) {
+                    isLocked = true;
+                }
+            } else if (upgradeId === 'marginMultiplier3') {
+                if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('marginMultiplier2')) {
+                    isLocked = true;
+                }
+            }
+        }
+        
+        const lockedClass = isLocked ? 'locked' : '';
         
         return `
             <div class="shop-item ${lockedClass} ${purchasedClass}" data-tooltip="${upgrade.description}" onclick="purchaseUpgrade('${upgradeId}')">
@@ -357,9 +586,12 @@ function updateBetLockButtons() {
     const shortBtn = document.querySelector('.trade-btn.short');
     const stockBuyBtn = document.querySelector('.trade-btn.stock-buy');
     const stockSellBtn = document.querySelector('.trade-btn.stock-sell');
+    const marginLongBtn = document.querySelector('.trade-btn.margin-long');
+    const marginShortBtn = document.querySelector('.trade-btn.margin-short');
     const canBet = canPlaceBet();
     const amount = getCurrentBet();
     const hasFunds = amount <= state.balance;
+    const hasMarginPosition = state.marginPosition !== null;
     // Stock purchase requires amount + fee
     const fee = typeof STOCK_PURCHASE_FEE !== 'undefined' ? STOCK_PURCHASE_FEE : 0;
     const hasFundsForStock = (amount + fee) <= state.balance;
@@ -439,6 +671,67 @@ function updateBetLockButtons() {
             stockTradeButtonsContainer.classList.add('hidden');
         } else {
             stockTradeButtonsContainer.classList.remove('hidden');
+        }
+    }
+    
+    // Check if margin trading is unlocked
+    const marginTradingUnlocked = typeof isMarginTradingUnlocked === 'function' ? isMarginTradingUnlocked() : false;
+    const marginMultiplier = typeof getMarginMultiplier === 'function' ? getMarginMultiplier() : 25;
+    
+    // Update margin button states
+    if (marginLongBtn) {
+        if (!marginTradingUnlocked) {
+            marginLongBtn.disabled = true;
+            marginLongBtn.title = 'Purchase "Margin Trading Unlock" upgrade to unlock';
+            marginLongBtn.classList.add('locked');
+            marginLongBtn.classList.add('hidden');
+        } else {
+            marginLongBtn.classList.remove('locked');
+            marginLongBtn.classList.remove('hidden');
+            marginLongBtn.disabled = !canBet || !hasFunds || hasMarginPosition;
+            if (hasMarginPosition) {
+                marginLongBtn.title = 'Close your current margin position first';
+            } else if (!canBet) {
+                const remaining = getBetLockRemaining();
+                marginLongBtn.title = `Please wait ${remaining}s before trading again`;
+            } else if (!hasFunds) {
+                marginLongBtn.title = 'Insufficient funds';
+            } else {
+                marginLongBtn.title = `Open long margin position (x${marginMultiplier} multiplier)`;
+            }
+        }
+    }
+    
+    if (marginShortBtn) {
+        if (!marginTradingUnlocked) {
+            marginShortBtn.disabled = true;
+            marginShortBtn.title = 'Purchase "Margin Trading Unlock" upgrade to unlock';
+            marginShortBtn.classList.add('locked');
+            marginShortBtn.classList.add('hidden');
+        } else {
+            marginShortBtn.classList.remove('locked');
+            marginShortBtn.classList.remove('hidden');
+            marginShortBtn.disabled = !canBet || !hasFunds || hasMarginPosition;
+            if (hasMarginPosition) {
+                marginShortBtn.title = 'Close your current margin position first';
+            } else if (!canBet) {
+                const remaining = getBetLockRemaining();
+                marginShortBtn.title = `Please wait ${remaining}s before trading again`;
+            } else if (!hasFunds) {
+                marginShortBtn.title = 'Insufficient funds';
+            } else {
+                marginShortBtn.title = `Open short margin position (x${marginMultiplier} multiplier)`;
+            }
+        }
+    }
+    
+    // Hide the margin-trade-buttons container when margin trading is locked
+    const marginTradeButtonsContainer = document.querySelector('.margin-trade-buttons');
+    if (marginTradeButtonsContainer) {
+        if (!marginTradingUnlocked) {
+            marginTradeButtonsContainer.classList.add('hidden');
+        } else {
+            marginTradeButtonsContainer.classList.remove('hidden');
         }
     }
 }
