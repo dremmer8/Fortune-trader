@@ -234,17 +234,30 @@ exports.getLeaderboard = onCall(async (request) => {
       const data = doc.data();
       // Filter out flagged users
       if (data.securityStatus?.flagged !== true) {
+        // Calculate total belongings value (sum of all owned items' prices)
+        const ownedItems = data.ownedItems || [];
+        const belongingsValue = ownedItems.reduce((sum, item) => {
+          return sum + (item.price || 0);
+        }, 0);
+        
+        // Calculate total wealth: earnings + balance + belongings
+        const totalEarnings = data.totalEarnings || 0;
+        const bankBalance = data.bankBalance || 0;
+        const totalWealth = totalEarnings + bankBalance + belongingsValue;
+        
         leaderboard.push({
           playerName: data.playerName || 'Anonymous',
-          totalEarnings: data.totalEarnings || 0,
+          totalEarnings: totalEarnings,
           tradingRounds: data.tradingRounds || 0,
-          bankBalance: data.bankBalance || 0
+          bankBalance: bankBalance,
+          belongingsValue: belongingsValue,
+          totalWealth: totalWealth
         });
       }
     });
 
-    // Sort by totalEarnings descending
-    leaderboard.sort((a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0));
+    // Sort by totalWealth descending (earnings + balance + belongings)
+    leaderboard.sort((a, b) => (b.totalWealth || 0) - (a.totalWealth || 0));
     
     // Return top 100
     const topLeaderboard = leaderboard.slice(0, 100);
@@ -257,30 +270,48 @@ exports.getLeaderboard = onCall(async (request) => {
     };
 
     // OPTIMIZED VERSION (requires Firestore index):
-    // Uncomment this and comment out the above code once you create the index:
+    // Note: This version cannot use Firestore orderBy for totalWealth since it's calculated
+    // We still need to fetch all users and calculate/sort in memory
     // Collection: users
-    // Fields: securityStatus.flagged (Ascending), totalEarnings (Descending)
+    // Fields: securityStatus.flagged (Ascending)
     /*
     const snapshot = await usersRef
       .where('securityStatus.flagged', '==', false)
-      .orderBy('totalEarnings', 'desc')
-      .limit(100)
       .get();
 
     const leaderboard = [];
     snapshot.forEach(doc => {
       const data = doc.data();
+      // Calculate total belongings value (sum of all owned items' prices)
+      const ownedItems = data.ownedItems || [];
+      const belongingsValue = ownedItems.reduce((sum, item) => {
+        return sum + (item.price || 0);
+      }, 0);
+      
+      // Calculate total wealth: earnings + balance + belongings
+      const totalEarnings = data.totalEarnings || 0;
+      const bankBalance = data.bankBalance || 0;
+      const totalWealth = totalEarnings + bankBalance + belongingsValue;
+      
       leaderboard.push({
         playerName: data.playerName || 'Anonymous',
-        totalEarnings: data.totalEarnings || 0,
+        totalEarnings: totalEarnings,
         tradingRounds: data.tradingRounds || 0,
-        bankBalance: data.bankBalance || 0
+        bankBalance: bankBalance,
+        belongingsValue: belongingsValue,
+        totalWealth: totalWealth
       });
     });
 
+    // Sort by totalWealth descending (earnings + balance + belongings)
+    leaderboard.sort((a, b) => (b.totalWealth || 0) - (a.totalWealth || 0));
+    
+    // Return top 100
+    const topLeaderboard = leaderboard.slice(0, 100);
+
     return {
       success: true,
-      leaderboard: leaderboard
+      leaderboard: topLeaderboard
     };
     */
   } catch (error) {
