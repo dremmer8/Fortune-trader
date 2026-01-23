@@ -422,16 +422,16 @@ function escapeHtml(value) {
 }
 
 function formatCompactNumber(value) {
-    const number = Number(value) || 0;
+    const number = Math.floor(Number(value) || 0);
     const absValue = Math.abs(number);
     if (absValue >= 1_000_000_000) {
-        return `${(number / 1_000_000_000).toFixed(1).replace(/\.0$/, '')}B`;
+        return `${Math.floor(number / 1_000_000_000)}B`;
     }
     if (absValue >= 1_000_000) {
-        return `${(number / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`;
+        return `${Math.floor(number / 1_000_000)}M`;
     }
     if (absValue >= 1_000) {
-        return `${(number / 1_000).toFixed(1).replace(/\.0$/, '')}K`;
+        return `${Math.floor(number / 1_000)}K`;
     }
     return number.toLocaleString();
 }
@@ -504,6 +504,12 @@ async function loadLeaderboard() {
 
         // Leaderboard is already sorted and filtered by Cloud Function
         const topStats = leaderboard.slice(0, 4);
+        
+        // Debug: Log first player data to verify structure
+        if (topStats.length > 0) {
+            console.log('Leaderboard player data sample:', topStats[0]);
+        }
+        
         if (statusEl) {
             statusEl.style.display = 'none';
         }
@@ -513,6 +519,15 @@ async function loadLeaderboard() {
             listEl.innerHTML = topStats.map((player, index) => {
                 const safeName = escapeHtml(player.playerName || 'Unknown');
                 const rankNumber = index + 1;
+                
+                // Calculate total wealth if not provided (fallback calculation)
+                // totalWealth = totalEarnings + bankBalance + belongingsValue
+                const totalEarnings = player.totalEarnings || 0;
+                const bankBalance = player.bankBalance || 0;
+                const belongingsValue = player.belongingsValue || 0;
+                const totalWealth = player.totalWealth !== undefined 
+                    ? player.totalWealth 
+                    : (totalEarnings + bankBalance + belongingsValue);
 
                 return `
                     <div class="leaderboard-card">
@@ -523,12 +538,12 @@ async function loadLeaderboard() {
                             <div class="leaderboard-player-name">${safeName}</div>
                             <div class="leaderboard-player-stats">
                                 <div class="leaderboard-stat">
-                                    <span class="leaderboard-stat-label">Balance</span>
-                                    <strong>$${formatCompactNumber(player.bankBalance)}</strong>
+                                    <span class="leaderboard-stat-label">Wealth</span>
+                                    <strong>$${formatCompactNumber(totalWealth)}</strong>
                                 </div>
                                 <div class="leaderboard-stat">
                                     <span class="leaderboard-stat-label">Earnings</span>
-                                    <strong>$${formatCompactNumber(player.totalEarnings)}</strong>
+                                    <strong>$${formatCompactNumber(totalEarnings)}</strong>
                                 </div>
                             </div>
                         </div>
@@ -585,9 +600,9 @@ function updateBankerDisplay() {
     const tradingBalanceEl = document.getElementById('tradingAccountBalance');
     const userNameEl = document.getElementById('bankerUserName');
     
-    if (bankBalanceEl) bankBalanceEl.textContent = '$' + state.bankBalance.toLocaleString();
-    if (lifetimeEl) lifetimeEl.textContent = '$' + state.totalEarnings.toLocaleString();
-    if (spendingsEl) spendingsEl.textContent = '$' + (state.lifetimeSpendings || 0).toLocaleString();
+    if (bankBalanceEl) bankBalanceEl.textContent = '$' + Math.floor(state.bankBalance).toLocaleString();
+    if (lifetimeEl) lifetimeEl.textContent = '$' + Math.floor(state.totalEarnings).toLocaleString();
+    if (spendingsEl) spendingsEl.textContent = '$' + Math.floor(state.lifetimeSpendings || 0).toLocaleString();
     if (tradingBalanceEl) {
         const portfolioValue = getTotalPortfolioValue();
         tradingBalanceEl.textContent = '$' + Math.floor(portfolioValue).toLocaleString();

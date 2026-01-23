@@ -3766,6 +3766,12 @@ body {
     transition: all 0.2s;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
 }
 
 .trade-btn.long {
@@ -3798,6 +3804,7 @@ body {
 .trade-btn.stock-buy {
     background: var(--accent);
     color: white;
+    flex-direction: column;
 }
 
 .trade-btn.stock-buy:hover {
@@ -3839,6 +3846,37 @@ body {
 .trade-btn.locked:hover {
     background: var(--accent);
     border-color: var(--accent);
+}
+
+/* Button Shortcuts */
+.trade-btn .btn-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.trade-btn .btn-shortcut {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    min-width: 20px;
+    height: 18px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    margin-left: 8px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.trade-btn.stock-buy .btn-shortcut {
+    min-width: 40px;
 }
 
 .trade-btn.stock-buy.locked:hover {

@@ -57,8 +57,8 @@ function buyCookie() {
         return;
     }
 
-    // Play click sound for purchase
-    AudioManager.playClick();
+    // Play cookie purchase sound
+    AudioManager.playCookiePurchase();
     
     state.balance -= price;
     updateBalance();
@@ -363,9 +363,6 @@ function renderSignal() {
 function crackCookie() {
     if (!state.cookie) return;
 
-    // Play click sound for each unwrap step
-    AudioManager.playClick();
-    
     // Advance to next frame
     state.cookieUnwrapFrame = (state.cookieUnwrapFrame || 0) + 1;
     
@@ -384,6 +381,9 @@ function crackCookie() {
         // Return to initial drag-and-drop area
         renderSignal();
     } else {
+        // Play animation sound for current frame (0-5)
+        AudioManager.playCookieAnimation(state.cookieUnwrapFrame, 0.8);
+        
         // Update to show next frame
         const cookieTier = state.cookie.tier || 1;
         const frameImage = `images/trading/${cookieTier}_cookie_${state.cookieUnwrapFrame}.png`;
@@ -645,6 +645,68 @@ function handleDecodeKeypress(event) {
 
 // Initialize keyboard listener for decoding
 document.addEventListener('keydown', handleDecodeKeypress);
+
+// Check if trading shortcuts should be disabled
+function areTradingShortcutsDisabled() {
+    // Disable if a prophecy is selected and not decoded (user is typing)
+    if (state.selectedProphecyId) {
+        const prophecy = state.deals.find(d => d.id === state.selectedProphecyId);
+        if (prophecy && !prophecy.resolved && !prophecy.isDecoded) {
+            return true;
+        }
+    }
+    
+    // Disable if user is typing in any input field
+    const activeElement = document.activeElement;
+    if (activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.isContentEditable
+    )) {
+        return true;
+    }
+    
+    return false;
+}
+
+// Handle trading keyboard shortcuts
+function handleTradingShortcuts(event) {
+    // Don't interfere if shortcuts are disabled
+    if (areTradingShortcutsDisabled()) {
+        return;
+    }
+    
+    // Don't trigger if user is holding modifier keys (except for special cases)
+    if (event.ctrlKey || event.metaKey || event.altKey) {
+        return;
+    }
+    
+    const key = event.key.toLowerCase();
+    
+    // 'a' key - long position
+    if (key === 'a') {
+        event.preventDefault();
+        openPosition('long');
+        return;
+    }
+    
+    // 'd' key - short position
+    if (key === 'd') {
+        event.preventDefault();
+        openPosition('short');
+        return;
+    }
+    
+    // space - buy stock
+    if (key === ' ') {
+        event.preventDefault();
+        buyStock();
+        return;
+    }
+}
+
+// Initialize keyboard listener for trading shortcuts
+document.addEventListener('keydown', handleTradingShortcuts);
 
 function renderDeals() {
     const container = document.getElementById('dealsContainer');
@@ -1068,9 +1130,20 @@ function resolvePrediction(prediction) {
             });
         }
         
+        // Check if at max combo before handling win
+        const betAmounts = typeof getCurrentBetAmounts === 'function' ? getCurrentBetAmounts() : BET_AMOUNTS;
+        const isMaxCombo = state.betIndex >= betAmounts.length - 1;
+        
         handleWin(); // Increase streak and bet
         flashTradingScreen(true); // Green flash for win
-        AudioManager.playSuccessfulDeal(); // Play success sound
+        
+        // Play appropriate sound based on combo level
+        if (isMaxCombo) {
+            AudioManager.playSuccessfulDealMaxCombo(); // Play max combo sound
+        } else {
+            AudioManager.playSuccessfulDeal(); // Play regular success sound
+        }
+        
         showNotification(`Prediction won! +$${profit.toLocaleString()} 🔥`, 'success');
     } else {
         // Player loses - bet is already deducted
@@ -1282,9 +1355,20 @@ function resolvePosition(pos) {
         
         // Only affect streak for manual positions
         if (!isBotPosition) {
+            // Check if at max combo before handling win
+            const betAmounts = typeof getCurrentBetAmounts === 'function' ? getCurrentBetAmounts() : BET_AMOUNTS;
+            const isMaxCombo = state.betIndex >= betAmounts.length - 1;
+            
             handleWin(); // Increase streak and bet
             flashTradingScreen(true); // Green flash for win
-            AudioManager.playSuccessfulDeal(); // Play success sound
+            
+            // Play appropriate sound based on combo level
+            if (isMaxCombo) {
+                AudioManager.playSuccessfulDealMaxCombo(); // Play max combo sound
+            } else {
+                AudioManager.playSuccessfulDeal(); // Play regular success sound
+            }
+            
             showNotification(`+$${profit.toLocaleString()} 🔥`, 'success');
         } else {
             // Bot position win - play sound at 10% volume

@@ -42,12 +42,12 @@ function purchaseUpgrade(upgradeId) {
         return;
     }
     
-    // Play click sound for purchase
-    AudioManager.playClick();
-    
     // Purchase
     state.balance -= upgrade.price;
     updateBalance();
+    
+    // Play upgrade purchased sound
+    AudioManager.playUpgradePurchased();
     
     // Track purchased upgrades
     if (!state.purchasedUpgrades) {

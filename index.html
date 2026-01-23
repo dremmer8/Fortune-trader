@@ -448,13 +448,22 @@
                 <div class="trade-section">
                     <div class="positions-row" id="activePositions"></div>
                     <div class="trade-buttons">
-                        <button class="trade-btn long" onclick="openPosition('long')">Long</button>
-                        <button class="trade-btn short" onclick="openPosition('short')">Short</button>
+                        <button class="trade-btn long" onclick="openPosition('long')">
+                            Long
+                            <kbd class="btn-shortcut">A</kbd>
+                        </button>
+                        <button class="trade-btn short" onclick="openPosition('short')">
+                            Short
+                            <kbd class="btn-shortcut">D</kbd>
+                        </button>
                     </div>
                     <div class="stock-trade-buttons">
                         <button class="trade-btn stock-buy" onclick="buyStock()">
-                            Buy Stock
-                            <div class="fee-text">$25 fixed fee</div>
+                            <span class="btn-text">
+                                Buy Stock
+                                <kbd class="btn-shortcut">Space</kbd>
+                            </span>
+                          
                         </button>
                         <button class="trade-btn stock-sell" onclick="sellStock()">Sell All Stock</button>
                     </div>

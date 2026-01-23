@@ -478,7 +478,7 @@ const PROPHECY_CONFIG = {
         // Duration (seconds)
         duration: { min: 25, max: 35 },
         // Trend strength (percentage per tick)
-        strength: { min: 0.3, max: 0.6 }
+        strength: { min: 0.5, max: 1.5 }
     },
     
     // ---- TREND DOWN ----
@@ -490,7 +490,7 @@ const PROPHECY_CONFIG = {
         // Duration (seconds)
         duration: { min: 25, max: 35 },
         // Trend strength (percentage per tick)
-        strength: { min: 0.3, max: 0.6 }
+        strength: { min: 0.5, max: 1.5 }
     },
     
     // ---- LOWER SHORE (Price Floor) ----
@@ -558,7 +558,7 @@ const PROPHECY_CONFIG = {
         // Duration (seconds)
         duration: { min: 25, max: 35 },
         // Volatility multiplier range (lower = calmer)
-        volatilityMultiplier: { min: 0.1, max: 0.2 }
+        volatilityMultiplier: { min: 0.05, max: 0.1 }
     }
 };
 

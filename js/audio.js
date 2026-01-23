@@ -18,12 +18,21 @@ const AudioManager = {
         click: 'audio/click.ogg',
         cookieDropped: 'audio/cookieDropped.ogg',
         cookieOpened: 'audio/cookieOpened.ogg',
+        cookieAnimation0: 'audio/cookie_animation_0.wav',
+        cookieAnimation1: 'audio/cookie_animation_1.wav',
+        cookieAnimation2: 'audio/cookie_animation_2.wav',
+        cookieAnimation3: 'audio/cookie_animation_3.wav',
+        cookieAnimation4: 'audio/cookie_animation_4.wav',
+        cookieAnimation5: 'audio/cookie_animation_5.wav',
+        cookiePurchase: 'audio/cookie_purchase.wav',
         error: 'audio/error.ogg',
         openApp: 'audio/openApp.ogg',
         openTrader: 'audio/openTrader.ogg',
         prophecyDecoded: 'audio/prophecyDecoded.ogg',
         tickOfChart: 'audio/tickOfChart.ogg',
-        successfulDeal: 'audio/succesfullDeal.ogg'
+        successfulDeal: 'audio/succesfullDeal.ogg',
+        successfulDealMaxCombo: 'audio/succesfullDealMaxCombo.ogg',
+        upgradePurchased: 'audio/upgradePurchused.ogg'
     },
     
     // Initialize audio system
@@ -134,6 +143,31 @@ const AudioManager = {
     // Play successful deal sound (winning bet or profitable sale)
     playSuccessfulDeal(volumeMultiplier = 1.0) {
         this.play('successfulDeal', volumeMultiplier);
+    },
+    
+    // Play successful deal max combo sound (when player wins at max combo)
+    playSuccessfulDealMaxCombo(volumeMultiplier = 1.0) {
+        this.play('successfulDealMaxCombo', volumeMultiplier);
+    },
+    
+    // Play upgrade purchased sound
+    playUpgradePurchased(volumeMultiplier = 1.0) {
+        this.play('upgradePurchased', volumeMultiplier);
+    },
+    
+    // Play cookie purchase sound (when buying a cookie)
+    playCookiePurchase(volumeMultiplier = 1.0) {
+        this.play('cookiePurchase', volumeMultiplier);
+    },
+    
+    // Play cookie animation sound for a specific frame (0-5)
+    playCookieAnimation(frame, volumeMultiplier = 1.0) {
+        if (frame < 0 || frame > 5) {
+            console.warn(`Invalid cookie animation frame: ${frame}`);
+            return;
+        }
+        const soundName = `cookieAnimation${frame}`;
+        this.play(soundName, volumeMultiplier);
     },
     
     // Set master volume (0.0 to 1.0)
