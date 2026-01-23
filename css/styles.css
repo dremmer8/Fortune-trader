@@ -3486,6 +3486,27 @@ body {
     font-size: 11px;
 }
 
+.panel-tab.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.panel-tab.locked::after {
+    content: '🔒';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.panel-tab.locked:hover {
+    border-color: var(--border);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
 /* Panel Content */
 .panel-content {
     display: flex;
@@ -3798,6 +3819,35 @@ body {
 
 .trade-btn.stock-sell:hover {
     background: rgba(59, 130, 246, 0.1);
+}
+
+.trade-btn.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+    position: relative;
+}
+
+.trade-btn.locked::before {
+    content: '🔒';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.trade-btn.locked:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.trade-btn.stock-buy.locked:hover {
+    background: var(--accent);
+}
+
+.trade-btn.stock-sell.locked:hover {
+    background: transparent;
+    border-color: var(--accent);
 }
 
 /* Active Positions */

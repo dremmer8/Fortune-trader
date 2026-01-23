@@ -79,12 +79,54 @@ function purchaseUpgrade(upgradeId) {
         }
     }
     
+    // Special handling for unlock upgrades
+    if (upgradeId === 'stockTradingUnlock') {
+        // Update stock trading button states
+        updateBetLockButtons();
+        showNotification('Stock trading unlocked! You can now buy and sell stocks.', 'success');
+    }
+    
+    if (upgradeId === 'newsTabUnlock') {
+        // Update tab lock states
+        if (typeof updateTabLockStates === 'function') {
+            updateTabLockStates();
+        }
+        showNotification('News tab unlocked!', 'success');
+    }
+    
+    if (upgradeId === 'consoleTabUnlock') {
+        // Update tab lock states
+        if (typeof updateTabLockStates === 'function') {
+            updateTabLockStates();
+        }
+        showNotification('Console tab unlocked!', 'success');
+    }
+    
+    // Special handling for bot bet tier upgrades
+    if (upgradeId === 'botBetTier1' || upgradeId === 'botBetTier2' || upgradeId === 'botBetTier3') {
+        const botBetPercentage = typeof getBotBetPercentage === 'function' ? getBotBetPercentage() : 0.1;
+        const percentageDisplay = Math.round(botBetPercentage * 100);
+        showNotification(`Bot bet percentage increased to ${percentageDisplay}%!`, 'success');
+        // Update bot displays if visible
+        if (typeof renderActiveBots === 'function') {
+            renderActiveBots();
+        }
+    }
+    
     // Update UI to show purchased state and refresh shop items
     updateShopItemStates();
     
+    // Update tab and button states
+    if (typeof updateTabLockStates === 'function') {
+        updateTabLockStates();
+    }
+    updateBetLockButtons();
+    
     autoSave(); // Save after upgrade purchase
     
-    showNotification(`${upgrade.name} purchased!`, 'success');
+    if (upgradeId !== 'stockTradingUnlock' && upgradeId !== 'newsTabUnlock' && upgradeId !== 'consoleTabUnlock') {
+        showNotification(`${upgrade.name} purchased!`, 'success');
+    }
 }
 
 // Update shop item visual states
@@ -314,12 +356,16 @@ function updateBetLockButtons() {
     const longBtn = document.querySelector('.trade-btn.long');
     const shortBtn = document.querySelector('.trade-btn.short');
     const stockBuyBtn = document.querySelector('.trade-btn.stock-buy');
+    const stockSellBtn = document.querySelector('.trade-btn.stock-sell');
     const canBet = canPlaceBet();
     const amount = getCurrentBet();
     const hasFunds = amount <= state.balance;
     // Stock purchase requires amount + fee
     const fee = typeof STOCK_PURCHASE_FEE !== 'undefined' ? STOCK_PURCHASE_FEE : 0;
     const hasFundsForStock = (amount + fee) <= state.balance;
+    
+    // Check if stock trading is unlocked
+    const stockTradingUnlocked = typeof isStockTradingUnlocked === 'function' ? isStockTradingUnlocked() : false;
     
     if (longBtn) {
         longBtn.disabled = !canBet || !hasFunds;
@@ -346,14 +392,39 @@ function updateBetLockButtons() {
     }
     
     if (stockBuyBtn) {
-        stockBuyBtn.disabled = !canBet || !hasFundsForStock;
-        if (!canBet) {
-            const remaining = getBetLockRemaining();
-            stockBuyBtn.title = `Please wait ${remaining}s before buying again`;
-        } else if (!hasFundsForStock) {
-            stockBuyBtn.title = `Insufficient funds (need $${amount + fee} including $${fee} fee)`;
+        if (!stockTradingUnlocked) {
+            stockBuyBtn.disabled = true;
+            stockBuyBtn.title = 'Purchase "Stock Trading Unlock" upgrade to unlock';
+            stockBuyBtn.classList.add('locked');
         } else {
-            stockBuyBtn.title = `Buy stock ($${fee} transaction fee)`;
+            stockBuyBtn.classList.remove('locked');
+            stockBuyBtn.disabled = !canBet || !hasFundsForStock;
+            if (!canBet) {
+                const remaining = getBetLockRemaining();
+                stockBuyBtn.title = `Please wait ${remaining}s before buying again`;
+            } else if (!hasFundsForStock) {
+                stockBuyBtn.title = `Insufficient funds (need $${amount + fee} including $${fee} fee)`;
+            } else {
+                stockBuyBtn.title = `Buy stock ($${fee} transaction fee)`;
+            }
+        }
+    }
+    
+    if (stockSellBtn) {
+        if (!stockTradingUnlocked) {
+            stockSellBtn.disabled = true;
+            stockSellBtn.title = 'Purchase "Stock Trading Unlock" upgrade to unlock';
+            stockSellBtn.classList.add('locked');
+        } else {
+            stockSellBtn.classList.remove('locked');
+            // Sell button is enabled if there are stocks to sell
+            const holding = typeof getCurrentStockHolding === 'function' ? getCurrentStockHolding() : null;
+            stockSellBtn.disabled = !holding || holding.shares === 0;
+            if (!holding || holding.shares === 0) {
+                stockSellBtn.title = 'No stocks to sell';
+            } else {
+                stockSellBtn.title = 'Sell all stocks';
+            }
         }
     }
 }

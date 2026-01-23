@@ -2785,6 +2785,12 @@ function initGameSystems() {
         initNewsSystem();
     }
     
+    // Update tab and button lock states
+    if (typeof updateTabLockStates === 'function') {
+        updateTabLockStates();
+    }
+    updateBetLockButtons();
+    
     console.log('All charts initialized and running in background');
 }
 

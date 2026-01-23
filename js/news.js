@@ -284,6 +284,23 @@ function switchRightPanelTab(tab) {
     const newsContent = document.getElementById('newsContent');
     const botsContent = document.getElementById('botsContent');
     
+    // Check unlock status
+    const newsUnlocked = typeof isNewsTabUnlocked === 'function' ? isNewsTabUnlocked() : false;
+    const consoleUnlocked = typeof isConsoleTabUnlocked === 'function' ? isConsoleTabUnlocked() : false;
+    
+    // Check if trying to access locked tabs
+    if (tab === 'news' && !newsUnlocked) {
+        showNotification('Purchase "News Tab Unlock" upgrade to access news', 'error');
+        AudioManager.playError();
+        return;
+    }
+    
+    if (tab === 'bots' && !consoleUnlocked) {
+        showNotification('Purchase "Console Tab Unlock" upgrade to access console', 'error');
+        AudioManager.playError();
+        return;
+    }
+    
     // Remove active class from all tabs
     cookieTab.classList.remove('active');
     newsTab.classList.remove('active');
@@ -326,6 +343,35 @@ function switchRightPanelTab(tab) {
         }
         if (typeof stopBotReasoningUpdates === 'function') {
             stopBotReasoningUpdates();
+        }
+    }
+}
+
+// Update tab lock states (call this after upgrade purchase or on game load)
+function updateTabLockStates() {
+    const newsTab = document.querySelector('.panel-tab[data-tab="news"]');
+    const botsTab = document.querySelector('.panel-tab[data-tab="bots"]');
+    
+    const newsUnlocked = typeof isNewsTabUnlocked === 'function' ? isNewsTabUnlocked() : false;
+    const consoleUnlocked = typeof isConsoleTabUnlocked === 'function' ? isConsoleTabUnlocked() : false;
+    
+    if (newsTab) {
+        if (newsUnlocked) {
+            newsTab.classList.remove('locked');
+            newsTab.title = '';
+        } else {
+            newsTab.classList.add('locked');
+            newsTab.title = 'Purchase "News Tab Unlock" upgrade to unlock';
+        }
+    }
+    
+    if (botsTab) {
+        if (consoleUnlocked) {
+            botsTab.classList.remove('locked');
+            botsTab.title = '';
+        } else {
+            botsTab.classList.add('locked');
+            botsTab.title = 'Purchase "Console Tab Unlock" upgrade to unlock';
         }
     }
 }

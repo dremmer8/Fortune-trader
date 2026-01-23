@@ -1364,6 +1364,13 @@ function resolvePosition(pos) {
 
 // Stock Trading Functions
 function buyStock() {
+    // Check if stock trading is unlocked
+    if (typeof isStockTradingUnlocked === 'function' && !isStockTradingUnlocked()) {
+        showNotification('Purchase "Stock Trading Unlock" upgrade to unlock stock trading', 'error');
+        AudioManager.playError();
+        return;
+    }
+    
     // Check timing lock
     if (!canPlaceBet()) {
         const remaining = getBetLockRemaining();
@@ -1434,6 +1441,13 @@ function buyStock() {
 }
 
 function sellStock() {
+    // Check if stock trading is unlocked
+    if (typeof isStockTradingUnlocked === 'function' && !isStockTradingUnlocked()) {
+        showNotification('Purchase "Stock Trading Unlock" upgrade to unlock stock trading', 'error');
+        AudioManager.playError();
+        return;
+    }
+    
     const symbol = state.dataMode;
     const holding = state.stockHoldings[symbol];
     

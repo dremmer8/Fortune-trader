@@ -442,16 +442,17 @@ function evaluateBotConditions(bot, currentPrice, history) {
 // BOT POSITION MANAGEMENT
 // ===========================================
 
-// Open bot position (10% of current bet, no streak effect)
+// Open bot position (percentage of current bet based on upgrades, no streak effect)
 function openBotPosition(bot, direction) {
     // Check timing lock (bots respect the same lock as manual bets)
     if (!canPlaceBet()) {
         return false;
     }
     
-    // Calculate bot bet amount (10% of current bet)
+    // Calculate bot bet amount (percentage of current bet based on upgrades)
     const currentBet = getCurrentBet();
-    const botBetAmount = Math.floor(currentBet * 0.1);
+    const botBetPercentage = typeof getBotBetPercentage === 'function' ? getBotBetPercentage() : 0.1;
+    const botBetAmount = Math.floor(currentBet * botBetPercentage);
     
     if (botBetAmount <= 0 || botBetAmount > state.balance) {
         return false;
@@ -619,7 +620,8 @@ function executeBots() {
         
         // Add execution constraints to reasoning
         const currentBet = getCurrentBet();
-        const botBetAmount = Math.floor(currentBet * 0.1);
+        const botBetPercentage = typeof getBotBetPercentage === 'function' ? getBotBetPercentage() : 0.1;
+        const botBetAmount = Math.floor(currentBet * botBetPercentage);
         const canBet = canPlaceBet();
         const hasFunds = botBetAmount > 0 && botBetAmount <= state.balance;
         
@@ -640,7 +642,8 @@ function executeBots() {
                 signal.reasoning.conditions.push(`💰 Insufficient funds: Need $${botBetAmount}, have $${state.balance}`);
             }
             if (signal.shouldEnter && canBet && hasFunds) {
-                signal.reasoning.conditions.push(`✅ Ready to trade: $${botBetAmount} (10% of $${currentBet})`);
+                const percentageDisplay = Math.round(botBetPercentage * 100);
+                signal.reasoning.conditions.push(`✅ Ready to trade: $${botBetAmount} (${percentageDisplay}% of $${currentBet})`);
             }
         }
         
@@ -917,9 +920,10 @@ function renderActiveBots() {
             ? ((stats.wins / stats.totalTrades) * 100).toFixed(0)
             : '0';
         
-        // Calculate actual bet amount (10% of current bet)
+        // Calculate actual bet amount (percentage of current bet based on upgrades)
         const currentBet = typeof getCurrentBet === 'function' ? getCurrentBet() : 100;
-        const botBetAmount = Math.floor(currentBet * 0.1);
+        const botBetPercentage = typeof getBotBetPercentage === 'function' ? getBotBetPercentage() : 0.1;
+        const botBetAmount = Math.floor(currentBet * botBetPercentage);
         
         // Calculate lifetime earnings/losses
         let lifetimeEarnings = 0;
@@ -1503,7 +1507,8 @@ function renderBotToConsole(bot, detailed = false) {
         : '0';
     
     const currentBet = typeof getCurrentBet === 'function' ? getCurrentBet() : 100;
-    const botBetAmount = Math.floor(currentBet * 0.1);
+    const botBetPercentage = typeof getBotBetPercentage === 'function' ? getBotBetPercentage() : 0.1;
+    const botBetAmount = Math.floor(currentBet * botBetPercentage);
     
     let lifetimeEarnings = 0;
     if (bot.earningsHistory && bot.earningsHistory.length > 0) {

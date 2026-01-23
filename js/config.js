@@ -790,9 +790,9 @@ const SHOP_UPGRADES = {
         }
     },
     diamondCookie: {
-        name: 'Diamond Cookie',
+        name: 'Rare Cookie',
         description: 'Highly precise prophecies',
-        icon: '💎',
+        icon: '🟥',
         price: 5000,
         order: 15,
         visible: true,
@@ -850,6 +850,78 @@ const SHOP_UPGRADES = {
             // Placeholder for future implementation
             prophecyEffectMultiplier: 2.0
         }
+    },
+    stockTradingUnlock: {
+        name: 'Stock Trading Unlock',
+        description: 'Unlock stock trading (buy/sell stocks)',
+        icon: '📈',
+        price: 2500,
+        order: 20,
+        visible: true,
+        locked: false,
+        effects: {
+            unlocksStockTrading: true
+        }
+    },
+    newsTabUnlock: {
+        name: 'News Tab Unlock',
+        description: 'Unlock the news tab',
+        icon: '📰',
+        price: 1500,
+        order: 21,
+        visible: true,
+        locked: false,
+        effects: {
+            unlocksNewsTab: true
+        }
+    },
+    consoleTabUnlock: {
+        name: 'Console Tab Unlock',
+        description: 'Unlock the console tab',
+        icon: '⚡',
+        price: 2000,
+        order: 22,
+        visible: true,
+        locked: false,
+        effects: {
+            unlocksConsoleTab: true
+        }
+    },
+    botBetTier1: {
+        name: 'Bot Bet Tier I',
+        description: 'Bots use 25% of your bet amount',
+        icon: '🤖',
+        price: 3000,
+        order: 23,
+        visible: true,
+        locked: false,
+        effects: {
+            botBetPercentage: 0.25  // 25% of current bet
+        }
+    },
+    botBetTier2: {
+        name: 'Bot Bet Tier II',
+        description: 'Bots use 50% of your bet amount',
+        icon: '🤖',
+        price: 8000,
+        order: 24,
+        visible: true,
+        locked: false,
+        effects: {
+            botBetPercentage: 0.50  // 50% of current bet
+        }
+    },
+    botBetTier3: {
+        name: 'Bot Bet Tier III',
+        description: 'Bots use 100% of your bet amount',
+        icon: '🤖',
+        price: 20000,
+        order: 25,
+        visible: true,
+        locked: false,
+        effects: {
+            botBetPercentage: 1.0  // 100% of current bet
+        }
     }
 };
 
@@ -903,9 +975,9 @@ const FORTUNE_COOKIE_TIERS = {
         }
     },
     3: {
-        name: 'Diamond Cookie',
+        name: 'Rare Cookie',
         description: 'Premium prophecy',
-        icon: '💎',
+        icon: '🟥',
         price: 800,
         // Premium quality prophecies
         modifiers: {
@@ -991,6 +1063,42 @@ function getCurrentBetTier() {
 function getCurrentBetAmounts() {
     const tier = getCurrentBetTier();
     return BET_AMOUNT_TIERS[tier] || BET_AMOUNT_TIERS[0];
+}
+
+// Check if stock trading is unlocked
+function isStockTradingUnlocked() {
+    if (!state.purchasedUpgrades) return false;
+    return state.purchasedUpgrades.includes('stockTradingUnlock');
+}
+
+// Check if news tab is unlocked
+function isNewsTabUnlocked() {
+    if (!state.purchasedUpgrades) return false;
+    return state.purchasedUpgrades.includes('newsTabUnlock');
+}
+
+// Check if console tab is unlocked
+function isConsoleTabUnlocked() {
+    if (!state.purchasedUpgrades) return false;
+    return state.purchasedUpgrades.includes('consoleTabUnlock');
+}
+
+// Get the current bot bet percentage based on purchased upgrades
+// Default is 10% (0.1), can be upgraded to 25%, 50%, or 100%
+function getBotBetPercentage() {
+    if (!state.purchasedUpgrades) return 0.1;  // Default: 10%
+    
+    // Check from highest to lowest tier
+    if (state.purchasedUpgrades.includes('botBetTier3')) {
+        return 1.0;  // 100%
+    }
+    if (state.purchasedUpgrades.includes('botBetTier2')) {
+        return 0.50;  // 50%
+    }
+    if (state.purchasedUpgrades.includes('botBetTier1')) {
+        return 0.25;  // 25%
+    }
+    return 0.1;  // Default: 10%
 }
 
 // Legacy compatibility - individual config references
