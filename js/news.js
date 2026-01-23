@@ -358,9 +358,11 @@ function updateTabLockStates() {
     if (newsTab) {
         if (newsUnlocked) {
             newsTab.classList.remove('locked');
+            newsTab.classList.remove('hidden');
             newsTab.title = '';
         } else {
             newsTab.classList.add('locked');
+            newsTab.classList.add('hidden');
             newsTab.title = 'Purchase "News Tab Unlock" upgrade to unlock';
         }
     }
@@ -368,9 +370,11 @@ function updateTabLockStates() {
     if (botsTab) {
         if (consoleUnlocked) {
             botsTab.classList.remove('locked');
+            botsTab.classList.remove('hidden');
             botsTab.title = '';
         } else {
             botsTab.classList.add('locked');
+            botsTab.classList.add('hidden');
             botsTab.title = 'Purchase "Console Tab Unlock" upgrade to unlock';
         }
     }

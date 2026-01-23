@@ -1314,6 +1314,12 @@ function updatePositions() {
 
 function renderPositions() {
     const container = document.getElementById('activePositions');
+    // Disabled: Don't show position bubbles
+    if (container) {
+        container.innerHTML = '';
+    }
+    return;
+    
     // Filter positions by current stock symbol
     const currentStockPositions = state.positions.filter(p => p.stockSymbol === state.dataMode);
     

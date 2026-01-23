@@ -3546,6 +3546,11 @@ body {
     display: none;
 }
 
+/* General hidden utility class */
+.hidden {
+    display: none !important;
+}
+
 /* Chart Panel */
 .chart-panel {
     display: flex;

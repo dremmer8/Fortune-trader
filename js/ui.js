@@ -396,8 +396,10 @@ function updateBetLockButtons() {
             stockBuyBtn.disabled = true;
             stockBuyBtn.title = 'Purchase "Stock Trading Unlock" upgrade to unlock';
             stockBuyBtn.classList.add('locked');
+            stockBuyBtn.classList.add('hidden');
         } else {
             stockBuyBtn.classList.remove('locked');
+            stockBuyBtn.classList.remove('hidden');
             stockBuyBtn.disabled = !canBet || !hasFundsForStock;
             if (!canBet) {
                 const remaining = getBetLockRemaining();
@@ -415,8 +417,10 @@ function updateBetLockButtons() {
             stockSellBtn.disabled = true;
             stockSellBtn.title = 'Purchase "Stock Trading Unlock" upgrade to unlock';
             stockSellBtn.classList.add('locked');
+            stockSellBtn.classList.add('hidden');
         } else {
             stockSellBtn.classList.remove('locked');
+            stockSellBtn.classList.remove('hidden');
             // Sell button is enabled if there are stocks to sell
             const holding = typeof getCurrentStockHolding === 'function' ? getCurrentStockHolding() : null;
             stockSellBtn.disabled = !holding || holding.shares === 0;
@@ -425,6 +429,16 @@ function updateBetLockButtons() {
             } else {
                 stockSellBtn.title = 'Sell all stocks';
             }
+        }
+    }
+    
+    // Hide the stock-trade-buttons container when stock trading is locked
+    const stockTradeButtonsContainer = document.querySelector('.stock-trade-buttons');
+    if (stockTradeButtonsContainer) {
+        if (!stockTradingUnlocked) {
+            stockTradeButtonsContainer.classList.add('hidden');
+        } else {
+            stockTradeButtonsContainer.classList.remove('hidden');
         }
     }
 }

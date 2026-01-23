@@ -4,7 +4,7 @@ A browser-based trading simulation game with fortune cookie prophecies and secur
 
 [![Security](https://img.shields.io/badge/Security-Multi--Layer-green)](docs/SECURITY.md)
 [![Firebase](https://img.shields.io/badge/Firebase-Realtime-orange)](https://firebase.google.com)
-[![License](https://img.shields.io/badge/License-MIT-blue)](#)
+[![License](https://img.shields.io/badge/License-Proprietary-red)](#)
 
 ---
 
@@ -83,7 +83,10 @@ Fortune Trader is a single-player trading game where you:
 
 ## 📝 License
 
-MIT License - Feel free to learn from and adapt this code!
+Copyright (c) 2026 Fortune Trader - All Rights Reserved.
+
+This project is proprietary software. Unauthorized use, copying, modification, 
+or distribution is strictly prohibited.
 
 ---
 
