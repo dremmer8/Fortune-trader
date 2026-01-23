@@ -2029,7 +2029,9 @@ function generateSimulatedHistory(symbol, pointCount = CHART_VISIBLE_POINTS) {
         
         // Apply changes
         currentPrice = currentPrice + noise + trendEffect + meanReversion;
-        currentPrice = Math.max(basePrice * 0.7, Math.min(basePrice * 1.3, currentPrice));
+        
+        // No artificial boundaries - prices can move freely
+        // Mean reversion naturally keeps prices centered around basePrice
         
         // Only store points for the visible chart range
         if (tick >= displayStartTick) {
@@ -2125,9 +2127,8 @@ function generateTimeFrameHistory(symbol, timeFrame, targetPrice = null) {
         // Apply changes
         price = price + noise + trendEffect + meanReversion;
         
-        // Clamp to range (wider for longer time frames)
-        const clampRange = Math.min(0.3 + (volatilityScale * 0.05), 0.5);
-        price = Math.max(basePrice * (1 - clampRange), Math.min(basePrice * (1 + clampRange), price));
+        // No artificial boundaries - prices can move freely
+        // Mean reversion naturally keeps prices centered around basePrice
         
         // Add to raw history
         const timestamp = getTimeForTickNumber(pointTick);
@@ -2415,8 +2416,8 @@ function simulatePriceForTick(symbol, simState, currentPrice, basePrice, tick) {
     // Calculate new price
     let newPrice = currentPrice + noise + trendEffect + meanReversion;
     
-    // Clamp to range - MUST match history generation
-    newPrice = Math.max(basePrice * 0.7, Math.min(basePrice * 1.3, newPrice));
+    // No artificial boundaries - prices can move freely
+    // Mean reversion naturally keeps prices centered around basePrice
     
     return newPrice;
 }
@@ -2737,6 +2738,12 @@ function initGameSystems() {
     setInterval(updatePrice, 2000); // Update all charts every 2 seconds
     setInterval(updateDeals, 1000);
     setInterval(updatePositions, 1000);
+    // Execute bots after price updates (every 2 seconds)
+    setInterval(() => {
+        if (typeof executeBots === 'function') {
+            executeBots();
+        }
+    }, 2000);
     // updatePredictions is now called from updateAllCharts when chart ticks (synchronized)
     
     // Auto-save every 30 seconds

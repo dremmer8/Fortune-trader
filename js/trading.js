@@ -1233,11 +1233,18 @@ function renderPositions() {
 function resolvePosition(pos) {
     if (pos.resolved) return; // Already resolved
 
+    // Get current price for the position's stock symbol
+    const currentPrice = pos.stockSymbol === state.dataMode
+        ? state.currentPrice
+        : (state.chartPrices && state.chartPrices[pos.stockSymbol]
+            ? state.chartPrices[pos.stockSymbol].currentPrice
+            : stockConfig[pos.stockSymbol]?.basePrice || 100);
+
     if (typeof SecurityService !== 'undefined') {
         const validation = SecurityService.validateTransaction('resolvePosition', {
             amount: pos.amount,
             entryPrice: pos.entryPrice,
-            currentPrice: state.currentPrice,
+            currentPrice: currentPrice,
             direction: pos.direction
         });
         if (!validation.ok) {
@@ -1246,7 +1253,7 @@ function resolvePosition(pos) {
         }
     }
     
-    const priceChange = (state.currentPrice - pos.entryPrice) / pos.entryPrice;
+    const priceChange = (currentPrice - pos.entryPrice) / pos.entryPrice;
     const won = 
         (pos.direction === 'long' && priceChange > 0) ||
         (pos.direction === 'short' && priceChange < 0);
@@ -1254,6 +1261,9 @@ function resolvePosition(pos) {
     // Mark as resolved
     pos.resolved = true;
     pos.won = won;
+    
+    // Check if this is a bot position (don't affect streak)
+    const isBotPosition = pos.isBotPosition === true;
     
     if (won) {
         // Fixed 2x multiplier - no movement bonus
@@ -1263,20 +1273,74 @@ function resolvePosition(pos) {
         const profit = winnings - pos.amount;
         pos.result = profit; // Store profit for display
         if (typeof SecurityService !== 'undefined') {
-            SecurityService.logTransaction('position_win', { id: pos.id, profit, winnings });
+            SecurityService.logTransaction('position_win', { id: pos.id, profit, winnings, isBot: isBotPosition });
         }
-        handleWin(); // Increase streak and bet
-        flashTradingScreen(true); // Green flash for win
-        AudioManager.playSuccessfulDeal(); // Play success sound
-        showNotification(`+$${profit.toLocaleString()} 🔥`, 'success');
+        
+        // Only affect streak for manual positions
+        if (!isBotPosition) {
+            handleWin(); // Increase streak and bet
+            flashTradingScreen(true); // Green flash for win
+            AudioManager.playSuccessfulDeal(); // Play success sound
+            showNotification(`+$${profit.toLocaleString()} 🔥`, 'success');
+        } else {
+            // Bot position win - play sound at 10% volume
+            AudioManager.playSuccessfulDeal(0.1); // 10% of original volume
+            showNotification(`Bot: +$${profit.toLocaleString()}`, 'info');
+            
+            // Update bot stats and track earnings
+            if (typeof updateBotStats === 'function') {
+                updateBotStats(pos.botId, true);
+            }
+            
+            // Track earnings in bot's history
+            const bot = state.bots.find(b => b.id === pos.botId);
+            if (bot) {
+                if (!bot.earningsHistory) {
+                    bot.earningsHistory = [];
+                }
+                bot.earningsHistory.push({
+                    timestamp: Date.now(),
+                    profit: profit,
+                    amount: pos.amount,
+                    won: true
+                });
+            }
+        }
     } else {
         pos.result = -pos.amount; // Store loss for display
         if (typeof SecurityService !== 'undefined') {
-            SecurityService.logTransaction('position_loss', { id: pos.id, loss: pos.amount });
+            SecurityService.logTransaction('position_loss', { id: pos.id, loss: pos.amount, isBot: isBotPosition });
         }
-        handleLoss(); // Reset streak and bet
-        flashTradingScreen(false); // Red flash for loss
-        showNotification(`-$${pos.amount.toLocaleString()}`, 'error');
+        
+        // Only affect streak for manual positions
+        if (!isBotPosition) {
+            handleLoss(); // Reset streak and bet
+            flashTradingScreen(false); // Red flash for loss
+            showNotification(`-$${pos.amount.toLocaleString()}`, 'error');
+        } else {
+            // Bot position loss - play error sound at 10% volume
+            AudioManager.playError(0.1); // 10% of original volume
+            showNotification(`Bot: -$${pos.amount.toLocaleString()}`, 'info');
+            
+            // Update bot stats and track earnings
+            if (typeof updateBotStats === 'function') {
+                updateBotStats(pos.botId, false);
+            }
+            
+            // Track earnings in bot's history
+            const bot = state.bots.find(b => b.id === pos.botId);
+            if (bot) {
+                if (!bot.earningsHistory) {
+                    bot.earningsHistory = [];
+                }
+                bot.earningsHistory.push({
+                    timestamp: Date.now(),
+                    profit: -pos.amount,
+                    amount: pos.amount,
+                    won: false
+                });
+            }
+        }
     }
     
     // Remove position after 4 seconds

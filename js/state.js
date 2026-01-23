@@ -47,6 +47,8 @@ const state = {
     selectedProphecyId: null, // Currently selected prophecy for decoding
     purchasedUpgrades: [], // Array of purchased upgrade IDs
     positions: [],
+    // Auto trading bots
+    bots: [], // Array of bot configurations { id, name, enabled, strategy, params, stockSymbol, createdAt, lastTradeTime }
     // Predictions - in-memory only (not saved until resolved to prevent save scumming)
     predictions: [], // Array of active predictions { id, price, intervalMin, intervalMax, amount, startTick, stockSymbol, resolved }
     // Stock holdings - keyed by stock symbol
@@ -756,6 +758,7 @@ function resetGameState() {
     state.streakCount = 0;
     state.betIndex = 0;
     state.purchasedUpgrades = [];
+    state.bots = [];
     state.cookieInventory = [];
     state.deals = [];
     state.positions = [];

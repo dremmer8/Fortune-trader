@@ -275,26 +275,58 @@ function renderNews() {
     }).join('');
 }
 
-// Switch between Cookie Shop and News tabs
+// Switch between Cookie Shop, News, and Bots tabs
 function switchRightPanelTab(tab) {
     const cookieTab = document.querySelector('.panel-tab[data-tab="cookie"]');
     const newsTab = document.querySelector('.panel-tab[data-tab="news"]');
+    const botsTab = document.querySelector('.panel-tab[data-tab="bots"]');
     const cookieContent = document.getElementById('cookieShopContent');
     const newsContent = document.getElementById('newsContent');
+    const botsContent = document.getElementById('botsContent');
+    
+    // Remove active class from all tabs
+    cookieTab.classList.remove('active');
+    newsTab.classList.remove('active');
+    botsTab.classList.remove('active');
+    
+    // Hide all content
+    cookieContent.classList.add('hidden');
+    newsContent.classList.add('hidden');
+    botsContent.classList.add('hidden');
     
     if (tab === 'cookie') {
         cookieTab.classList.add('active');
-        newsTab.classList.remove('active');
         cookieContent.classList.remove('hidden');
-        newsContent.classList.add('hidden');
     } else if (tab === 'news') {
         newsTab.classList.add('active');
-        cookieTab.classList.remove('active');
         newsContent.classList.remove('hidden');
-        cookieContent.classList.add('hidden');
         
         // Render news when switching to news tab
         renderNews();
+    } else if (tab === 'bots') {
+        botsTab.classList.add('active');
+        botsContent.classList.remove('hidden');
+        
+        // Initialize bots panel when switching to bots tab
+        if (typeof initBotsPanel === 'function') {
+            initBotsPanel();
+        }
+        
+        // Focus console input
+        setTimeout(() => {
+            const consoleInput = document.getElementById('consoleInput');
+            if (consoleInput) {
+                consoleInput.focus();
+            }
+        }, 100);
+    } else {
+        // Stop console updates when switching away from bots tab
+        if (typeof stopConsoleBotUpdates === 'function') {
+            stopConsoleBotUpdates();
+        }
+        if (typeof stopBotReasoningUpdates === 'function') {
+            stopBotReasoningUpdates();
+        }
     }
 }
 

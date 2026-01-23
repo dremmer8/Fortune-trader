@@ -107,8 +107,8 @@ const AudioManager = {
     },
     
     // Play error sound
-    playError() {
-        this.play('error', 0.6);
+    playError(volumeMultiplier = 0.6) {
+        this.play('error', volumeMultiplier);
     },
     
     // Play app open sound (generic)
@@ -132,8 +132,8 @@ const AudioManager = {
     },
     
     // Play successful deal sound (winning bet or profitable sale)
-    playSuccessfulDeal() {
-        this.play('successfulDeal', 1.0);
+    playSuccessfulDeal(volumeMultiplier = 1.0) {
+        this.play('successfulDeal', volumeMultiplier);
     },
     
     // Set master volume (0.0 to 1.0)

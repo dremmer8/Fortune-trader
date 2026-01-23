@@ -472,6 +472,10 @@
                             <span class="tab-icon">📰</span>
                             <span class="tab-label">News</span>
                         </button>
+                        <button class="panel-tab" data-tab="bots" onclick="switchRightPanelTab('bots')">
+                            <span class="tab-icon">⚡</span>
+                            <span class="tab-label">Console</span>
+                        </button>
                     </div>
                 </div>
 
@@ -532,6 +536,33 @@
                         </div>
                         <div class="news-list" id="newsList">
                             <div class="news-empty">No news yet. Market updates will appear here.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bots Content -->
+                <div class="panel-content hidden" id="botsContent">
+                    <div class="console-panel">
+                        <div class="console-header">
+                            <div class="console-title">
+                                <span class="console-icon">⚡</span>
+                                <span>SYSTEM CONSOLE v1.0</span>
+                            </div>
+                            <div class="console-status" id="consoleStatus">READY</div>
+                        </div>
+                        <div class="console-output" id="consoleOutput">
+                            <div class="console-line console-welcome">
+                                <span class="console-prompt">></span>
+                                <span class="console-text">Fortune Trader System Console</span>
+                            </div>
+                            <div class="console-line console-welcome">
+                                <span class="console-prompt">></span>
+                                <span class="console-text">Type 'help' for available commands</span>
+                            </div>
+                        </div>
+                        <div class="console-input-wrapper">
+                            <span class="console-prompt">></span>
+                            <input type="text" class="console-input" id="consoleInput" placeholder="Enter command..." autocomplete="off" spellcheck="false">
                         </div>
                     </div>
                 </div>
@@ -645,6 +676,7 @@
     <script src="js/chart.js"></script>
     <script src="js/trading.js"></script>
     <script src="js/news.js"></script>
+    <script src="js/bots.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
