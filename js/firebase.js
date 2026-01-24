@@ -16,6 +16,10 @@ let functions = null;
 let auth = null;
 let currentFirebaseUser = null;
 
+function normalizeNameKey(name) {
+    return (name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
 if (typeof firebase !== 'undefined') {
     try {
         firebase.initializeApp(firebaseConfig);
@@ -98,8 +102,8 @@ const FirebaseService = {
                 }
             }
 
-            // Use composite key: hash-based userId + Firebase auth UID
-            const docId = firebaseUser ? `${userId}_${firebaseUser.uid}` : userId;
+            // Use stable hash-based userId across devices
+            const docId = userId;
             const userRef = db.collection('users').doc(docId);
             
             // Sign ONLY the game data (without Firebase metadata)
@@ -118,6 +122,7 @@ const FirebaseService = {
             payload = {
                 ...payload,
                 playerName: playerName,
+                nameKey: normalizeNameKey(playerName),
                 gameUserId: userId, // Store the game's user ID separately
                 firebaseUid: firebaseUser ? firebaseUser.uid : null,
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
@@ -170,10 +175,9 @@ const FirebaseService = {
             // Ensure Firebase Auth
             const firebaseUser = await ensureFirebaseAuth();
 
-            // Try to load with composite key first
-            if (userId && firebaseUser) {
-                const docId = `${userId}_${firebaseUser.uid}`;
-                const userRef = db.collection('users').doc(docId);
+            // Try to load with stable userId first
+            if (userId) {
+                const userRef = db.collection('users').doc(userId);
                 const doc = await userRef.get();
                 if (doc.exists) {
                     const data = doc.data();
@@ -190,7 +194,7 @@ const FirebaseService = {
                 }
             }
 
-            // Fallback: Try to find by querying for gameUserId
+            // Fallback: Try to find by querying for gameUserId (legacy composite docs)
             if (userId) {
                 const querySnapshot = await db.collection('users')
                     .where('gameUserId', '==', userId)
@@ -291,18 +295,66 @@ const FirebaseService = {
                 return;
             }
 
-            // Use composite key format
-            const docId = `${userId}_${firebaseUser.uid}`;
+            // Use stable hash-based userId across devices
+            const docId = userId;
             const userRef = db.collection('users').doc(docId);
             
             await userRef.set({
                 playerName: playerName,
+                nameKey: normalizeNameKey(playerName),
                 gameUserId: userId,
                 lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
                 loginCount: firebase.firestore.FieldValue.increment(1)
             }, { merge: true });
         } catch (error) {
             console.warn('Error updating login time:', error.message);
+        }
+    },
+
+    // Find account by name key (case-insensitive)
+    async findUserByNameKey(nameKey, playerName = '') {
+        if (!this.isAvailable()) {
+            return { success: false, found: false, error: 'Firebase not initialized' };
+        }
+
+        try {
+            if (!nameKey) {
+                return { success: false, found: false, error: 'Missing name key' };
+            }
+
+            // Ensure Firebase Auth is ready before querying
+            const firebaseUser = await ensureFirebaseAuth();
+            if (!firebaseUser) {
+                console.warn('Firebase Auth unavailable, lookup may be limited');
+            }
+
+            const querySnapshot = await db.collection('users')
+                .where('nameKey', '==', nameKey)
+                .limit(1)
+                .get();
+
+            if (!querySnapshot.empty) {
+                const doc = querySnapshot.docs[0];
+                return { success: true, found: true, docId: doc.id, data: doc.data() };
+            }
+
+            // Legacy fallback: exact playerName match (case-sensitive)
+            if (playerName) {
+                const legacySnapshot = await db.collection('users')
+                    .where('playerName', '==', playerName)
+                    .limit(1)
+                    .get();
+
+                if (!legacySnapshot.empty) {
+                    const doc = legacySnapshot.docs[0];
+                    return { success: true, found: true, docId: doc.id, data: doc.data() };
+                }
+            }
+
+            return { success: true, found: false };
+        } catch (error) {
+            console.error('Error finding user by name key:', error);
+            return { success: false, found: false, error: error.message };
         }
     },
 

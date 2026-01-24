@@ -325,7 +325,8 @@ async function saveGameState() {
         streakCount: state.streakCount,
         betIndex: state.betIndex,
         purchasedUpgrades: state.purchasedUpgrades || [],
-        cookieInventory: state.cookieInventory || []
+        cookieInventory: state.cookieInventory || [],
+        marginPosition: state.marginPosition || null
     };
 
     // PRIMARY: Save to localStorage (fast, works offline)
@@ -695,6 +696,7 @@ async function loadGameState() {
         state.betIndex = saveData.betIndex || 0;
         state.purchasedUpgrades = saveData.purchasedUpgrades || [];
         state.cookieInventory = saveData.cookieInventory || [];
+        state.marginPosition = saveData.marginPosition || null;
         
         // Initialize predictions array (always empty on load - predictions are in-memory only)
         if (!state.predictions) {

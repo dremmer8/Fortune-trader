@@ -7,10 +7,29 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    function isOwner(userId) {
-      // Strict ownership check: userId must end with _firebaseUid
-      return isAuthenticated() && 
+    function isLegacyOwner(userId) {
+      // Legacy ownership check: userId ends with _firebaseUid
+      return isAuthenticated() &&
              userId.matches('.*_' + request.auth.uid + '$');
+    }
+    
+    function isHashedOwner(userId) {
+      // Stable ownership check: document ID equals gameUserId
+      // Also allow legacy doc IDs that start with gameUserId + "_"
+      return isAuthenticated() && (
+        (resource != null && (
+          resource.data.gameUserId == userId ||
+          userId.matches('^' + resource.data.gameUserId + '_.+$')
+        )) ||
+        (request.resource != null && (
+          request.resource.data.gameUserId == userId ||
+          userId.matches('^' + request.resource.data.gameUserId + '_.+$')
+        ))
+      );
+    }
+    
+    function isOwner(userId) {
+      return isLegacyOwner(userId) || isHashedOwner(userId);
     }
     
     function isValidNumber(value, min, max) {

@@ -74,6 +74,10 @@ function initButtonClickSounds() {
 // LOGIN CARD INTERFACE
 // ===========================================
 
+function normalizePlayerName(name) {
+    return (name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
 // Initialize login card events
 function initLoginCard() {
     const nameInput = document.getElementById('cardHolderInput');
@@ -123,7 +127,7 @@ function flipCardToBack() {
     // Play click sound
     AudioManager.playClick();
     
-    playerName = nameInput.value.trim();
+    playerName = nameInput.value.trim().replace(/\s+/g, ' ');
     
     // Update signature on back
     if (signatureDisplay) {
@@ -167,7 +171,43 @@ async function attemptLogin() {
     }
 
     const password = cvvInput.value.trim();
-    playerId = await deriveUserId(playerName, password);
+    const trimmedName = playerName.trim().replace(/\s+/g, ' ');
+    playerName = trimmedName;
+    const nameKey = normalizePlayerName(trimmedName);
+    const normalizedUserId = await deriveUserId(nameKey, password);
+    
+    // Check for existing account by name (case-insensitive)
+    if (typeof FirebaseService !== 'undefined' && FirebaseService.isAvailable && FirebaseService.isAvailable()) {
+        try {
+            const lookup = await FirebaseService.findUserByNameKey(nameKey, trimmedName);
+            if (lookup && lookup.found) {
+                const existingUserId = lookup.data?.gameUserId || lookup.data?.userId || lookup.data?.id;
+                const storedName = (lookup.data?.playerName || trimmedName).trim().replace(/\s+/g, ' ');
+                const storedNameKey = normalizePlayerName(storedName);
+                const storedNormalizedId = await deriveUserId(storedNameKey, password);
+                const storedLegacyId = await deriveUserId(storedName, password);
+                const isPasswordMatch = [normalizedUserId, storedNormalizedId, storedLegacyId].includes(existingUserId);
+                
+                if (existingUserId && !isPasswordMatch) {
+                    showNotification('Password is wrong for this name.', 'error');
+                    shakeLogin();
+                    return;
+                }
+                if (lookup.data?.playerName) {
+                    playerName = lookup.data.playerName;
+                }
+                if (existingUserId) {
+                    playerId = existingUserId;
+                }
+            }
+        } catch (error) {
+            console.warn('Login lookup failed:', error);
+        }
+    }
+    
+    if (!playerId) {
+        playerId = normalizedUserId;
+    }
     isLoggedIn = true;
     
     // Play success sound
@@ -1842,7 +1882,8 @@ async function initHub() {
             playerId = savedCredentials.playerId;
             isLoggedIn = true;
         } else if (savedCredentials.playerPassword) {
-            playerId = await deriveUserId(playerName, savedCredentials.playerPassword);
+            const nameKey = normalizePlayerName(playerName);
+            playerId = await deriveUserId(nameKey, savedCredentials.playerPassword);
             isLoggedIn = true;
             saveCredentials();
         }
