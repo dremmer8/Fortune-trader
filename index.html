@@ -292,6 +292,14 @@
                                     <div class="settings-item-value" id="settingsUserName">-</div>
                                 </div>
                             </div>
+                            <div class="settings-item clickable" onclick="logout()">
+                                <div class="settings-item-icon danger">🚪</div>
+                                <div class="settings-item-info">
+                                    <div class="settings-item-label">Log Out</div>
+                                    <div class="settings-item-desc">Clear saved login credentials</div>
+                                </div>
+                                <div class="settings-item-arrow">›</div>
+                            </div>
                         </div>
                         
                         <div class="settings-section">
@@ -403,6 +411,10 @@
                     <span class="stat-label">Cash</span>
                     <span class="stat-value balance" id="balance">$500.00</span>
                 </div>
+                <button class="nav-btn tutorial-btn" id="tutorialBtn" onclick="toggleTutorial()">
+                    <span class="nav-btn-icon">📖</span>
+                    <span class="nav-btn-label">Tutorial</span>
+                </button>
                 <button class="nav-btn portfolio-btn" id="portfolioBtn" onclick="togglePortfolioOverlay()">
                     <span class="nav-btn-icon">📊</span>
                     <span class="nav-btn-label">Portfolio</span>
@@ -686,6 +698,27 @@
         </div>
     </div>
 
+    <!-- Tutorial Overlay -->
+    <div class="overlay-backdrop" id="tutorialBackdrop" onclick="closeTutorial()"></div>
+    <div class="tutorial-overlay" id="tutorialOverlay">
+        <div class="tutorial-header">
+            <h2 class="tutorial-title">📖 Trading Basics Tutorial</h2>
+            <button class="tutorial-close" onclick="closeTutorial()">&times;</button>
+        </div>
+        <div class="tutorial-content">
+            <div class="tutorial-step" id="tutorialStep">
+                <!-- Steps will be populated by JavaScript -->
+            </div>
+            <div class="tutorial-navigation">
+                <button class="tutorial-nav-btn" id="tutorialPrevBtn" onclick="tutorialPrevious()" disabled>Previous</button>
+                <div class="tutorial-progress">
+                    <span id="tutorialStepNumber">1</span> / <span id="tutorialTotalSteps">1</span>
+                </div>
+                <button class="tutorial-nav-btn" id="tutorialNextBtn" onclick="tutorialNext()">Next</button>
+            </div>
+        </div>
+    </div>
+
     <div class="version-stamp" id="versionStamp" aria-live="polite"></div>
 
     <!-- JavaScript files - order matters! -->
@@ -707,6 +740,7 @@
     <script src="js/trading.js"></script>
     <script src="js/news.js"></script>
     <script src="js/bots.js"></script>
+    <script src="js/tutorial.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

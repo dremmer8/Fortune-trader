@@ -218,11 +218,31 @@ function renderCookieInventory() {
         return;
     }
     
+    // Check if hint upgrades are purchased
+    const hasStockHint = typeof hasCookieStockHint === 'function' ? hasCookieStockHint() : false;
+    const hasProphecyHint = typeof hasCookieProphecyHint === 'function' ? hasCookieProphecyHint() : false;
+    
     container.innerHTML = state.cookieInventory.map(cookie => {
         // Get tier config for icon, default to tier 1 for legacy cookies
         const tier = cookie.tier || 1;
         const tierConfig = getCookieTierConfig(tier);
         const tierClass = tier > 1 ? `tier-${tier}` : '';
+        
+        // Build tooltip text
+        let tooltipText = tierConfig.name;
+        const hints = [];
+        
+        if (hasStockHint && cookie.targetStockName) {
+            hints.push(`Stock: ${cookie.targetStockName}`);
+        }
+        
+        if (hasProphecyHint && cookie.typeConfig && cookie.typeConfig.name) {
+            hints.push(`Type: ${cookie.typeConfig.name}`);
+        }
+        
+        if (hints.length > 0) {
+            tooltipText += '\n' + hints.join('\n');
+        }
         
         return `
             <div class="inventory-cookie ${tierClass}" 
@@ -231,7 +251,7 @@ function renderCookieInventory() {
                  data-tier="${tier}"
                  ondragstart="handleDragStart(event, ${cookie.id})"
                  ondragend="handleDragEnd(event)"
-                 title="${tierConfig.name}">
+                 title="${tooltipText}">
                 <div class="inventory-cookie-icon">${tierConfig.icon}</div>
             </div>
         `;
@@ -327,63 +347,118 @@ function generateProphecyData(prophecyType, currentPrice, duration, tierModifier
     switch (prophecyType) {
         case 'trendUp':
         case 'trendDown': {
-            // Get strength config (with fallback)
-            const strengthConfig = config.strength || { min: 0.1, max: 0.8 };
-            // Trend strength interval - apply strength bonus from tier
-            const baseStrengthMin = (Math.random() * (strengthConfig.max - strengthConfig.min) * 0.5 + strengthConfig.min);
-            const baseStrengthMax = baseStrengthMin + Math.random() * (strengthConfig.max - baseStrengthMin);
-            // Higher tier = stronger trend effects
-            const strengthMin = baseStrengthMin + strengthBonus;
-            const strengthMax = baseStrengthMax + strengthBonus;
+            // Calculate reversal probability based on tier
+            // Tier 1: 33%, Tier 2: 66%, Tier 3: 95%
+            // Map strengthBonus to tier probabilities
+            let reversalProbability;
+            if (strengthBonus === 0) {
+                // Tier 1
+                reversalProbability = 0.33;
+            } else if (strengthBonus === 0.15) {
+                // Tier 2
+                reversalProbability = 0.66;
+            } else if (strengthBonus === 0.3) {
+                // Tier 3
+                reversalProbability = 0.95;
+            } else {
+                // Fallback: interpolate or use tier 1
+                reversalProbability = 0.33;
+            }
+            
             return {
-                strengthMin: parseFloat(strengthMin.toFixed(2)),
-                strengthMax: parseFloat(strengthMax.toFixed(2))
+                reversalProbability: parseFloat(reversalProbability.toFixed(3))
             };
         }
         
-        case 'lowerShore': {
+        case 'shore': {
             // Get shore config (with fallbacks)
-            const distanceConfig = config.distance || { min: 0.5, max: 3.0 };
+            const baseLowerDistanceConfig = config.lowerDistance || { min: 0.5, max: 3.0 };
+            const baseUpperDistanceConfig = config.upperDistance || { min: 0.5, max: 3.0 };
             const intervalConfig = config.intervalWidth || { min: 0.3, max: 1.0 };
-            // Lower shore - price floor
-            const distance = distanceConfig.min + Math.random() * (distanceConfig.max - distanceConfig.min);
-            const trueFloor = currentPrice * (1 - distance / 100);
-            // Apply interval tightness from tier (lower = tighter/more precise)
+            
+            // Determine tier from strengthBonus (0 = tier 1, 0.15 = tier 2, 0.3 = tier 3)
+            // REVERSED: Tier 1 creates WIDE shores (more room), Tier 2-3 create TIGHT shores (more restrictive)
+            let lowerDistanceConfig, upperDistanceConfig;
+            if (strengthBonus === 0) {
+                // Tier 1: Wide range (2.0-6.0%) - price has more room to move
+                lowerDistanceConfig = { min: 2.0, max: 6.0 };
+                upperDistanceConfig = { min: 2.0, max: 6.0 };
+            } else if (strengthBonus === 0.15) {
+                // Tier 2: Medium-tight range (1.0-3.0%) - more restrictive
+                lowerDistanceConfig = { min: 1.0, max: 3.0 };
+                upperDistanceConfig = { min: 1.0, max: 3.0 };
+            } else if (strengthBonus === 0.3) {
+                // Tier 3: Tight range (0.5-2.0%) - very restrictive
+                lowerDistanceConfig = { min: 0.5, max: 2.0 };
+                upperDistanceConfig = { min: 0.5, max: 2.0 };
+            } else {
+                // Fallback to tier 1
+                lowerDistanceConfig = baseLowerDistanceConfig;
+                upperDistanceConfig = baseUpperDistanceConfig;
+            }
+            
+            // Generate lower shore (price floor)
+            const lowerDistance = lowerDistanceConfig.min + Math.random() * (lowerDistanceConfig.max - lowerDistanceConfig.min);
+            const trueFloor = currentPrice * (1 - lowerDistance / 100);
+            
+            // Generate upper shore (price ceiling)
+            const upperDistance = upperDistanceConfig.min + Math.random() * (upperDistanceConfig.max - upperDistanceConfig.min);
+            const trueCeiling = currentPrice * (1 + upperDistance / 100);
+            
+            // Validate range: ensure lowerShore < upperShore
+            // If invalid, adjust to create a valid range
+            let finalLowerShore = trueFloor;
+            let finalUpperShore = trueCeiling;
+            if (finalLowerShore >= finalUpperShore) {
+                // Invalid range - create a small valid range around midpoint
+                const midPoint = (finalLowerShore + finalUpperShore) / 2;
+                finalLowerShore = midPoint * 0.99;
+                finalUpperShore = midPoint * 1.01;
+            }
+            
+            // Apply interval tightness from tier (higher tiers = tighter intervals = more precise)
             const intervalWidth = (intervalConfig.min + Math.random() * (intervalConfig.max - intervalConfig.min)) * intervalTightness;
             const intervalHalf = (currentPrice * intervalWidth / 100) / 2;
+            
+            // Return both lower and upper bounds
             return {
-                trueValue: trueFloor,
-                intervalMin: parseFloat((trueFloor - intervalHalf).toFixed(2)),
-                intervalMax: parseFloat((trueFloor + intervalHalf).toFixed(2))
-            };
-        }
-        
-        case 'upperShore': {
-            // Get shore config (with fallbacks)
-            const distanceConfig = config.distance || { min: 0.5, max: 3.0 };
-            const intervalConfig = config.intervalWidth || { min: 0.3, max: 1.0 };
-            // Upper shore - price ceiling
-            const distance = distanceConfig.min + Math.random() * (distanceConfig.max - distanceConfig.min);
-            const trueCeiling = currentPrice * (1 + distance / 100);
-            // Apply interval tightness from tier
-            const intervalWidth = (intervalConfig.min + Math.random() * (intervalConfig.max - intervalConfig.min)) * intervalTightness;
-            const intervalHalf = (currentPrice * intervalWidth / 100) / 2;
-            return {
-                trueValue: trueCeiling,
-                intervalMin: parseFloat((trueCeiling - intervalHalf).toFixed(2)),
-                intervalMax: parseFloat((trueCeiling + intervalHalf).toFixed(2))
+                lowerShore: finalLowerShore,
+                upperShore: finalUpperShore,
+                lowerIntervalMin: parseFloat((trueFloor - intervalHalf).toFixed(2)),
+                lowerIntervalMax: parseFloat((trueFloor + intervalHalf).toFixed(2)),
+                upperIntervalMin: parseFloat((trueCeiling - intervalHalf).toFixed(2)),
+                upperIntervalMax: parseFloat((trueCeiling + intervalHalf).toFixed(2))
             };
         }
         
         case 'inevitableZone': {
             // Get zone config (with fallbacks)
-            const distanceConfig = config.distance || { min: 0.2, max: 0.8 };
+            const baseDistanceConfig = config.distance || { min: 0.3, max: 0.5 };
             const intervalConfig = config.intervalWidth || { min: 0.4, max: 1.2 };
+            
+            // Determine tier from strengthBonus (0 = tier 1, 0.15 = tier 2, 0.3 = tier 3)
+            // REVERSED: Higher tiers place zone FARTHER away for more dramatic movement
+            let distanceConfig;
+            if (strengthBonus === 0) {
+                // Tier 1: Close to current price (0.3-0.5%)
+                distanceConfig = { min: 0.3, max: 0.5 };
+            } else if (strengthBonus === 0.15) {
+                // Tier 2: Medium distance (2.0-4.0%)
+                distanceConfig = { min: 2.0, max: 4.0 };
+            } else if (strengthBonus === 0.3) {
+                // Tier 3: Far distance (5.0-10.0%)
+                distanceConfig = { min: 5.0, max: 10.0 };
+            } else {
+                // Fallback to tier 1
+                distanceConfig = baseDistanceConfig;
+            }
+            
             // Inevitable zone - price will touch this zone
             const direction = Math.random() > 0.5 ? 1 : -1;
             const distance = distanceConfig.min + Math.random() * (distanceConfig.max - distanceConfig.min);
             const trueZone = currentPrice * (1 + direction * distance / 100);
-            // Apply interval tightness from tier
+            
+            // Apply interval tightness from tier (higher tiers = tighter intervals = easier to hit)
             const intervalWidth = (intervalConfig.min + Math.random() * (intervalConfig.max - intervalConfig.min)) * intervalTightness;
             // Calculate interval half based on trueZone, not currentPrice, so interval is centered on the zone
             const intervalHalf = (trueZone * intervalWidth / 100) / 2;
@@ -397,8 +472,26 @@ function generateProphecyData(prophecyType, currentPrice, duration, tierModifier
         }
         
         case 'volatilitySpike': {
-            // Get volatility spike config (with fallbacks)
-            const volConfig = config.volatilityMultiplier || { min: 2.0, max: 4.0 };
+            // Get base volatility spike config (with fallbacks)
+            const baseVolConfig = config.volatilityMultiplier || { min: 4.0, max: 8.0 };
+            
+            // Determine tier from strengthBonus (0 = tier 1, 0.15 = tier 2, 0.3 = tier 3)
+            // Higher tiers = MORE extreme volatility spikes
+            let volConfig;
+            if (strengthBonus === 0) {
+                // Tier 1: Moderate spike (4.0x - 8.0x)
+                volConfig = { min: 4.0, max: 8.0 };
+            } else if (strengthBonus === 0.15) {
+                // Tier 2: Strong spike (5.0x - 10.0x)
+                volConfig = { min: 5.0, max: 10.0 };
+            } else if (strengthBonus === 0.3) {
+                // Tier 3: Extreme spike (6.0x - 12.0x)
+                volConfig = { min: 6.0, max: 12.0 };
+            } else {
+                // Fallback to tier 1
+                volConfig = baseVolConfig;
+            }
+            
             // Apply interval tightness to volatility range (tighter = more precise prediction)
             const volRange = (volConfig.max - volConfig.min) * intervalTightness;
             const volatilityMin = volConfig.min + Math.random() * volRange * 0.3;
@@ -413,8 +506,26 @@ function generateProphecyData(prophecyType, currentPrice, duration, tierModifier
         }
         
         case 'volatilityCalm': {
-            // Get volatility calm config (with fallbacks)
-            const volConfig = config.volatilityMultiplier || { min: 0.2, max: 0.5 };
+            // Get base volatility calm config (with fallbacks)
+            const baseVolConfig = config.volatilityMultiplier || { min: 0.05, max: 0.1 };
+            
+            // Determine tier from strengthBonus (0 = tier 1, 0.15 = tier 2, 0.3 = tier 3)
+            // REVERSED: Higher tiers = MORE dramatic calm (less active, closer to zero)
+            let volConfig;
+            if (strengthBonus === 0) {
+                // Tier 1: Mild calm (0.2x - 0.4x) - less dramatic, closer to normal
+                volConfig = { min: 0.2, max: 0.4 };
+            } else if (strengthBonus === 0.15) {
+                // Tier 2: Moderate calm (0.1x - 0.2x) - more dramatic
+                volConfig = { min: 0.1, max: 0.2 };
+            } else if (strengthBonus === 0.3) {
+                // Tier 3: Very calm (0.05x - 0.1x) - very dramatic reduction, least active
+                volConfig = { min: 0.05, max: 0.1 };
+            } else {
+                // Fallback to tier 1
+                volConfig = baseVolConfig;
+            }
+            
             // Apply interval tightness to volatility range
             const volRange = (volConfig.max - volConfig.min) * intervalTightness;
             const volatilityMin = volConfig.min + Math.random() * volRange * 0.5;
@@ -911,8 +1022,7 @@ function getProphecyCategoryClass(deal) {
     switch (deal.prophecyType) {
         case 'trendUp': return 'trend-up';
         case 'trendDown': return 'trend-down';
-        case 'lowerShore': return 'shore-lower';
-        case 'upperShore': return 'shore-upper';
+        case 'shore': return 'shore';
         case 'inevitableZone': return 'zone';
         case 'volatilitySpike': return 'volatility-spike';
         case 'volatilityCalm': return 'volatility-calm';
@@ -936,21 +1046,17 @@ function renderProphecyDetails(deal) {
                 </div>
             `;
         
-        case 'lowerShore':
-            if (deal.intervalMin === undefined || deal.intervalMax === undefined) return '';
+        case 'shore':
+            if (deal.lowerIntervalMin === undefined || deal.lowerIntervalMax === undefined || 
+                deal.upperIntervalMin === undefined || deal.upperIntervalMax === undefined) return '';
             return `
                 <div class="prophecy-detail-row">
                     <span class="detail-label">Floor:</span>
-                    <span class="detail-value price-interval">$${deal.intervalMin.toFixed(2)}-${deal.intervalMax.toFixed(2)}</span>
+                    <span class="detail-value price-interval">$${deal.lowerIntervalMin.toFixed(2)}-${deal.lowerIntervalMax.toFixed(2)}</span>
                 </div>
-            `;
-        
-        case 'upperShore':
-            if (deal.intervalMin === undefined || deal.intervalMax === undefined) return '';
-            return `
                 <div class="prophecy-detail-row">
                     <span class="detail-label">Ceiling:</span>
-                    <span class="detail-value price-interval">$${deal.intervalMin.toFixed(2)}-${deal.intervalMax.toFixed(2)}</span>
+                    <span class="detail-value price-interval">$${deal.upperIntervalMin.toFixed(2)}-${deal.upperIntervalMax.toFixed(2)}</span>
                 </div>
             `;
         

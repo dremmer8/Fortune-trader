@@ -303,9 +303,60 @@ const SAVE_KEY = 'fortuneTrader_save';
 // Pending save snapshot key
 const PENDING_SAVE_KEY = 'fortuneTrader_pendingSave';
 
+// Helper function to serialize deals for saving (convert Set to Array)
+function serializeDeals(deals) {
+    if (!deals || !Array.isArray(deals)) return [];
+    
+    // Only save undecoded prophecies (not resolved, not decoded)
+    return deals
+        .filter(deal => !deal.resolved && !deal.isDecoded)
+        .map(deal => {
+            // Create a serializable copy
+            const serialized = { ...deal };
+            // Convert Set to Array for revealedIndices
+            if (deal.revealedIndices instanceof Set) {
+                serialized.revealedIndices = Array.from(deal.revealedIndices);
+            } else if (Array.isArray(deal.revealedIndices)) {
+                serialized.revealedIndices = deal.revealedIndices;
+            } else {
+                serialized.revealedIndices = [];
+            }
+            return serialized;
+        });
+}
+
+// Helper function to deserialize deals when loading (convert Array back to Set)
+function deserializeDeals(serializedDeals) {
+    if (!serializedDeals || !Array.isArray(serializedDeals)) return [];
+    
+    return serializedDeals.map(deal => {
+        // Convert Array back to Set for revealedIndices
+        if (Array.isArray(deal.revealedIndices)) {
+            deal.revealedIndices = new Set(deal.revealedIndices);
+        } else {
+            deal.revealedIndices = new Set();
+        }
+        
+        // Restore computed 'remaining' property if it doesn't exist
+        // (This property is defined with Object.defineProperty in createProphecy)
+        if (!deal.hasOwnProperty('remaining')) {
+            Object.defineProperty(deal, 'remaining', {
+                get: function() {
+                    if (!this.startTime) return this.duration; // Not decoded yet, show full duration
+                    return Math.max(0, this.duration - (Date.now() - this.startTime) / 1000);
+                },
+                enumerable: true,
+                configurable: true
+            });
+        }
+        
+        return deal;
+    });
+}
+
 async function saveGameState() {
     const saveData = {
-        version: 8,
+        version: 9,
         timestamp: Date.now(),
         // Banking data
         bankBalance: state.bankBalance,
@@ -326,6 +377,7 @@ async function saveGameState() {
         betIndex: state.betIndex,
         purchasedUpgrades: state.purchasedUpgrades || [],
         cookieInventory: state.cookieInventory || [],
+        deals: serializeDeals(state.deals || []), // Save undecoded prophecies
         marginPosition: state.marginPosition || null
     };
 
@@ -696,6 +748,8 @@ async function loadGameState() {
         state.betIndex = saveData.betIndex || 0;
         state.purchasedUpgrades = saveData.purchasedUpgrades || [];
         state.cookieInventory = saveData.cookieInventory || [];
+        // Restore undecoded prophecies (deals) - convert Set back from Array
+        state.deals = deserializeDeals(saveData.deals || []);
         state.marginPosition = saveData.marginPosition || null;
         
         // Initialize predictions array (always empty on load - predictions are in-memory only)

@@ -498,7 +498,7 @@ const PROPHECY_CONFIG = {
         // Duration (seconds)
         duration: { min: 25, max: 35 },
         // Trend strength (percentage per tick)
-        strength: { min: 0.5, max: 1.5 }
+        strength: { min: 2, max: 5 }
     },
     
     // ---- TREND DOWN ----
@@ -510,33 +510,21 @@ const PROPHECY_CONFIG = {
         // Duration (seconds)
         duration: { min: 25, max: 35 },
         // Trend strength (percentage per tick)
-        strength: { min: 0.5, max: 1.5 }
+        strength: { min: 2, max: 5 }
     },
     
-    // ---- LOWER SHORE (Price Floor) ----
-    lowerShore: {
-        name: 'Lower Shore',
-        description: 'Price floor guaranteed',
+    // ---- SHORE (Combined Price Floor & Ceiling) ----
+    shore: {
+        name: 'Shore',
+        description: 'Price floor and ceiling guaranteed',
         icon: '🛡️',
         category: 'shore',
         // Duration (seconds)
         duration: { min: 25, max: 35 },
-        // Distance from current price (percentage)
-        distance: { min: 0.5, max: 3.0 },
-        // Interval width (percentage)
-        intervalWidth: { min: 0.3, max: 1.0 }
-    },
-    
-    // ---- UPPER SHORE (Price Ceiling) ----
-    upperShore: {
-        name: 'Upper Shore',
-        description: 'Price ceiling guaranteed',
-        icon: '🔒',
-        category: 'shore',
-        // Duration (seconds)
-        duration: { min: 25, max: 35 },
-        // Distance from current price (percentage)
-        distance: { min: 0.5, max: 3.0 },
+        // Distance from current price for lower bound (percentage)
+        lowerDistance: { min: 0.5, max: 3.0 },
+        // Distance from current price for upper bound (percentage)
+        upperDistance: { min: 0.5, max: 3.0 },
         // Interval width (percentage)
         intervalWidth: { min: 0.3, max: 1.0 }
     },
@@ -990,6 +978,30 @@ const SHOP_UPGRADES = {
         effects: {
             botBetPercentage: 1.0  // 100% of current bet
         }
+    },
+    cookieStockHint: {
+        name: 'Cookie Stock Hint',
+        description: 'Shows stock name hint on undecoded cookies',
+        icon: '🔍',
+        price: 2500,
+        order: 26,
+        visible: true,
+        locked: false,
+        effects: {
+            showsStockHint: true
+        }
+    },
+    cookieProphecyHint: {
+        name: 'Cookie Prophecy Hint',
+        description: 'Shows prophecy type hint on undecoded cookies',
+        icon: '💡',
+        price: 3000,
+        order: 27,
+        visible: true,
+        locked: false,
+        effects: {
+            showsProphecyHint: true
+        }
     }
 };
 
@@ -1193,6 +1205,18 @@ function getBotBetPercentage() {
         return 0.25;  // 25%
     }
     return 0.1;  // Default: 10%
+}
+
+// Check if cookie stock hint upgrade is purchased
+function hasCookieStockHint() {
+    if (!state.purchasedUpgrades) return false;
+    return state.purchasedUpgrades.includes('cookieStockHint');
+}
+
+// Check if cookie prophecy hint upgrade is purchased
+function hasCookieProphecyHint() {
+    if (!state.purchasedUpgrades) return false;
+    return state.purchasedUpgrades.includes('cookieProphecyHint');
 }
 
 // Legacy compatibility - individual config references

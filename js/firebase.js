@@ -134,7 +134,9 @@ const FirebaseService = {
             if (functions && firebaseUser) {
                 try {
                     const validate = firebase.functions().httpsCallable('validateSubmission');
-                    const result = await validate({ userId: docId, payload });
+                    // Cloud function expects userId in format: gameUserId_firebaseUid
+                    const compositeUserId = `${userId}_${firebaseUser.uid}`;
+                    const result = await validate({ userId: compositeUserId, payload });
                     console.log('✅ Cloud validation passed');
                     
                     // After successful validation, clear security flags (but don't re-sign)

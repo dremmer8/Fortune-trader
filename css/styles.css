@@ -5941,6 +5941,11 @@ body {
     border-color: var(--accent);
 }
 
+.nav-btn.tutorial-btn:hover {
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
 .nav-btn.reset-btn:hover {
     border-color: var(--danger);
     color: var(--danger);
@@ -6280,6 +6285,375 @@ body {
 }
 
 /* ===========================================
+   TUTORIAL OVERLAY
+   =========================================== */
+.tutorial-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 90%;
+    max-width: 800px;
+    max-height: 85vh;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 201;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tutorial-overlay.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.tutorial-overlay.positioned-right {
+    top: 50%;
+    left: auto;
+    right: 20px;
+    transform: translateY(-50%) scale(1);
+    width: 350px;
+    max-width: calc(100vw - 40px);
+}
+
+.tutorial-overlay.positioned-left {
+    top: 50%;
+    right: auto;
+    left: 20px;
+    transform: translateY(-50%) scale(1);
+    width: 400px;
+    max-width: calc(100vw - 40px);
+}
+
+.tutorial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-tertiary);
+}
+
+.tutorial-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tutorial-close {
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tutorial-close:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+    background: var(--danger-bg);
+}
+
+.tutorial-content {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--bg-primary);
+}
+
+.tutorial-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tutorial-content::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+.tutorial-content::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+.tutorial-content::-webkit-scrollbar-thumb:hover {
+    background: var(--border-light);
+}
+
+.tutorial-step {
+    min-height: 300px;
+}
+
+.tutorial-step-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tutorial-step-icon {
+    font-size: 24px;
+}
+
+.tutorial-step-content {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 20px;
+}
+
+.tutorial-step-content p {
+    margin-bottom: 12px;
+}
+
+.tutorial-step-content ul {
+    margin: 12px 0;
+    padding-left: 24px;
+}
+
+.tutorial-step-content li {
+    margin-bottom: 8px;
+}
+
+.tutorial-step-content strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.tutorial-step-content code {
+    background: var(--bg-primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    border: 1px solid var(--border);
+}
+
+.tutorial-highlight-box {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-light);
+    border-left: 3px solid var(--warning);
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+.tutorial-highlight-box-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--warning);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tutorial-highlight-box-content {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.tutorial-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 24px;
+}
+
+.tutorial-nav-btn {
+    padding: 10px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+}
+
+.tutorial-nav-btn:hover:not(:disabled) {
+    background: var(--bg-hover);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.tutorial-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.tutorial-progress {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.tutorial-progress span:first-child {
+    color: var(--accent);
+}
+
+/* Tutorial Highlight Overlay - Spotlight effect */
+.tutorial-highlight-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 200;
+    display: none;
+}
+
+.tutorial-highlight-overlay::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(3px);
+    /* Create a "hole" in the overlay using clip-path */
+    clip-path: polygon(
+        /* Top-left to highlight start */
+        0% 0%,
+        0% 100%,
+        var(--highlight-x) 100%,
+        var(--highlight-x) var(--highlight-y),
+        /* Top of highlight */
+        calc(var(--highlight-x) + var(--highlight-width)) var(--highlight-y),
+        /* Right side of highlight */
+        calc(var(--highlight-x) + var(--highlight-width)) calc(var(--highlight-y) + var(--highlight-height)),
+        /* Bottom of highlight */
+        var(--highlight-x) calc(var(--highlight-y) + var(--highlight-height)),
+        /* Back to left side */
+        var(--highlight-x) 100%,
+        /* Rest of screen */
+        100% 100%,
+        100% 0%
+    );
+    transition: clip-path 0.3s ease;
+}
+
+/* Highlighted element styling */
+.tutorial-highlighted {
+    position: relative;
+    z-index: 202 !important;
+    outline: 3px solid var(--warning) !important;
+    outline-offset: 4px !important;
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.3), 0 0 20px rgba(245, 158, 11, 0.5) !important;
+    border-radius: 8px;
+    animation: tutorialPulse 2s ease-in-out infinite;
+}
+
+@keyframes tutorialPulse {
+    0%, 100% {
+        outline-color: var(--warning);
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.3), 0 0 20px rgba(245, 158, 11, 0.5);
+    }
+    50% {
+        outline-color: #fbbf24;
+        box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.5), 0 0 30px rgba(251, 191, 36, 0.7);
+    }
+}
+
+/* Tutorial Button Preview - Shows buttons in center during tutorial */
+.tutorial-button-preview-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 203;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.tutorial-button-preview-container.visible {
+    opacity: 1;
+}
+
+.tutorial-button-preview {
+    background: var(--bg-secondary);
+    border: 2px solid var(--warning);
+    border-radius: 16px;
+    padding: 24px 32px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(245, 158, 11, 0.2);
+    backdrop-filter: blur(10px);
+    min-width: 300px;
+}
+
+.tutorial-button-preview-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--warning);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    margin-bottom: 16px;
+    opacity: 0.9;
+}
+
+.tutorial-button-preview .stock-trade-buttons,
+.tutorial-button-preview .margin-trade-buttons {
+    display: flex !important;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    border-left: none !important;
+    visibility: visible !important;
+}
+
+.tutorial-button-preview .trade-btn {
+    pointer-events: none;
+    opacity: 1 !important;
+    cursor: default;
+    position: relative;
+    display: flex !important;
+    visibility: visible !important;
+}
+
+.tutorial-button-preview .trade-btn.hidden {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.tutorial-button-preview .trade-btn:hover {
+    transform: none;
+}
+
+/* ===========================================
    CONFIRM MODAL (Reset Game)
    =========================================== */
 .confirm-modal {
@@ -6447,6 +6821,16 @@ body {
         border-left: none;
         border-top: 1px solid var(--border);
     }
+    
+    /* Tutorial overlay responsive */
+    .tutorial-overlay.positioned-right,
+    .tutorial-overlay.positioned-left {
+        width: 90%;
+        max-width: 500px;
+        right: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 
 @media (max-width: 768px) {
@@ -6483,6 +6867,16 @@ body {
     
     .nav-btn-label {
         display: none;
+    }
+    
+    /* Tutorial overlay mobile */
+    .tutorial-overlay.positioned-side {
+        width: 95%;
+        max-width: none;
+        right: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(1);
+        max-height: 90vh;
     }
 }
 

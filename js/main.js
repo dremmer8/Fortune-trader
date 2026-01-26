@@ -484,6 +484,30 @@ function updateSettingsDisplay() {
     }
 }
 
+// Logout function - clears credentials and shows login card
+function logout() {
+    // Clear saved credentials
+    clearCredentials();
+    
+    // Reset login state
+    isLoggedIn = false;
+    playerName = '';
+    playerId = '';
+    
+    // Close settings menu
+    closeSettingsApp();
+    
+    // Show login card
+    showLoginCard();
+    
+    // Play click sound
+    if (typeof AudioManager !== 'undefined') {
+        AudioManager.playClick();
+    }
+    
+    console.log('Logged out successfully');
+}
+
 // ===========================================
 // LEADERBOARD APP
 // ===========================================
@@ -2134,23 +2158,77 @@ function generateSimulatedHistory(symbol, pointCount = CHART_VISIBLE_POINTS) {
         }
         tempSim.trendDuration--;
         
+        // Get prophecy effects for this symbol at this tick's time
+        const tickTime = getTimeForTickNumber(tick);
+        const prophecyEffects = getProphecyEffectsForSymbol(symbol, tickTime);
+        
         // Calculate price change
         const baseVolatility = currentPrice * cfg.baseVolatility;
-        const volatility = baseVolatility * tempSim.volatility;
+        // Apply prophecy volatility multiplier
+        const volatility = baseVolatility * tempSim.volatility * prophecyEffects.volatilityMultiplier;
         
         // Seeded Gaussian noise
         const gaussian = seededGaussian(rng);
         const noise = gaussian * volatility * cfg.noiseWeight;
         
-        // Trend effect
+        // Trend effect (natural trend, no prophecy bias)
         const trendEffect = tempSim.trend * volatility * cfg.trendWeight;
         
         // Mean reversion
         const deviation = (currentPrice - basePrice) / basePrice;
         const meanReversion = -deviation * currentPrice * cfg.meanReversionWeight;
         
+        // Calculate natural price change
+        let priceChange = noise + trendEffect + meanReversion;
+        
+        // Apply trend prophecy reversal logic
+        // If price moves against prophecy direction, reverse it with probability
+        // Check for conflicting trends first - if both up and down are active, cancel each other out
+        const hasTrendUp = prophecyEffects.trendProphecies.some(p => p.type === 'trendUp');
+        const hasTrendDown = prophecyEffects.trendProphecies.some(p => p.type === 'trendDown');
+        
+        if (hasTrendUp && hasTrendDown) {
+            // Conflicting trends - cancel each other out (no reversals applied)
+            // Price moves naturally without trend interference
+        } else {
+            // Only one direction active, or multiple same-direction - apply reversals with diminishing returns
+            // No threshold - apply to ANY counter-trend movement, no matter how small
+            
+            // Group same-direction trends and calculate combined probability with diminishing returns
+            const trendUpProphecies = prophecyEffects.trendProphecies.filter(p => p.type === 'trendUp');
+            const trendDownProphecies = prophecyEffects.trendProphecies.filter(p => p.type === 'trendDown');
+            
+            if (trendUpProphecies.length > 0 && priceChange < 0) {
+                // Any downward movement - reverse with probability
+                // Calculate combined probability with diminishing returns
+                // Formula: maxProbability + (1 - maxProbability) * min(0.12 * (N-1), 0.25)
+                // This makes stacking less effective to encourage upgrading to higher tiers
+                const maxProbability = Math.max(...trendUpProphecies.map(p => p.reversalProbability));
+                const count = trendUpProphecies.length;
+                const bonusMultiplier = Math.min(0.12 * (count - 1), 0.25); // Max 25% bonus
+                const effectiveProbability = maxProbability + (1 - maxProbability) * bonusMultiplier;
+                
+                if (rng() < effectiveProbability) {
+                    // Reverse the movement (make it positive)
+                    priceChange = Math.abs(priceChange);
+                }
+            } else if (trendDownProphecies.length > 0 && priceChange > 0) {
+                // Any upward movement - reverse with probability
+                // Calculate combined probability with diminishing returns
+                const maxProbability = Math.max(...trendDownProphecies.map(p => p.reversalProbability));
+                const count = trendDownProphecies.length;
+                const bonusMultiplier = Math.min(0.12 * (count - 1), 0.25); // Max 25% bonus
+                const effectiveProbability = maxProbability + (1 - maxProbability) * bonusMultiplier;
+                
+                if (rng() < effectiveProbability) {
+                    // Reverse the movement (make it negative)
+                    priceChange = -Math.abs(priceChange);
+                }
+            }
+        }
+        
         // Apply changes
-        currentPrice = currentPrice + noise + trendEffect + meanReversion;
+        currentPrice = currentPrice + priceChange;
         
         // No artificial boundaries - prices can move freely
         // Mean reversion naturally keeps prices centered around basePrice
@@ -2520,23 +2598,77 @@ function simulatePriceForTick(symbol, simState, currentPrice, basePrice, tick) {
     }
     sim.trendDuration--;
     
+    // Get prophecy effects for this symbol at this tick's time
+    const tickTime = getTimeForTickNumber(tick);
+    const prophecyEffects = getProphecyEffectsForSymbol(symbol, tickTime);
+    
     // Calculate price change
     const baseVolatility = currentPrice * cfg.baseVolatility;
-    const volatility = baseVolatility * sim.volatility;
+    // Apply prophecy volatility multiplier
+    const volatility = baseVolatility * sim.volatility * prophecyEffects.volatilityMultiplier;
     
     // Seeded Gaussian noise
     const gaussian = seededGaussian(rng);
     const noise = gaussian * volatility * cfg.noiseWeight;
     
-    // Trend effect
+    // Trend effect (natural trend, no prophecy bias)
     const trendEffect = sim.trend * volatility * cfg.trendWeight;
     
     // Mean reversion
     const deviation = (currentPrice - basePrice) / basePrice;
     const meanReversion = -deviation * currentPrice * cfg.meanReversionWeight;
     
+    // Calculate natural price change
+    let priceChange = noise + trendEffect + meanReversion;
+    
+    // Apply trend prophecy reversal logic
+    // If price moves against prophecy direction, reverse it with probability
+    // Check for conflicting trends first - if both up and down are active, cancel each other out
+    const hasTrendUp = prophecyEffects.trendProphecies.some(p => p.type === 'trendUp');
+    const hasTrendDown = prophecyEffects.trendProphecies.some(p => p.type === 'trendDown');
+    
+    if (hasTrendUp && hasTrendDown) {
+        // Conflicting trends - cancel each other out (no reversals applied)
+        // Price moves naturally without trend interference
+    } else {
+        // Only one direction active, or multiple same-direction - apply reversals with diminishing returns
+        // No threshold - apply to ANY counter-trend movement, no matter how small
+        
+        // Group same-direction trends and calculate combined probability with diminishing returns
+        const trendUpProphecies = prophecyEffects.trendProphecies.filter(p => p.type === 'trendUp');
+        const trendDownProphecies = prophecyEffects.trendProphecies.filter(p => p.type === 'trendDown');
+        
+        if (trendUpProphecies.length > 0 && priceChange < 0) {
+            // Any downward movement - reverse with probability
+            // Calculate combined probability with diminishing returns
+            // Formula: maxProbability + (1 - maxProbability) * min(0.12 * (N-1), 0.25)
+            // This makes stacking less effective to encourage upgrading to higher tiers
+            const maxProbability = Math.max(...trendUpProphecies.map(p => p.reversalProbability));
+            const count = trendUpProphecies.length;
+            const bonusMultiplier = Math.min(0.12 * (count - 1), 0.25); // Max 25% bonus
+            const effectiveProbability = maxProbability + (1 - maxProbability) * bonusMultiplier;
+            
+            if (rng() < effectiveProbability) {
+                // Reverse the movement (make it positive)
+                priceChange = Math.abs(priceChange);
+            }
+        } else if (trendDownProphecies.length > 0 && priceChange > 0) {
+            // Any upward movement - reverse with probability
+            // Calculate combined probability with diminishing returns
+            const maxProbability = Math.max(...trendDownProphecies.map(p => p.reversalProbability));
+            const count = trendDownProphecies.length;
+            const bonusMultiplier = Math.min(0.12 * (count - 1), 0.25); // Max 25% bonus
+            const effectiveProbability = maxProbability + (1 - maxProbability) * bonusMultiplier;
+            
+            if (rng() < effectiveProbability) {
+                // Reverse the movement (make it negative)
+                priceChange = -Math.abs(priceChange);
+            }
+        }
+    }
+    
     // Calculate new price
-    let newPrice = currentPrice + noise + trendEffect + meanReversion;
+    let newPrice = currentPrice + priceChange;
     
     // No artificial boundaries - prices can move freely
     // Mean reversion naturally keeps prices centered around basePrice
@@ -2604,19 +2736,19 @@ function updateAllCharts() {
     }
 }
 
-// Get prophecy effects (volatility multiplier + trend bias) for a specific symbol
+// Get prophecy effects (volatility multiplier + trend prophecies) for a specific symbol
 // This is used during price simulation for each chart
-function getProphecyEffectsForSymbol(symbol) {
-    const now = Date.now();
+// timeMs: optional timestamp in milliseconds (defaults to current time)
+function getProphecyEffectsForSymbol(symbol, timeMs = null) {
+    const now = timeMs !== null ? timeMs : Date.now();
     let volatilityMultiplier = 1;
-    let trendBias = 0;
     let hasSpike = false;
     let hasCalm = false;
     let spikeValue = 1;
     let calmValue = 1;
-    let prophecyCount = 0;
+    const trendProphecies = []; // Array of { type: 'trendUp'|'trendDown', reversalProbability: number }
     
-    if (!state.deals) return { volatilityMultiplier, trendBias };
+    if (!state.deals) return { volatilityMultiplier, trendProphecies };
     
     state.deals.forEach(prophecy => {
         if (prophecy.resolved || prophecy.targetStock !== symbol || !prophecy.isDecoded) return;
@@ -2625,32 +2757,31 @@ function getProphecyEffectsForSymbol(symbol) {
         const remaining = Math.max(0, prophecy.duration - elapsed);
         if (remaining <= 0) return;
         
-        const timeWeight = remaining / prophecy.duration;
-        
-        // Trend prophecies
-        if (prophecy.prophecyType === 'trendUp') {
-            const avgStrength = (prophecy.strengthMin + prophecy.strengthMax) / 2 / 100;
-            trendBias += avgStrength * timeWeight;
-            prophecyCount++;
-        } else if (prophecy.prophecyType === 'trendDown') {
-            const avgStrength = (prophecy.strengthMin + prophecy.strengthMax) / 2 / 100;
-            trendBias -= avgStrength * timeWeight;
-            prophecyCount++;
+        // Trend prophecies - store for reversal logic
+        if (prophecy.prophecyType === 'trendUp' || prophecy.prophecyType === 'trendDown') {
+            const reversalProbability = prophecy.reversalProbability || 0.15; // Default fallback
+            trendProphecies.push({
+                type: prophecy.prophecyType,
+                reversalProbability: reversalProbability
+            });
         }
-        // Volatility prophecies - active immediately when decoded
+        // Volatility prophecies - only active during their time window
         else if (prophecy.prophecyType === 'volatilitySpike') {
-            hasSpike = true;
-            spikeValue = Math.max(spikeValue, prophecy.trueVolatility);
+            // Check if we're in the active window
+            const inWindow = elapsed >= (prophecy.windowStart || 0) && elapsed <= (prophecy.windowEnd || prophecy.duration);
+            if (inWindow) {
+                hasSpike = true;
+                spikeValue = Math.max(spikeValue, prophecy.trueVolatility);
+            }
         } else if (prophecy.prophecyType === 'volatilityCalm') {
-            hasCalm = true;
-            calmValue = Math.min(calmValue, prophecy.trueVolatility);
+            // Check if we're in the active window
+            const inWindow = elapsed >= (prophecy.windowStart || 0) && elapsed <= (prophecy.windowEnd || prophecy.duration);
+            if (inWindow) {
+                hasCalm = true;
+                calmValue = Math.min(calmValue, prophecy.trueVolatility);
+            }
         }
     });
-    
-    // Normalize trend bias
-    if (prophecyCount > 0) {
-        trendBias = trendBias / prophecyCount;
-    }
     
     // Apply volatility multipliers - spike takes priority over calm
     if (hasSpike) {
@@ -2659,12 +2790,17 @@ function getProphecyEffectsForSymbol(symbol) {
         volatilityMultiplier = calmValue;
     }
     
-    return { volatilityMultiplier, trendBias };
+    return { volatilityMultiplier, trendProphecies };
 }
 
 // Legacy wrapper for volatility only
 function getVolatilityMultiplierForSymbol(symbol) {
     return getProphecyEffectsForSymbol(symbol).volatilityMultiplier;
+}
+
+// Legacy wrapper - no longer used but kept for compatibility
+function getTrendBiasForSymbol(symbol) {
+    return 0; // Trend prophecies now use reversal logic instead
 }
 
 // Calculate all prophecy effects for current stock
@@ -2690,27 +2826,23 @@ function calculateProphecyEffects() {
         const timeWeight = remaining / prophecy.duration;
         
         switch (prophecy.prophecyType) {
-            case 'trendUp': {
-                const avgStrength = (prophecy.strengthMin + prophecy.strengthMax) / 2 / 100;
-                effects.trendBias += avgStrength * timeWeight;
-                break;
-            }
+            case 'trendUp':
             case 'trendDown': {
-                const avgStrength = (prophecy.strengthMin + prophecy.strengthMax) / 2 / 100;
-                effects.trendBias -= avgStrength * timeWeight;
+                // Trend prophecies now use reversal logic in price simulation
+                // No post-simulation effects needed
                 break;
             }
-            case 'lowerShore': {
-                // Use the true floor value
-                if (!effects.lowerShore || prophecy.trueValue > effects.lowerShore) {
-                    effects.lowerShore = prophecy.trueValue;
+            case 'shore': {
+                // Combined shore - sets both lower and upper bounds
+                const lowerShore = prophecy.lowerShore;
+                const upperShore = prophecy.upperShore;
+                
+                // Use most restrictive values (highest floor, lowest ceiling)
+                if (!effects.lowerShore || lowerShore > effects.lowerShore) {
+                    effects.lowerShore = lowerShore;
                 }
-                break;
-            }
-            case 'upperShore': {
-                // Use the true ceiling value
-                if (!effects.upperShore || prophecy.trueValue < effects.upperShore) {
-                    effects.upperShore = prophecy.trueValue;
+                if (!effects.upperShore || upperShore < effects.upperShore) {
+                    effects.upperShore = upperShore;
                 }
                 break;
             }
@@ -2736,10 +2868,8 @@ function calculateProphecyEffects() {
         }
     });
     
-    // Normalize trend bias if multiple prophecies
-    if (effects.activeProphecyCount > 0) {
-        effects.trendBias = effects.trendBias / Math.max(1, effects.activeProphecyCount);
-    }
+    // Trend bias is no longer used (trend prophecies use reversal logic)
+    // Keep trendBias in return for backwards compatibility but it's always 0
     
     return effects;
 }
@@ -2764,24 +2894,59 @@ function applyProphecyEffectsToActiveChart() {
     let currentPrice = state.chartPrices[activeSymbol].currentPrice;
     let modified = false;
     
-    // Apply shore constraints (enforce floor/ceiling)
+    // Apply combined shore constraints (enforce floor/ceiling together)
+    // When both shores are active, they work together as a combined range
     // Use seeded RNG for determinism
     const currentTick = getCurrentTickNumber();
     const rng = createTickRNG(activeSymbol + '_prophecy', currentTick);
     
-    if (prophecyEffects.lowerShore !== null && currentPrice < prophecyEffects.lowerShore) {
-        currentPrice = prophecyEffects.lowerShore + rng() * currentPrice * 0.001;
-        modified = true;
-    }
-    if (prophecyEffects.upperShore !== null && currentPrice > prophecyEffects.upperShore) {
-        currentPrice = prophecyEffects.upperShore - rng() * currentPrice * 0.001;
-        modified = true;
+    // Combine shores: if both are active, clamp price to the range
+    if (prophecyEffects.lowerShore !== null && prophecyEffects.upperShore !== null) {
+        // Both shores active - combine them into a single range constraint
+        const lowerBound = prophecyEffects.lowerShore;
+        const upperBound = prophecyEffects.upperShore;
+        
+        if (currentPrice < lowerBound) {
+            // Below lower bound - clamp to lower bound with small random offset
+            currentPrice = lowerBound + rng() * currentPrice * 0.001;
+            modified = true;
+        } else if (currentPrice > upperBound) {
+            // Above upper bound - clamp to upper bound with small random offset
+            currentPrice = upperBound - rng() * currentPrice * 0.001;
+            modified = true;
+        }
+        // If price is within bounds, no modification needed
+    } else {
+        // Only one shore active - apply individually
+        if (prophecyEffects.lowerShore !== null && currentPrice < prophecyEffects.lowerShore) {
+            currentPrice = prophecyEffects.lowerShore + rng() * currentPrice * 0.001;
+            modified = true;
+        }
+        if (prophecyEffects.upperShore !== null && currentPrice > prophecyEffects.upperShore) {
+            currentPrice = prophecyEffects.upperShore - rng() * currentPrice * 0.001;
+            modified = true;
+        }
     }
     
     // Apply inevitable zone magnetism
+    // If shore bounds are active, clamp zone targets to within bounds to prevent conflicts
+    const lowerBound = prophecyEffects.lowerShore;
+    const upperBound = prophecyEffects.upperShore;
+    const hasShoreBounds = lowerBound !== null && upperBound !== null;
+    
     prophecyEffects.inevitableZones.forEach(zone => {
         if (!zone.prophecy.touched) {
-            const distanceToZone = zone.target - currentPrice;
+            // If shore bounds exist and zone target is outside, clamp target to nearest bound
+            let effectiveTarget = zone.target;
+            if (hasShoreBounds) {
+                if (zone.target < lowerBound) {
+                    effectiveTarget = lowerBound; // Clamp to lower bound
+                } else if (zone.target > upperBound) {
+                    effectiveTarget = upperBound; // Clamp to upper bound
+                }
+            }
+            
+            const distanceToZone = effectiveTarget - currentPrice;
             const urgency = 1 - (zone.remaining / zone.duration);
             // Use magnetism strength from prophecy config (default 0.25)
             const magnetismStrength = zone.prophecy.magnetismStrength || 0.25;

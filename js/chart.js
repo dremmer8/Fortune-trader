@@ -112,8 +112,17 @@ function handleChartClick(event) {
     const prophecies = typeof getActivePropheciesForChart === 'function' ? getActivePropheciesForChart() : [];
     const prophecyPrices = [];
     prophecies.forEach(p => {
-        if (p.intervalMin !== undefined) prophecyPrices.push(p.intervalMin);
-        if (p.intervalMax !== undefined) prophecyPrices.push(p.intervalMax);
+        // Handle combined shore prophecy
+        if (p.prophecyType === 'shore') {
+            if (p.lowerIntervalMin !== undefined) prophecyPrices.push(p.lowerIntervalMin);
+            if (p.lowerIntervalMax !== undefined) prophecyPrices.push(p.lowerIntervalMax);
+            if (p.upperIntervalMin !== undefined) prophecyPrices.push(p.upperIntervalMin);
+            if (p.upperIntervalMax !== undefined) prophecyPrices.push(p.upperIntervalMax);
+        } else {
+            // Handle other prophecy types (inevitableZone, etc.)
+            if (p.intervalMin !== undefined) prophecyPrices.push(p.intervalMin);
+            if (p.intervalMax !== undefined) prophecyPrices.push(p.intervalMax);
+        }
     });
     
     // Include predictions in min/max calculation
@@ -198,244 +207,299 @@ function drawTrendProphecyIndicators(ctx, padding, chartWidth, chartHeight, min,
     
     const now = Date.now();
     
-    trendProphecies.forEach(prophecy => {
-        const isUp = prophecy.prophecyType === 'trendUp';
-        const elapsed = (now - prophecy.startTime) / 1000;
-        const remaining = Math.max(0, prophecy.duration - elapsed);
-        const progress = 1 - (remaining / prophecy.duration); // 0 to 1
+    // Group by direction to show stacking effect
+    const trendUpProphecies = trendProphecies.filter(p => p.prophecyType === 'trendUp');
+    const trendDownProphecies = trendProphecies.filter(p => p.prophecyType === 'trendDown');
+    
+    // Only draw if not conflicting (conflicting trends cancel out)
+    const activeTrends = (trendUpProphecies.length > 0 && trendDownProphecies.length === 0) ? trendUpProphecies :
+                         (trendDownProphecies.length > 0 && trendUpProphecies.length === 0) ? trendDownProphecies : [];
+    
+    if (activeTrends.length === 0) return; // Conflicting trends - don't draw
+    
+    // Use the highest probability for visual strength
+    const maxProbability = Math.max(...activeTrends.map(p => p.reversalProbability || 0.33));
+    const count = activeTrends.length;
+    const isUp = activeTrends[0].prophecyType === 'trendUp';
+    
+    // Calculate effective probability with stacking (same formula as in main.js)
+    const bonusMultiplier = Math.min(0.12 * (count - 1), 0.25);
+    const effectiveProbability = maxProbability + (1 - maxProbability) * bonusMultiplier;
+    
+    // Use effective probability for visual strength
+    const strengthNormalized = effectiveProbability / 0.95; // Normalize to 0-1 range
+    
+    // Get the longest remaining duration for timer display
+    const longestProphecy = activeTrends.reduce((longest, p) => {
+        const elapsed = (now - p.startTime) / 1000;
+        const remaining = Math.max(0, p.duration - elapsed);
+        const longestElapsed = (now - longest.startTime) / 1000;
+        const longestRemaining = Math.max(0, longest.duration - longestElapsed);
+        return remaining > longestRemaining ? p : longest;
+    }, activeTrends[0]);
+    
+    const elapsed = (now - longestProphecy.startTime) / 1000;
+    const remaining = Math.max(0, longestProphecy.duration - elapsed);
+    const progress = 1 - (remaining / longestProphecy.duration); // 0 to 1
+    
+    // Pulsing animation
+    const pulsePhase = (now % 2000) / 2000;
+    const pulseIntensity = 0.7 + Math.sin(pulsePhase * Math.PI * 2) * 0.3;
+    
+    // Colors
+    const upColor = { r: 16, g: 185, b: 129 }; // Green
+    const downColor = { r: 239, g: 68, b: 68 }; // Red
+    const color = isUp ? upColor : downColor;
+    
+    // Draw trend gradient overlay on chart area (more visible)
+    const gradientOpacity = 0.15 * strengthNormalized * pulseIntensity; // Increased from 0.08
+    
+    if (isUp) {
+        // Upward trend - gradient from bottom (transparent) to top (colored)
+        const trendGradient = ctx.createLinearGradient(0, padding.top + chartHeight, 0, padding.top);
+        trendGradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+        trendGradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, ${gradientOpacity * 0.5})`);
+        trendGradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, ${gradientOpacity})`);
+        ctx.fillStyle = trendGradient;
+    } else {
+        // Downward trend - gradient from top (transparent) to bottom (colored)
+        const trendGradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
+        trendGradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+        trendGradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, ${gradientOpacity * 0.5})`);
+        trendGradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, ${gradientOpacity})`);
+        ctx.fillStyle = trendGradient;
+    }
         
-        // Calculate average strength
-        const avgStrength = (prophecy.strengthMin + prophecy.strengthMax) / 2;
-        const strengthNormalized = avgStrength / 0.8; // Normalize to 0-1 range (max is 0.8%)
-        
-        // Pulsing animation
-        const pulsePhase = (now % 2000) / 2000;
-        const pulseIntensity = 0.7 + Math.sin(pulsePhase * Math.PI * 2) * 0.3;
-        
-        // Colors
-        const upColor = { r: 16, g: 185, b: 129 }; // Green
-        const downColor = { r: 239, g: 68, b: 68 }; // Red
-        const color = isUp ? upColor : downColor;
-        
-        // Draw trend gradient overlay on chart area
-        const gradientOpacity = 0.08 * strengthNormalized * pulseIntensity;
-        
-        if (isUp) {
-            // Upward trend - gradient from bottom (transparent) to top (colored)
-            const trendGradient = ctx.createLinearGradient(0, padding.top + chartHeight, 0, padding.top);
-            trendGradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
-            trendGradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, ${gradientOpacity * 0.5})`);
-            trendGradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, ${gradientOpacity})`);
-            ctx.fillStyle = trendGradient;
-        } else {
-            // Downward trend - gradient from top (transparent) to bottom (colored)
-            const trendGradient = ctx.createLinearGradient(0, padding.top, 0, padding.top + chartHeight);
-            trendGradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
-            trendGradient.addColorStop(0.5, `rgba(${color.r}, ${color.g}, ${color.b}, ${gradientOpacity * 0.5})`);
-            trendGradient.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, ${gradientOpacity})`);
-            ctx.fillStyle = trendGradient;
-        }
-        
-        ctx.fillRect(padding.left, padding.top, chartWidth, chartHeight);
-        
-        // Draw animated trend arrows on the right side
-        const arrowCount = 3;
-        const arrowSpacing = chartHeight / (arrowCount + 1);
-        const arrowSize = 12 + strengthNormalized * 8; // Larger arrows for stronger trends
-        const arrowOpacity = 0.4 + strengthNormalized * 0.4;
-        
-        for (let i = 0; i < arrowCount; i++) {
-            // Stagger animation for each arrow
-            const arrowPhase = (pulsePhase + i * 0.33) % 1;
-            const arrowPulse = 0.5 + Math.sin(arrowPhase * Math.PI * 2) * 0.5;
-            
-            const arrowX = padding.left + chartWidth - 30;
-            const baseY = padding.top + arrowSpacing * (i + 1);
-            
-            // Animate arrow position (move up for uptrend, down for downtrend)
-            const moveOffset = (arrowPulse - 0.5) * 15 * (isUp ? -1 : 1);
-            const arrowY = baseY + moveOffset;
-            
-            ctx.save();
-            ctx.translate(arrowX, arrowY);
-            if (!isUp) ctx.rotate(Math.PI); // Flip for down arrows
-            
-            // Draw arrow
-            ctx.beginPath();
-            ctx.moveTo(0, -arrowSize);
-            ctx.lineTo(-arrowSize * 0.6, arrowSize * 0.3);
-            ctx.lineTo(-arrowSize * 0.2, arrowSize * 0.3);
-            ctx.lineTo(-arrowSize * 0.2, arrowSize);
-            ctx.lineTo(arrowSize * 0.2, arrowSize);
-            ctx.lineTo(arrowSize * 0.2, arrowSize * 0.3);
-            ctx.lineTo(arrowSize * 0.6, arrowSize * 0.3);
-            ctx.closePath();
-            
-            ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${arrowOpacity * arrowPulse})`;
-            ctx.fill();
-            
-            ctx.restore();
-        }
-        
-        // Draw trend info badge in top-left of chart
-        const badgeX = padding.left + 10;
-        const badgeY = padding.top + 15;
-        const badgeWidth = 140;
-        const badgeHeight = 50;
-        
-        // Badge background
-        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.15)`;
-        ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.5)`;
-        ctx.lineWidth = 1;
-        
-        // Rounded rectangle
-        const radius = 6;
+    ctx.fillRect(padding.left, padding.top, chartWidth, chartHeight);
+    
+    // Draw border lines to make trend more visible
+    ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${0.3 + strengthNormalized * 0.4})`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    if (isUp) {
+        // Top border for uptrend
         ctx.beginPath();
-        ctx.moveTo(badgeX + radius, badgeY);
-        ctx.lineTo(badgeX + badgeWidth - radius, badgeY);
-        ctx.quadraticCurveTo(badgeX + badgeWidth, badgeY, badgeX + badgeWidth, badgeY + radius);
-        ctx.lineTo(badgeX + badgeWidth, badgeY + badgeHeight - radius);
-        ctx.quadraticCurveTo(badgeX + badgeWidth, badgeY + badgeHeight, badgeX + badgeWidth - radius, badgeY + badgeHeight);
-        ctx.lineTo(badgeX + radius, badgeY + badgeHeight);
-        ctx.quadraticCurveTo(badgeX, badgeY + badgeHeight, badgeX, badgeY + badgeHeight - radius);
-        ctx.lineTo(badgeX, badgeY + radius);
-        ctx.quadraticCurveTo(badgeX, badgeY, badgeX + radius, badgeY);
-        ctx.closePath();
-        ctx.fill();
+        ctx.moveTo(padding.left, padding.top);
+        ctx.lineTo(padding.left + chartWidth, padding.top);
         ctx.stroke();
+    } else {
+        // Bottom border for downtrend
+        ctx.beginPath();
+        ctx.moveTo(padding.left, padding.top + chartHeight);
+        ctx.lineTo(padding.left + chartWidth, padding.top + chartHeight);
+        ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    
+    // Draw animated trend arrows on the right side (more visible)
+    const arrowCount = 3;
+    const arrowSpacing = chartHeight / (arrowCount + 1);
+    const arrowSize = 16 + strengthNormalized * 10; // Larger arrows (increased from 12+8)
+    const arrowOpacity = 0.6 + strengthNormalized * 0.4; // More visible (increased from 0.4+0.4)
+    
+    for (let i = 0; i < arrowCount; i++) {
+        // Stagger animation for each arrow
+        const arrowPhase = (pulsePhase + i * 0.33) % 1;
+        const arrowPulse = 0.5 + Math.sin(arrowPhase * Math.PI * 2) * 0.5;
         
-        // Badge icon and text
-        const icon = isUp ? '📈' : '📉';
-        ctx.font = '16px sans-serif';
-        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 1)`;
-        ctx.textAlign = 'left';
-        ctx.fillText(icon, badgeX + 8, badgeY + 22);
+        const arrowX = padding.left + chartWidth - 30;
+        const baseY = padding.top + arrowSpacing * (i + 1);
         
-        // Trend type
-        ctx.font = 'bold 11px Inter, sans-serif';
-        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 1)`;
-        ctx.fillText(isUp ? 'TREND UP' : 'TREND DOWN', badgeX + 30, badgeY + 20);
+        // Animate arrow position (move up for uptrend, down for downtrend)
+        const moveOffset = (arrowPulse - 0.5) * 15 * (isUp ? -1 : 1);
+        const arrowY = baseY + moveOffset;
         
-        // Strength
-        ctx.font = '10px JetBrains Mono, monospace';
-        ctx.fillStyle = '#a0a0b0';
-        ctx.fillText(`Strength: ${prophecy.strengthMin.toFixed(2)}%-${prophecy.strengthMax.toFixed(2)}%`, badgeX + 8, badgeY + 38);
+        ctx.save();
+        ctx.translate(arrowX, arrowY);
+        if (!isUp) ctx.rotate(Math.PI); // Flip for down arrows
         
-        // Timer bar inside badge
-        const timerBarY = badgeY + badgeHeight - 5;
-        const timerBarWidth = badgeWidth - 16;
-        const timerProgress = remaining / prophecy.duration;
+        // Draw arrow
+        ctx.beginPath();
+        ctx.moveTo(0, -arrowSize);
+        ctx.lineTo(-arrowSize * 0.6, arrowSize * 0.3);
+        ctx.lineTo(-arrowSize * 0.2, arrowSize * 0.3);
+        ctx.lineTo(-arrowSize * 0.2, arrowSize);
+        ctx.lineTo(arrowSize * 0.2, arrowSize);
+        ctx.lineTo(arrowSize * 0.2, arrowSize * 0.3);
+        ctx.lineTo(arrowSize * 0.6, arrowSize * 0.3);
+        ctx.closePath();
         
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.fillRect(badgeX + 8, timerBarY, timerBarWidth, 3);
-        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.8)`;
-        ctx.fillRect(badgeX + 8, timerBarY, timerBarWidth * timerProgress, 3);
-    });
+        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${arrowOpacity * arrowPulse})`;
+        ctx.fill();
+        
+        ctx.restore();
+    }
+    
+    // Draw trend info badge in top-left of chart
+    const badgeX = padding.left + 10;
+    const badgeY = padding.top + 15;
+    const badgeWidth = count > 1 ? 160 : 140; // Wider if multiple trends
+    const badgeHeight = 50;
+    
+    // Badge background (more visible)
+    ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.25)`;
+    ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.8)`;
+    ctx.lineWidth = 2;
+    
+    // Rounded rectangle
+    const radius = 6;
+    ctx.beginPath();
+    ctx.moveTo(badgeX + radius, badgeY);
+    ctx.lineTo(badgeX + badgeWidth - radius, badgeY);
+    ctx.quadraticCurveTo(badgeX + badgeWidth, badgeY, badgeX + badgeWidth, badgeY + radius);
+    ctx.lineTo(badgeX + badgeWidth, badgeY + badgeHeight - radius);
+    ctx.quadraticCurveTo(badgeX + badgeWidth, badgeY + badgeHeight, badgeX + badgeWidth - radius, badgeY + badgeHeight);
+    ctx.lineTo(badgeX + radius, badgeY + badgeHeight);
+    ctx.quadraticCurveTo(badgeX, badgeY + badgeHeight, badgeX, badgeY + badgeHeight - radius);
+    ctx.lineTo(badgeX, badgeY + radius);
+    ctx.quadraticCurveTo(badgeX, badgeY, badgeX + radius, badgeY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Badge icon and text
+    const icon = isUp ? '📈' : '📉';
+    ctx.font = '16px sans-serif';
+    ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 1)`;
+    ctx.textAlign = 'left';
+    ctx.fillText(icon, badgeX + 8, badgeY + 22);
+    
+    // Trend type
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 1)`;
+    ctx.fillText(isUp ? 'TREND UP' : 'TREND DOWN', badgeX + 30, badgeY + 20);
+    
+    // Trend strength (replaces reversal probability)
+    ctx.font = '10px JetBrains Mono, monospace';
+    ctx.fillStyle = '#a0a0b0';
+    const strengthPercent = (effectiveProbability * 100).toFixed(0);
+    const countText = count > 1 ? ` (${count}x)` : '';
+    ctx.fillText(`Strength: ${strengthPercent}%${countText}`, badgeX + 8, badgeY + 38);
+    
+    // Timer bar inside badge
+    const timerBarY = badgeY + badgeHeight - 5;
+    const timerBarWidth = badgeWidth - 16;
+    const timerProgress = remaining / longestProphecy.duration;
+    
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    ctx.fillRect(badgeX + 8, timerBarY, timerBarWidth, 3);
+    ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.8)`;
+    ctx.fillRect(badgeX + 8, timerBarY, timerBarWidth * timerProgress, 3);
 }
 
 // Draw shore prophecy indicators (floor/ceiling lines)
 function drawShoreProphecyIndicators(ctx, padding, chartWidth, chartHeight, min, max, range) {
     const prophecies = getActivePropheciesForChartVisual();
-    const shoreProphecies = prophecies.filter(p => 
-        p.prophecyType === 'lowerShore' || p.prophecyType === 'upperShore'
-    );
+    const shoreProphecies = prophecies.filter(p => p.prophecyType === 'shore');
     
     if (shoreProphecies.length === 0) return;
     
     const now = Date.now();
     
     shoreProphecies.forEach(prophecy => {
-        const isLower = prophecy.prophecyType === 'lowerShore';
         const elapsed = (now - prophecy.startTime) / 1000;
         const remaining = Math.max(0, prophecy.duration - elapsed);
         const progress = remaining / prophecy.duration;
         
-        // Colors
-        const color = isLower 
-            ? { r: 34, g: 197, b: 94 }   // Green for floor
-            : { r: 249, g: 115, b: 22 }; // Orange for ceiling
+        // Lower shore (floor) - Green
+        const lowerColor = { r: 34, g: 197, b: 94 };
+        const lowerIntervalMinY = padding.top + chartHeight * (1 - (prophecy.lowerIntervalMin - min) / range);
+        const lowerIntervalMaxY = padding.top + chartHeight * (1 - (prophecy.lowerIntervalMax - min) / range);
+        const clampedLowerMinY = Math.max(padding.top, Math.min(padding.top + chartHeight, lowerIntervalMinY));
+        const clampedLowerMaxY = Math.max(padding.top, Math.min(padding.top + chartHeight, lowerIntervalMaxY));
         
-        // Calculate Y positions for the interval
-        const intervalMinY = padding.top + chartHeight * (1 - (prophecy.intervalMin - min) / range);
-        const intervalMaxY = padding.top + chartHeight * (1 - (prophecy.intervalMax - min) / range);
-        
-        // Clamp to chart area
-        const clampedMinY = Math.max(padding.top, Math.min(padding.top + chartHeight, intervalMinY));
-        const clampedMaxY = Math.max(padding.top, Math.min(padding.top + chartHeight, intervalMaxY));
+        // Upper shore (ceiling) - Orange
+        const upperColor = { r: 249, g: 115, b: 22 };
+        const upperIntervalMinY = padding.top + chartHeight * (1 - (prophecy.upperIntervalMin - min) / range);
+        const upperIntervalMaxY = padding.top + chartHeight * (1 - (prophecy.upperIntervalMax - min) / range);
+        const clampedUpperMinY = Math.max(padding.top, Math.min(padding.top + chartHeight, upperIntervalMinY));
+        const clampedUpperMaxY = Math.max(padding.top, Math.min(padding.top + chartHeight, upperIntervalMaxY));
         
         // Pulsing animation
         const pulsePhase = (now % 2000) / 2000;
         const pulseIntensity = 0.7 + Math.sin(pulsePhase * Math.PI * 2) * 0.3;
-        
-        // Draw shaded zone for the interval
         const zoneOpacity = 0.15 * pulseIntensity;
-        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${zoneOpacity})`;
         
-        if (isLower) {
-            // Lower shore - shade from interval to bottom of chart
-            ctx.fillRect(padding.left, clampedMinY, chartWidth, padding.top + chartHeight - clampedMinY);
-        } else {
-            // Upper shore - shade from top of chart to interval
-            ctx.fillRect(padding.left, padding.top, chartWidth, clampedMaxY - padding.top);
-        }
+        // Draw lower shore shaded zone (from interval to bottom)
+        ctx.fillStyle = `rgba(${lowerColor.r}, ${lowerColor.g}, ${lowerColor.b}, ${zoneOpacity})`;
+        ctx.fillRect(padding.left, clampedLowerMinY, chartWidth, padding.top + chartHeight - clampedLowerMinY);
         
-        // Draw interval zone (hatched area between min and max)
-        const zoneHeight = Math.abs(clampedMinY - clampedMaxY);
-        const zoneTop = Math.min(clampedMinY, clampedMaxY);
+        // Draw upper shore shaded zone (from top to interval)
+        ctx.fillStyle = `rgba(${upperColor.r}, ${upperColor.g}, ${upperColor.b}, ${zoneOpacity})`;
+        ctx.fillRect(padding.left, padding.top, chartWidth, clampedUpperMaxY - padding.top);
         
-        // Draw hatched pattern for the interval zone
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(padding.left, zoneTop, chartWidth, zoneHeight);
-        ctx.clip();
-        
-        ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.3)`;
-        ctx.lineWidth = 1;
-        const hatchSpacing = 8;
-        for (let i = -chartWidth; i < chartWidth + zoneHeight; i += hatchSpacing) {
+        // Draw hatched patterns for both intervals
+        const drawHatchedZone = (top, bottom, color) => {
+            const zoneHeight = Math.abs(bottom - top);
+            const zoneTop = Math.min(top, bottom);
+            ctx.save();
             ctx.beginPath();
-            ctx.moveTo(padding.left + i, zoneTop);
-            ctx.lineTo(padding.left + i + zoneHeight, zoneTop + zoneHeight);
-            ctx.stroke();
-        }
-        ctx.restore();
+            ctx.rect(padding.left, zoneTop, chartWidth, zoneHeight);
+            ctx.clip();
+            ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.3)`;
+            ctx.lineWidth = 1;
+            const hatchSpacing = 8;
+            for (let i = -chartWidth; i < chartWidth + zoneHeight; i += hatchSpacing) {
+                ctx.beginPath();
+                ctx.moveTo(padding.left + i, zoneTop);
+                ctx.lineTo(padding.left + i + zoneHeight, zoneTop + zoneHeight);
+                ctx.stroke();
+            }
+            ctx.restore();
+        };
+        
+        drawHatchedZone(clampedLowerMinY, clampedLowerMaxY, lowerColor);
+        drawHatchedZone(clampedUpperMinY, clampedUpperMaxY, upperColor);
         
         // Draw boundary lines
         ctx.setLineDash([6, 4]);
         ctx.lineWidth = 2;
-        ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 0.8)`;
         
-        // Min line
+        // Lower shore lines
+        ctx.strokeStyle = `rgba(${lowerColor.r}, ${lowerColor.g}, ${lowerColor.b}, 0.8)`;
         ctx.beginPath();
-        ctx.moveTo(padding.left, clampedMinY);
-        ctx.lineTo(padding.left + chartWidth, clampedMinY);
+        ctx.moveTo(padding.left, clampedLowerMinY);
+        ctx.lineTo(padding.left + chartWidth, clampedLowerMinY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(padding.left, clampedLowerMaxY);
+        ctx.lineTo(padding.left + chartWidth, clampedLowerMaxY);
         ctx.stroke();
         
-        // Max line
+        // Upper shore lines
+        ctx.strokeStyle = `rgba(${upperColor.r}, ${upperColor.g}, ${upperColor.b}, 0.8)`;
         ctx.beginPath();
-        ctx.moveTo(padding.left, clampedMaxY);
-        ctx.lineTo(padding.left + chartWidth, clampedMaxY);
+        ctx.moveTo(padding.left, clampedUpperMinY);
+        ctx.lineTo(padding.left + chartWidth, clampedUpperMinY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(padding.left, clampedUpperMaxY);
+        ctx.lineTo(padding.left + chartWidth, clampedUpperMaxY);
         ctx.stroke();
         
         ctx.setLineDash([]);
         
         // Draw labels
         ctx.font = '10px JetBrains Mono, monospace';
-        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, 1)`;
         ctx.textAlign = 'left';
         
-        const icon = isLower ? '🛡️' : '🔒';
-        const label = isLower ? 'FLOOR' : 'CEILING';
+        // Lower shore label
+        const lowerLabelY = (clampedLowerMinY + clampedLowerMaxY) / 2;
+        ctx.fillStyle = `rgba(${lowerColor.r}, ${lowerColor.g}, ${lowerColor.b}, 1)`;
+        ctx.fillText('🛡️ FLOOR', padding.left + 5, lowerLabelY + 4);
         
-        // Label at the middle of the zone
-        const labelY = (clampedMinY + clampedMaxY) / 2;
-        ctx.fillText(`${icon} ${label}`, padding.left + 5, labelY + 4);
+        // Upper shore label
+        const upperLabelY = (clampedUpperMinY + clampedUpperMaxY) / 2;
+        ctx.fillStyle = `rgba(${upperColor.r}, ${upperColor.g}, ${upperColor.b}, 1)`;
+        ctx.fillText('🔒 CEILING', padding.left + 5, upperLabelY + 4);
         
         // Price labels on the right
         ctx.textAlign = 'right';
         ctx.fillStyle = '#a0a0b0';
-        ctx.fillText(`$${prophecy.intervalMin.toFixed(2)}`, padding.left + chartWidth - 5, clampedMinY + 12);
-        ctx.fillText(`$${prophecy.intervalMax.toFixed(2)}`, padding.left + chartWidth - 5, clampedMaxY - 4);
+        ctx.fillText(`$${prophecy.lowerIntervalMin.toFixed(2)}`, padding.left + chartWidth - 5, clampedLowerMinY + 12);
+        ctx.fillText(`$${prophecy.lowerIntervalMax.toFixed(2)}`, padding.left + chartWidth - 5, clampedLowerMaxY - 4);
+        ctx.fillText(`$${prophecy.upperIntervalMin.toFixed(2)}`, padding.left + chartWidth - 5, clampedUpperMinY + 12);
+        ctx.fillText(`$${prophecy.upperIntervalMax.toFixed(2)}`, padding.left + chartWidth - 5, clampedUpperMaxY - 4);
     });
 }
 
@@ -1134,8 +1198,17 @@ function drawChartSmooth() {
     const prophecies = getActivePropheciesForChart();
     const prophecyPrices = [];
     prophecies.forEach(p => {
-        if (p.intervalMin !== undefined) prophecyPrices.push(p.intervalMin);
-        if (p.intervalMax !== undefined) prophecyPrices.push(p.intervalMax);
+        // Handle combined shore prophecy
+        if (p.prophecyType === 'shore') {
+            if (p.lowerIntervalMin !== undefined) prophecyPrices.push(p.lowerIntervalMin);
+            if (p.lowerIntervalMax !== undefined) prophecyPrices.push(p.lowerIntervalMax);
+            if (p.upperIntervalMin !== undefined) prophecyPrices.push(p.upperIntervalMin);
+            if (p.upperIntervalMax !== undefined) prophecyPrices.push(p.upperIntervalMax);
+        } else {
+            // Handle other prophecy types (inevitableZone, etc.)
+            if (p.intervalMin !== undefined) prophecyPrices.push(p.intervalMin);
+            if (p.intervalMax !== undefined) prophecyPrices.push(p.intervalMax);
+        }
     });
     
     // Include predictions in pre-calculation for proper range
