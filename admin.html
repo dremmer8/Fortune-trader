@@ -108,8 +108,15 @@
         .table-container {
             background: #1e293b;
             border-radius: 12px;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: visible;
             border: 1px solid #334155;
+            max-width: 100%;
+        }
+        
+        .table-container table {
+            width: 100%;
+            min-width: 1200px; /* Ensure all columns are visible */
         }
         
         table {
@@ -136,6 +143,15 @@
             border-bottom: 1px solid #334155;
             color: #e2e8f0;
             font-size: 14px;
+        }
+        
+        td:last-child {
+            white-space: nowrap;
+            min-width: 200px;
+        }
+        
+        th:last-child {
+            min-width: 200px;
         }
         
         tbody tr:hover {
@@ -220,6 +236,8 @@
             font-size: 12px;
             margin: 2px;
             transition: all 0.2s;
+            display: inline-block;
+            white-space: nowrap;
         }
         
         .action-btn:hover {
@@ -386,7 +404,10 @@
     <div class="dashboard">
         <div class="header">
             <h1>📊 Fortune Trader - Admin Dashboard</h1>
-            <button class="refresh-btn" onclick="loadStats()">🔄 Refresh Stats</button>
+            <div>
+                <button class="refresh-btn" onclick="loadStats()">🔄 Refresh Stats</button>
+                <button class="action-btn" onclick="console.log('Test button works!')" style="margin-left: 10px;">Test Button</button>
+            </div>
         </div>
         
         <div id="errorMessage" style="display: none;"></div>
@@ -577,7 +598,13 @@
 
             // Display player table
             const tbody = document.getElementById('playersBody');
-            tbody.innerHTML = sortedStats.map((s, index) => {
+            if (!tbody) {
+                console.error('playersBody element not found!');
+                return;
+            }
+            
+            console.log('Rendering', sortedStats.length, 'players with buttons');
+            const rows = sortedStats.map((s, index) => {
                 const lastLogin = s.lastLogin;
                 let lastLoginText = 'Never';
                 let isActive = false;
@@ -600,13 +627,17 @@
                     securityBadge = `<span class="flagged-badge">⚠ ${flagCount} Flag${flagCount > 1 ? 's' : ''}</span>`;
                 }
                 
-                // Action buttons
-                let actionButtons = `<button class="action-btn danger" onclick="deletePlayer(${index})">🗑️ Remove</button>`;
+                // Action buttons - show all buttons for all players
+                let actionButtons = '';
+                actionButtons += `<button class="action-btn danger" onclick="deletePlayer(${index})" type="button">🗑️ Remove</button>`;
+                actionButtons += `<button class="action-btn warning" onclick="viewFlags(${index})" type="button">🔍 View Flags</button>`;
                 if (isFlagged) {
-                    actionButtons += `
-                        <button class="action-btn warning" onclick="viewFlags(${index})">🔍 View Flags</button>
-                        <button class="action-btn success" onclick="unflagPlayer(${index})">✓ Unflag</button>
-                    `;
+                    actionButtons += `<button class="action-btn success" onclick="unflagPlayer(${index})" type="button">✓ Unflag</button>`;
+                }
+                
+                // Safety check - ensure buttons are not empty
+                if (!actionButtons || actionButtons.trim() === '') {
+                    actionButtons = '<span style="color: #fca5a5;">No actions available</span>';
                 }
                 
                 return `
@@ -615,15 +646,23 @@
                         <td class="number">$${(s.bankBalance || 0).toLocaleString()}</td>
                         <td class="number">$${(s.totalEarnings || 0).toLocaleString()}</td>
                         <td class="number">${s.tradingRounds || 0}</td>
-                        <td class="number">${s.purchasedUpgrades || 0}</td>
-                        <td class="number">${s.ownedItems || 0}</td>
+                        <td class="number">${Array.isArray(s.purchasedUpgrades) ? s.purchasedUpgrades.length : (s.purchasedUpgrades || 0)}</td>
+                        <td class="number">${Array.isArray(s.ownedItems) ? s.ownedItems.length : (s.ownedItems || 0)}</td>
                         <td>${lastLoginText}</td>
                         <td class="number">${s.loginCount || 0}</td>
                         <td>${securityBadge}</td>
-                        <td>${actionButtons}</td>
+                        <td style="white-space: nowrap; min-width: 250px;">${actionButtons || '<span style="color: red;">ERROR: No buttons</span>'}</td>
                     </tr>
                 `;
-            }).join('');
+            });
+            
+            // Debug: Log first row to verify buttons are generated
+            if (rows.length > 0) {
+                console.log('First row HTML (last 200 chars):', rows[0].slice(-200));
+                console.log('First row includes buttons?', rows[0].includes('action-btn'));
+            }
+            
+            tbody.innerHTML = rows.join('');
         }
 
         function updateLastSynced() {
