@@ -84,6 +84,7 @@ function stripNonSignedFields(payload) {
 
   const {
     playerName,
+    nameKey,
     gameUserId,
     firebaseUid,
     lastUpdated,
