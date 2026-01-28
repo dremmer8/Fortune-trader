@@ -1380,6 +1380,11 @@ function resolvePrediction(prediction) {
         if (nowAtMaxCombo) {
             triggerConfetti();
         }
+
+        // Update fake streamer mood (prediction win)
+        if (typeof updateStreamerMoodOnTrade === 'function') {
+            updateStreamerMoodOnTrade(true, profit, prediction.amount);
+        }
         
         showNotification(`Prediction won! +$${profit.toLocaleString()} 🔥`, 'success');
     } else {
@@ -1398,6 +1403,12 @@ function resolvePrediction(prediction) {
         
         handleLoss(); // Reset streak and bet
         flashTradingScreen(false); // Red flash for loss
+
+        // Update fake streamer mood (prediction loss)
+        if (typeof updateStreamerMoodOnTrade === 'function') {
+            updateStreamerMoodOnTrade(false, -prediction.amount, prediction.amount);
+        }
+
         showNotification(`Prediction lost -$${prediction.amount.toLocaleString()}`, 'error');
     }
     
@@ -1619,6 +1630,11 @@ function resolvePosition(pos) {
             if (nowAtMaxCombo) {
                 triggerConfetti();
             }
+
+            // Update fake streamer mood (manual position win)
+            if (typeof updateStreamerMoodOnTrade === 'function') {
+                updateStreamerMoodOnTrade(true, profit, pos.amount);
+            }
             
             showNotification(`+$${profit.toLocaleString()} 🔥`, 'success');
         } else {
@@ -1655,6 +1671,12 @@ function resolvePosition(pos) {
         if (!isBotPosition) {
             handleLoss(); // Reset streak and bet
             flashTradingScreen(false); // Red flash for loss
+
+            // Update fake streamer mood (manual position loss)
+            if (typeof updateStreamerMoodOnTrade === 'function') {
+                updateStreamerMoodOnTrade(false, -pos.amount, pos.amount);
+            }
+
             showNotification(`-$${pos.amount.toLocaleString()}`, 'error');
         } else {
             // Bot position loss - play error sound at 10% volume
@@ -1832,9 +1854,19 @@ function sellStock() {
     if (pnl >= 0) {
         flashTradingScreen(true); // Green flash for profit
         AudioManager.playSuccessfulDeal(); // Play success sound
+
+        if (typeof updateStreamerMoodOnTrade === 'function') {
+            updateStreamerMoodOnTrade(true, pnl, holding.totalInvested || Math.abs(pnl));
+        }
+
         showNotification(`Sold ${sharesSold.toFixed(4)} shares +$${pnl.toFixed(2)}`, 'success');
     } else {
         flashTradingScreen(false); // Red flash for loss
+
+        if (typeof updateStreamerMoodOnTrade === 'function') {
+            updateStreamerMoodOnTrade(false, pnl, holding.totalInvested || Math.abs(pnl));
+        }
+
         showNotification(`Sold ${sharesSold.toFixed(4)} shares -$${Math.abs(pnl).toFixed(2)}`, 'error');
     }
     
@@ -1942,9 +1974,19 @@ function sellAllStocks() {
     if (totalPnl >= 0) {
         flashTradingScreen(true);
         AudioManager.playSuccessfulDeal();
+
+        if (typeof updateStreamerMoodOnTrade === 'function') {
+            updateStreamerMoodOnTrade(true, totalPnl, Math.abs(totalPnl));
+        }
+
         showNotification(`Sold ${soldCount} stock${soldCount > 1 ? 's' : ''} +$${totalPnl.toFixed(2)}`, 'success');
     } else {
         flashTradingScreen(false);
+
+        if (typeof updateStreamerMoodOnTrade === 'function') {
+            updateStreamerMoodOnTrade(false, totalPnl, Math.abs(totalPnl));
+        }
+
         showNotification(`Sold ${soldCount} stock${soldCount > 1 ? 's' : ''} -$${Math.abs(totalPnl).toFixed(2)}`, 'error');
     }
 }
@@ -2167,9 +2209,19 @@ function resolveMarginPosition() {
     // Play sound
     if (won) {
         AudioManager.playSuccessfulDeal();
+
+        if (typeof updateStreamerMoodOnTrade === 'function') {
+            updateStreamerMoodOnTrade(true, roundedPnl, position.amount);
+        }
+
         showNotification(`Margin position closed! +$${roundedPnl.toFixed(2)} 🔥`, 'success');
     } else {
         AudioManager.playError();
+
+        if (typeof updateStreamerMoodOnTrade === 'function') {
+            updateStreamerMoodOnTrade(false, -Math.abs(roundedPnl), position.amount);
+        }
+
         showNotification(`Margin position closed. -$${Math.abs(roundedPnl).toFixed(2)}`, 'error');
     }
     

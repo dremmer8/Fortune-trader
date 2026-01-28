@@ -6811,6 +6811,162 @@ body {
     }
 }
 
+/* ===========================================
+   STREAMER WINDOW (Fake Webcam)
+   =========================================== */
+/* Toggle button: show/hide streamer (next to streamer, near smartphone) */
+.streamer-toggle {
+    position: fixed;
+    bottom: 24px;
+    right: 324px; /* Left of streamer window (streamer is right: 96px, width 220px) */
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(15, 23, 42, 0.9);
+    color: #e5e7eb;
+    cursor: pointer;
+    z-index: 481;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    transition: background 0.2s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.streamer-toggle:hover {
+    background: rgba(30, 41, 59, 0.95);
+    transform: scale(1.05);
+}
+.streamer-toggle:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.streamer-window {
+    position: fixed;
+    bottom: 24px;
+    right: 96px; /* Leave space for smartphone button on the very corner */
+    width: 220px;
+    height: 124px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    border: 2px solid rgba(255, 255, 255, 0.16);
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(0, 0, 0, 0.8);
+    z-index: 480; /* Above most UI, below phone toggle button (z-index: 500) */
+    pointer-events: none; /* Do not block clicks on gameplay UI */
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.streamer-window.streamer-window-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.95);
+    visibility: hidden;
+}
+
+.streamer-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform-origin: center center;
+    animation: streamerIdle 7s infinite ease-in-out;
+}
+
+.streamer-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 6px 8px;
+    pointer-events: none;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 10px;
+}
+
+.streamer-overlay-top {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.streamer-live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(220, 38, 38, 0.96);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+    color: #fee2e2;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+}
+
+.streamer-live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: #fee2e2;
+    box-shadow: 0 0 8px rgba(254, 226, 226, 0.9);
+}
+
+.streamer-live-label {
+    font-size: 9px;
+}
+
+.streamer-overlay-bottom {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.streamer-viewers {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(4px);
+    color: #e5e7eb;
+    font-weight: 500;
+}
+
+.streamer-viewers-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    border: 1px solid rgba(248, 250, 252, 0.8);
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+.streamer-viewers-count {
+    font-size: 10px;
+}
+
+@keyframes streamerIdle {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+        transform: translate(-0.4px, 0.3px) rotate(-0.08deg);
+    }
+    50% {
+        transform: translate(0.5px, -0.4px) rotate(0.1deg);
+    }
+    75% {
+        transform: translate(-0.3px, -0.2px) rotate(-0.06deg);
+    }
+    100% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .main-content {

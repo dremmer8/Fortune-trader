@@ -624,6 +624,29 @@
 
     <div class="notification" id="notification"></div>
 
+    <!-- Streamer toggle: show/hide streamer window (near smartphone) -->
+    <button type="button" class="streamer-toggle" id="streamerToggle" title="Hide stream" aria-label="Hide streamer window">
+        <span class="streamer-toggle-icon" aria-hidden="true">−</span>
+    </button>
+    <!-- Streamer Window - Fake webcam output -->
+    <div class="streamer-window" id="streamerWindow">
+        <img src="images/streamer/fc_50.jpg" alt="Streamer camera feed" class="streamer-video">
+        <div class="streamer-overlay">
+            <div class="streamer-overlay-top">
+                <div class="streamer-live-pill">
+                    <span class="streamer-live-dot"></span>
+                    <span class="streamer-live-label">LIVE</span>
+                </div>
+            </div>
+            <div class="streamer-overlay-bottom">
+                <div class="streamer-viewers">
+                    <span class="streamer-viewers-dot"></span>
+                    <span class="streamer-viewers-count" id="streamerViewerCount">0 watching</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Portfolio Overlay -->
     <div class="overlay-backdrop" id="portfolioBackdrop" onclick="togglePortfolioOverlay()"></div>
     <div class="portfolio-overlay" id="portfolioOverlay">

@@ -3096,6 +3096,8 @@ function initApp() {
     initVersionStamp();
     initAudioControls();
     initButtonClickSounds();
+    if (typeof initStreamerToggle === 'function') initStreamerToggle();
+    updateStreamerViewerCount(50); // initial neutral = 0 watching
     // Initialize the hub/phone interface first
     initHub();
     console.log('Hub initialized - waiting for app selection');

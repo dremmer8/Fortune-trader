@@ -1087,3 +1087,234 @@ async function executeResetGame() {
     
     showNotification('Game reset complete! All data deleted.', 'success');
 }
+
+// (Streamer window jitter now handled purely via CSS animation on .streamer-video)
+
+// ===========================================
+// STREAMER EMOTION CONTROLLER (Fake webcam)
+// Full spectrum 20 (worst loss) .. 50 (neutral) .. 80 (best win)
+// ===========================================
+const STREAMER_EMOTION_LEVELS = {
+    NEUTRAL: 50,
+    MIN: 20,
+    MAX: 80
+};
+
+// All streamer faces: lower = more loss/sad, higher = more win/happy
+const STREAMER_EMOTION_IMAGES = {
+    20: 'fc_20.jpg',
+    25: 'fc_25.jpg',
+    30: 'fc_30.jpg',
+    35: 'fc_35.jpg',
+    40: 'fc_40.jpg',
+    50: 'fc_50.jpg',
+    55: 'fc_55.jpg',
+    60: 'fc_60.jpg',
+    65: 'fc_65.jpg',
+    70: 'fc_70.jpg',
+    75: 'fc_75.jpg',
+    80: 'fc_80.jpg'
+};
+
+const streamerEmotionState = {
+    currentLevel: STREAMER_EMOTION_LEVELS.NEUTRAL,
+    relaxTimeoutId: null
+};
+
+const STREAMER_VIEWER_NEUTRAL = 0;
+const STREAMER_VIEWER_EXTREME_MIN = 20;
+const STREAMER_VIEWER_EXTREME_MAX = 100;
+
+function getStreamerImageElement() {
+    const windowEl = document.getElementById('streamerWindow');
+    if (!windowEl) return null;
+    return windowEl.querySelector('.streamer-video');
+}
+
+// Derive a baseline mood from overall trading progress (portfolio vs initial deposit).
+// Maps ratio to full face spectrum 20..80 so all faces can appear when relaxing.
+function getStreamerBaselineEmotionLevel() {
+    if (typeof getTotalPortfolioValue !== 'function') {
+        return STREAMER_EMOTION_LEVELS.NEUTRAL;
+    }
+
+    const initial = state.initialDeposit || 0;
+    const portfolio = getTotalPortfolioValue();
+
+    if (!initial || portfolio <= 0) {
+        return STREAMER_EMOTION_LEVELS.NEUTRAL;
+    }
+
+    const ratio = portfolio / initial;
+
+    // Map ratio to face level (20 = worst, 50 = neutral, 80 = best)
+    if (ratio <= 0.25) return 20;
+    if (ratio <= 0.35) return 25;
+    if (ratio <= 0.45) return 30;
+    if (ratio <= 0.55) return 35;
+    if (ratio <= 0.75) return 40;
+    if (ratio <= 1.10) return 50;
+    if (ratio <= 1.25) return 55;
+    if (ratio <= 1.45) return 60;
+    if (ratio <= 1.70) return 65;
+    if (ratio <= 2.00) return 70;
+    if (ratio <= 2.50) return 75;
+    return 80;
+}
+
+function setStreamerEmotionLevel(level, relaxDelayMs) {
+    const img = getStreamerImageElement();
+    if (!img) return;
+
+    // Clamp to nearest valid face level if unknown
+    if (!STREAMER_EMOTION_IMAGES[level]) {
+        const valid = [20, 25, 30, 35, 40, 50, 55, 60, 65, 70, 75, 80];
+        level = valid.reduce((prev, curr) => Math.abs(curr - level) < Math.abs(prev - level) ? curr : prev);
+    }
+
+    if (streamerEmotionState.currentLevel === level) {
+        updateStreamerViewerCount(level);
+        // Still refresh relax timer if requested
+        if (relaxDelayMs && relaxDelayMs > 0) {
+            if (streamerEmotionState.relaxTimeoutId) {
+                clearTimeout(streamerEmotionState.relaxTimeoutId);
+            }
+            streamerEmotionState.relaxTimeoutId = setTimeout(() => {
+                const baseline = getStreamerBaselineEmotionLevel();
+                if (baseline !== streamerEmotionState.currentLevel) {
+                    setStreamerEmotionLevel(baseline, 0);
+                }
+            }, relaxDelayMs);
+        }
+        return;
+    }
+
+    streamerEmotionState.currentLevel = level;
+
+    const file = STREAMER_EMOTION_IMAGES[level] || STREAMER_EMOTION_IMAGES[STREAMER_EMOTION_LEVELS.NEUTRAL];
+    img.src = `images/streamer/${file}`;
+
+    updateStreamerViewerCount(level);
+
+    // Schedule discrete snap back towards baseline after some calm time
+    if (streamerEmotionState.relaxTimeoutId) {
+        clearTimeout(streamerEmotionState.relaxTimeoutId);
+    }
+    if (relaxDelayMs && relaxDelayMs > 0) {
+        streamerEmotionState.relaxTimeoutId = setTimeout(() => {
+            const baseline = getStreamerBaselineEmotionLevel();
+            if (baseline !== streamerEmotionState.currentLevel) {
+                setStreamerEmotionLevel(baseline, 0);
+            }
+        }, relaxDelayMs);
+    }
+}
+
+// Valid streamer levels per direction (never go opposite: win = happy, loss = sad).
+const STREAMER_WIN_LEVELS = [55, 60, 65, 70, 75, 80];
+const STREAMER_LOSS_LEVELS = [20, 25, 30, 35, 40];
+
+function pickRandomStreamerLevel(levels) {
+    return levels[Math.floor(Math.random() * levels.length)];
+}
+
+// Map intensity (|pnl|/stake) to a random face level in the correct direction.
+// Win: random within positive band; loss: random within negative band.
+function intensityToFaceLevel(isWin, intensity) {
+    if (isWin) {
+        if (intensity >= 2.5) return pickRandomStreamerLevel([75, 80]);
+        if (intensity >= 1.9) return pickRandomStreamerLevel([70, 75, 80]);
+        if (intensity >= 1.4) return pickRandomStreamerLevel([65, 70, 75]);
+        if (intensity >= 1.0) return pickRandomStreamerLevel([60, 65, 70]);
+        if (intensity >= 0.5) return pickRandomStreamerLevel([55, 60, 65]);
+        return pickRandomStreamerLevel([55, 60]);
+    } else {
+        if (intensity >= 2.5) return pickRandomStreamerLevel([20, 25]);
+        if (intensity >= 1.9) return pickRandomStreamerLevel([20, 25, 30]);
+        if (intensity >= 1.4) return pickRandomStreamerLevel([25, 30, 35]);
+        if (intensity >= 1.0) return pickRandomStreamerLevel([30, 35, 40]);
+        if (intensity >= 0.5) return pickRandomStreamerLevel([35, 40]);
+        return pickRandomStreamerLevel([35, 40]);
+    }
+}
+
+// Public helper used from trading logic.
+// - isWin: true for win/profit, false for loss
+// - profitAmount: signed PnL (positive for win, negative for loss)
+// - stakeAmount: size of the bet / position / at-risk amount
+function updateStreamerMoodOnTrade(isWin, profitAmount, stakeAmount) {
+    const img = getStreamerImageElement();
+    if (!img) return;
+
+    const stake = Math.max(0, Number(stakeAmount) || 0);
+    const pnl = Number(profitAmount) || 0;
+
+    if (!stake || !pnl) {
+        setStreamerEmotionLevel(getStreamerBaselineEmotionLevel(), 4000);
+        return;
+    }
+
+    const intensity = Math.abs(pnl) / stake;
+    const targetLevel = intensityToFaceLevel(isWin, intensity);
+
+    // Relax back towards baseline after 4–6s so you see mid-spectrum faces
+    const relaxDelay = intensity >= 2.0 ? 6000 : intensity >= 0.8 ? 5000 : 4000;
+
+    setStreamerEmotionLevel(targetLevel, relaxDelay);
+}
+
+// Viewer count: neutral (50) → 0, extreme win/loss (20 or 80) → 20–100.
+function getStreamerViewerCountForLevel(level) {
+    const deviation = Math.abs(level - STREAMER_EMOTION_LEVELS.NEUTRAL);
+    const maxDeviation = 30; // 20 or 80 vs 50
+    if (deviation <= 5) return STREAMER_VIEWER_NEUTRAL; // close to neutral = 0 watching
+    const t = Math.min(1, deviation / maxDeviation);
+    const range = STREAMER_VIEWER_EXTREME_MAX - STREAMER_VIEWER_EXTREME_MIN;
+    return Math.round(STREAMER_VIEWER_EXTREME_MIN + Math.random() * range * t);
+}
+
+function updateStreamerViewerCount(level) {
+    const el = document.getElementById('streamerViewerCount');
+    if (!el) return;
+    const n = getStreamerViewerCountForLevel(level);
+    el.textContent = n === 0 ? '0 watching' : `${n.toLocaleString()} watching`;
+}
+
+function toggleStreamerWindow() {
+    const win = document.getElementById('streamerWindow');
+    const btn = document.getElementById('streamerToggle');
+    if (!win || !btn) return;
+    const isHidden = win.classList.toggle('streamer-window-hidden');
+    try {
+        localStorage.setItem('streamerWindowHidden', isHidden ? '1' : '0');
+    } catch (e) {}
+    const icon = btn.querySelector('.streamer-toggle-icon');
+    if (icon) icon.textContent = isHidden ? '▶' : '−';
+    btn.title = isHidden ? 'Show stream' : 'Hide stream';
+    btn.setAttribute('aria-label', isHidden ? 'Show streamer window' : 'Hide streamer window');
+}
+
+function initStreamerToggle() {
+    const btn = document.getElementById('streamerToggle');
+    const win = document.getElementById('streamerWindow');
+    if (!btn || !win) return;
+    try {
+        // Default to hidden; only show if explicitly set to '0' in localStorage
+        const shown = localStorage.getItem('streamerWindowHidden') === '0';
+        if (!shown) {
+            win.classList.add('streamer-window-hidden');
+            const icon = btn.querySelector('.streamer-toggle-icon');
+            if (icon) icon.textContent = '▶';
+            btn.title = 'Show stream';
+            btn.setAttribute('aria-label', 'Show streamer window');
+        }
+    } catch (e) {
+        // If localStorage fails, default to hidden
+        win.classList.add('streamer-window-hidden');
+        const icon = btn.querySelector('.streamer-toggle-icon');
+        if (icon) icon.textContent = '▶';
+        btn.title = 'Show stream';
+        btn.setAttribute('aria-label', 'Show streamer window');
+    }
+    btn.addEventListener('click', toggleStreamerWindow);
+}
