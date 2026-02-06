@@ -1,0 +1,328 @@
+window.__LOCALE_EN__ = {
+  "welcome": {
+    "title": "Welcome to Fortune Trader",
+    "disclaimer": "This is a <strong>stock trader simulator game</strong> set in a world where fortune cookies actually predict the future. All money and trades in this game are fictional. Please do not gamble or risk real money if in your world cookies work differently.",
+    "ok": "Okay"
+  },
+  "login": {
+    "title": "Baker's Bank",
+    "subtitle": "Enter your credentials to continue",
+    "cardLogo": "Baker's Bank",
+    "cardHolder": "CARD HOLDER",
+    "yourName": "YOUR NAME",
+    "expires": "EXPIRES",
+    "continue": "Continue",
+    "authorizedSignature": "AUTHORIZED SIGNATURE",
+    "securityCode": "SECURITY CODE",
+    "back": "Back",
+    "login": "Login",
+    "hint": "This is not real banking information"
+  },
+  "apps": {
+    "fortuneTrader": "Fortune Trader",
+    "bakersBank": "Baker's Bank",
+    "shop": "Shop",
+    "expenses": "Expenses",
+    "whales": "Whales",
+    "settings": "Settings"
+  },
+  "sync": {
+    "title": "Syncing Data...",
+    "message": "Securing your previous session to cloud",
+    "status": "Please wait..."
+  },
+  "banker": {
+    "title": "Baker's Bank",
+    "balanceLabel": "Bank Balance",
+    "lifetimeEarnings": "Lifetime Earnings",
+    "lifetimeSpendings": "Lifetime Spendings",
+    "earningsPanelHeader": "Trading Round History",
+    "spendingPanelHeader": "Spending History",
+    "deposit": "Deposit",
+    "loans": "Loans",
+    "depositToTrading": "Deposit to Trading",
+    "all": "All",
+    "amount": "Amount",
+    "depositBtn": "Deposit",
+    "tradingAccount": "Trading Account",
+    "feeHint": "5% fee on cash out",
+    "loanSectionTitle": "Loan",
+    "noRoundsYet": "No rounds cashed out yet.",
+    "noSpendingsYet": "No spendings recorded yet."
+  },
+  "locked": {
+    "text": "No Trading Funds",
+    "hint": "Deposit money from Baker's Bank first",
+    "openBanker": "Open Banker"
+  },
+  "expenses": {
+    "title": "Expenses",
+    "dailyLabel": "Daily Expenses",
+    "chargedPerDay": "Charged once per real day",
+    "nextCharge": "Next charge at midnight",
+    "warning": "Adjust your lifestyle spending using +/- buttons. Minimum values shown. Charged daily at midnight!",
+    "rent": { "name": "Rent", "description": "Monthly apartment rent" },
+    "utilities": { "name": "Utilities", "description": "Electric, water, gas" },
+    "groceries": { "name": "Groceries", "description": "Food and essentials" },
+    "transport": { "name": "Transport", "description": "Gas, transit, parking" },
+    "phone": { "name": "Phone Bill", "description": "Mobile service" },
+    "internet": { "name": "Internet", "description": "Home internet service" },
+    "insurance": { "name": "Insurance", "description": "Health & life insurance" },
+    "subscriptions": { "name": "Subscriptions", "description": "Streaming, apps, etc." },
+    "eliminated": "✅ Eliminated!"
+  },
+  "shop": {
+    "title": "List shop",
+    "estate": "Estate",
+    "cars": "Cars",
+    "luxury": "Luxury",
+    "yourAssets": "Your Assets",
+    "hint": "Estate and cars eliminate daily expenses. Luxury items are just for show!",
+    "buy": "Buy",
+    "owned": "Owned",
+    "sell": "Sell",
+    "micro_flat": { "name": "City Micro-Apartment", "description": "Small owned flat in an urban area. Eliminates rent expense." },
+    "new_build_flat": { "name": "New-Build City Apartment", "description": "Modern new-build apartment in a prime district. Eliminates rent expense." },
+    "family_house": { "name": "Detached Family House (Outskirts)", "description": "Detached house with garden outside the city core. Eliminates rent expense." },
+    "villa_estate": { "name": "Prestige Villa Estate", "description": "High-end villa with land and privacy. Eliminates rent expense." },
+    "compact_used": { "name": "Used Compact Car", "description": "Basic used car for everyday driving. Eliminates transport expense." },
+    "performance_car": { "name": "Performance Coupe", "description": "Quick, loud, and attention-grabbing. Eliminates transport expense." },
+    "executive_vehicle": { "name": "Executive Luxury Vehicle", "description": "Premium comfort and status. Eliminates transport expense." },
+    "exotic_supercar": { "name": "Exotic Supercar", "description": "Extreme performance and prestige. Eliminates transport expense." },
+    "mechanical_watch": { "name": "Mechanical Watch", "description": "High-end timepiece. Pure status symbol." },
+    "fine_jewelry": { "name": "Fine Jewelry Set", "description": "Precious metals and stones. Flashy but classic." },
+    "tailored_wardrobe": { "name": "Tailored Wardrobe Upgrade", "description": "Custom-fit clothing collection. Look like money." },
+    "original_art": { "name": "Original Contemporary Artwork", "description": "Original piece from a respected artist. Conversation starter." },
+    "motor_yacht": { "name": "Motor Yacht (25m Class)", "description": "Private yacht for serious leisure and flex." },
+    "private_jet": { "name": "Private Jet (Light-Class)", "description": "Private air travel. Ultimate convenience and prestige." }
+  },
+  "settings": {
+    "title": "Settings",
+    "account": "Account",
+    "loggedInAs": "Logged in as",
+    "logOut": "Log Out",
+    "logOutDesc": "Clear saved login credentials",
+    "gameData": "Game Data",
+    "resetGame": "Reset Game",
+    "resetGameDesc": "Clear all data and start over",
+    "audio": "Audio",
+    "volume": "Volume",
+    "about": "About",
+    "version": "Version",
+    "creator": "Creator",
+    "language": "Language"
+  },
+  "leaderboard": {
+    "title": "Best Traders",
+    "subtitle": "Top performers of the season",
+    "loading": "Loading...",
+    "offline": "Leaderboard unavailable (offline).",
+    "loadError": "Unable to load leaderboard: {{error}}",
+    "noPlayers": "No players on the leaderboard yet.",
+    "updated": "Updated {{date}}",
+    "failed": "Failed to load leaderboard: {{error}}"
+  },
+  "phoneHint": "Press ESC to toggle phone during gameplay",
+  "openPhone": "Open Phone",
+  "nav": {
+    "fortuneTrader": "Fortune Trader",
+    "live": "LIVE",
+    "streak": "Streak",
+    "bet": "Bet",
+    "next": "Next",
+    "cash": "Cash",
+    "tutorial": "Tutorial",
+    "portfolio": "Portfolio",
+    "cashOut": "Cash Out"
+  },
+  "chart": {
+    "live": "Live",
+    "loading": "Loading market data...",
+    "long": "Long",
+    "short": "Short",
+    "buyStock": "Buy Stock",
+    "sellAllStock": "Sell All Stock",
+    "longMargin": "Long Margin",
+    "shortMargin": "Short Margin",
+    "closePosition": "Close Position"
+  },
+  "cookie": {
+    "cookieShop": "Cookie Shop",
+    "news": "News",
+    "console": "Console",
+    "fortuneCookie": "Fortune Cookie",
+    "basicProphecy": "Basic prophecy",
+    "shopLabel": "Shop",
+    "stash": "Cookie Stash",
+    "cookiesCount": "{{count}} cookies",
+    "noCookies": "No cookies yet. Purchase some above!",
+    "dragCookie": "Drag a cookie here to unpack its prophecy"
+  },
+  "news": {
+    "title": "Market News",
+    "articlesCount": "{{count}} articles",
+    "empty": "No news yet. Market updates will appear here."
+  },
+  "bots": {
+    "consoleTitle": "SYSTEM CONSOLE v1.0",
+    "ready": "READY",
+    "welcome1": "Fortune Trader System Console",
+    "welcome2": "Type 'help' for available commands",
+    "placeholder": "Enter command..."
+  },
+  "deals": {
+    "title": "Active Prophecies",
+    "activeCount": "{{count}} Active",
+    "empty": "No active prophecies. Purchase a fortune cookie to receive trading insights."
+  },
+  "portfolio": {
+    "title": "Portfolio",
+    "portfolioValue": "Portfolio Value",
+    "cashOutFee": "Cash Out Fee (5%)",
+    "netProfit": "Net Profit/Loss",
+    "youReceive": "You Receive"
+  },
+  "modals": {
+    "resetTitle": "Reset Game?",
+    "resetText": "This will reset your bank balance to $1,000 and <strong>permanently delete ALL saved data</strong> for this login/password pair from both your device and cloud storage. This action cannot be undone.",
+    "cancel": "Cancel",
+    "resetDelete": "Reset & Delete All Data",
+    "gameOverTitle": "Game Over",
+    "gameOverMessage": "You have less than $50 in your bank account and less than $50 in your trading account. {{reason}} Your trading journey has come to an end.",
+    "gameOverReasonLoan": "You already have an active loan and cannot get another one.",
+    "gameOverReasonNoEarnings": "You have no lifetime earnings, so no loan is available (loan amount = lifetime earnings).",
+    "gameOverReasonNone": "No loans are available to you.",
+    "gameOverQuestion": "Would you like to restart and try again?",
+    "restartGame": "Restart Game",
+    "prestigeTitle": "Cash Out?",
+    "prestigeText": "Transfer your portfolio to your bank account and start a new trading round.",
+    "prestigePortfolioValue": "Portfolio Value",
+    "prestigeFee": "Cash Out Fee (5%)",
+    "prestigeNetProfit": "Net Profit/Loss",
+    "prestigeYouReceive": "You Receive",
+    "cashOutBtn": "Cash Out",
+    "tutorialTitle": "Trading Basics Tutorial",
+    "previous": "Previous",
+    "next": "Next",
+    "finish": "Finish"
+  },
+  "streamer": {
+    "live": "LIVE",
+    "watching": "{{count}} watching"
+  },
+  "notifications": {
+    "wrongPassword": "Password is wrong for this name.",
+    "alreadyHaveLoan": "You already have an active loan.",
+    "loanNotConfigured": "Loan system not configured.",
+    "needEarningsForLoan": "You need lifetime earnings to get a loan.",
+    "loanApproved": "Loan approved for ${{amount}} at {{rate}}% per week!",
+    "insufficientRepay": "Insufficient bank balance to repay loan.",
+    "loanRepaid": "Loan repaid for ${{amount}}.",
+    "loanAutoRepaid": "Loan auto-repaid for ${{amount}}.",
+    "insufficientFunds": "Insufficient funds!",
+    "itemNotFound": "Item not found!",
+    "noFundsToCashOut": "No funds to cash out",
+    "depositSuccess": "Deposit successful.",
+    "depositError": "Deposit failed.",
+    "purchaseSuccess": "Purchase successful!",
+    "sellSuccess": "Item sold."
+  },
+  "loan": {
+    "name": "Loan",
+    "description": "Loan amount based on your lifetime earnings"
+  },
+  "upgrades": {
+    "cookieDiscount": { "name": "Cookie Discount I", "description": "10% off fortune cookies" },
+    "cookieDiscount2": { "name": "Cookie Discount II", "description": "25% off fortune cookies" },
+    "cookieDiscount3": { "name": "Cookie Discount III", "description": "50% off fortune cookies" },
+    "autoReveal": { "name": "Auto Reveal I", "description": "1 letter per tick" },
+    "autoReveal2": { "name": "Auto Reveal II", "description": "2 letters per tick" },
+    "autoReveal3": { "name": "Auto Reveal III", "description": "4 letters per tick" },
+    "betCombo1": { "name": "Bet Combo I", "description": "Unlock higher bet amounts" },
+    "betCombo2": { "name": "Bet Combo II", "description": "Even higher bet amounts" },
+    "betCombo3": { "name": "Bet Combo III", "description": "Maximum bet amounts" },
+    "predictionZone1": { "name": "Chart Prediction Zone I", "description": "Bigger white zone when betting on price in next 10 ticks" },
+    "predictionZone2": { "name": "Chart Prediction Zone II", "description": "Even bigger prediction zone for easier wins" },
+    "goldenCookie": { "name": "Golden Cookie", "description": "More precise prophecies" },
+    "diamondCookie": { "name": "Rare Cookie", "description": "Highly precise prophecies" },
+    "newsAccess1": { "name": "News Access I", "description": "Unlock 25% of news articles" },
+    "newsAccess2": { "name": "News Access II", "description": "Unlock 50% of news articles" },
+    "newsAccess3": { "name": "News Access III", "description": "Unlock 100% of news articles" },
+    "stockTradingUnlock": { "name": "Stock Trading Unlock", "description": "Unlock stock trading (buy/sell stocks)" },
+    "marginTradingUnlock": { "name": "Margin Trading Unlock", "description": "Unlock margin trading (x25 multiplier)" },
+    "marginMultiplier1": { "name": "Margin Multiplier I", "description": "Increase margin multiplier to 30x" },
+    "marginMultiplier2": { "name": "Margin Multiplier II", "description": "Increase margin multiplier to 40x" },
+    "marginMultiplier3": { "name": "Margin Multiplier III", "description": "Increase margin multiplier to 55x" },
+    "newsTabUnlock": { "name": "News Tab Unlock", "description": "Unlock the news tab" },
+    "consoleTabUnlock": { "name": "Console Tab Unlock", "description": "Unlock the console tab" },
+    "botBetTier1": { "name": "Bot Bet Tier I", "description": "Bots use 25% of your bet amount" },
+    "botBetTier2": { "name": "Bot Bet Tier II", "description": "Bots use 50% of your bet amount" },
+    "botBetTier3": { "name": "Bot Bet Tier III", "description": "Bots use 100% of your bet amount" },
+    "cookieStockHint": { "name": "Cookie Stock Hint", "description": "Shows stock name hint on undecoded cookies" },
+    "cookieProphecyHint": { "name": "Cookie Prophecy Hint", "description": "Shows prophecy type hint on undecoded cookies" }
+  },
+  "cookieTiers": {
+    "1": { "name": "Fortune Cookie", "description": "Basic prophecy" },
+    "2": { "name": "Golden Cookie", "description": "Enhanced prophecy" },
+    "3": { "name": "Rare Cookie", "description": "Premium prophecy" }
+  },
+  "prophecy": {
+    "trendUp": { "name": "Trend Up Strength", "description": "Upward trend regime detected" },
+    "trendDown": { "name": "Trend Down Strength", "description": "Downward trend regime detected" },
+    "shore": { "name": "Shore", "description": "Price floor and ceiling guaranteed" },
+    "inevitableZone": { "name": "Inevitable Zone", "description": "Price will touch this zone" },
+    "volatilitySpike": { "name": "Volatility Spike", "description": "High volatility incoming" },
+    "volatilityCalm": { "name": "Volatility Calm", "description": "Low volatility period" }
+  },
+  "stocks": {
+    "APLS": "Apples Corp.",
+    "LOOGL": "Loogle Inc.",
+    "MAСFT": "Macrosoft Corp.",
+    "LST": "List Inc.",
+    "NWTN": "Newton Inc."
+  },
+  "newsTemplates": {
+    "trendUp": [
+      "{{stock}} shows strong upward momentum as investors show confidence",
+      "Analysts detect bullish signals in {{stock}} trading patterns",
+      "{{stock}} gains traction with positive market sentiment",
+      "Breaking: {{stock}} experiencing significant price appreciation",
+      "Investors flock to {{stock}} amid positive market outlook"
+    ],
+    "trendDown": [
+      "{{stock}} faces selling pressure as market sentiment shifts",
+      "Analysts note bearish indicators in {{stock}} performance",
+      "{{stock}} declines amid market uncertainty",
+      "Breaking: {{stock}} experiencing downward price movement",
+      "Investors show caution as {{stock}} trends lower"
+    ],
+    "volatility": [
+      "High volatility detected in {{stock}} trading session",
+      "{{stock}} experiences increased market volatility",
+      "Market uncertainty drives {{stock}} price fluctuations",
+      "Traders brace for volatility as {{stock}} shows erratic movement",
+      "{{stock}} sees heightened trading activity and price swings"
+    ],
+    "general": [
+      "Market analysts release new report on {{stock}}",
+      "{{stock}} trading volume increases significantly",
+      "Breaking: Major development affects {{stock}} market position",
+      "{{stock}} shows interesting price action today",
+      "Market watchers keep close eye on {{stock}} performance"
+    ]
+  },
+  "tutorial": {
+    "step0_title": "Welcome to Fortune Trader",
+    "step1_title": "The Chart & Price Display",
+    "step2_title": "Trading Basics - Long & Short",
+    "step3_title": "Bet Amounts & Win Streaks",
+    "step4_title": "Fortune Cookies & Prophecies",
+    "step5_title": "Active Prophecies Panel",
+    "step6_title": "Navigation & Balance",
+    "step7_title": "Stock Trading (Optional)",
+    "step8_title": "Margin Trading (Advanced)",
+    "step9_title": "Keyboard Shortcuts",
+    "step10_title": "Getting Started Tips"
+  }
+}
+;

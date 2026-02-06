@@ -17,12 +17,9 @@
         <div class="welcome-backdrop"></div>
         <div class="welcome-modal">
             <div class="welcome-icon">🥠</div>
-            <h2 class="welcome-title">Welcome to Fortune Trader</h2>
-            <p class="welcome-disclaimer">
-                This is a <strong>stock trader simulator game</strong> set in a world where fortune cookies actually predict the future.
-                All money and trades in this game are fictional. Please do not gamble or risk real money if in your world cookies work differently.
-            </p>
-            <button type="button" class="welcome-ok-btn" id="welcomeOkBtn">Okay</button>
+            <h2 class="welcome-title" data-i18n="welcome.title"></h2>
+            <p class="welcome-disclaimer" data-i18n="welcome.disclaimer" data-i18n-html="true"></p>
+            <button type="button" class="welcome-ok-btn" id="welcomeOkBtn" data-i18n="welcome.ok"></button>
         </div>
     </div>
 
@@ -52,55 +49,55 @@
                 <div class="sync-overlay hidden" id="syncOverlay">
                     <div class="sync-content">
                         <div class="sync-spinner"></div>
-                        <div class="sync-title">Syncing Data...</div>
-                        <div class="sync-message">Securing your previous session to cloud</div>
-                        <div class="sync-status" id="syncStatus">Please wait...</div>
+                        <div class="sync-title" data-i18n="sync.title"></div>
+                        <div class="sync-message" data-i18n="sync.message"></div>
+                        <div class="sync-status" id="syncStatus" data-i18n="sync.status"></div>
                     </div>
                 </div>
                 
                 <!-- Login Card Interface -->
                 <div class="login-card-container" id="loginCardContainer">
-                    <div class="login-title">Baker's Bank</div>
-                    <div class="login-subtitle">Enter your credentials to continue</div>
+                    <div class="login-title" data-i18n="login.title"></div>
+                    <div class="login-subtitle" data-i18n="login.subtitle"></div>
                     
                     <div class="card-wrapper" id="cardWrapper">
                         <!-- Card Front -->
                         <div class="credit-card card-front">
                             <div class="card-chip"></div>
-                            <div class="card-logo">Baker's Bank</div>
+                            <div class="card-logo" data-i18n="login.cardLogo"></div>
                             <div class="card-number">FT7X 2K9M P4QR 8N5W</div>
                             <div class="card-details">
                                 <div class="card-holder">
-                                    <label>CARD HOLDER</label>
-                                    <input type="text" id="cardHolderInput" class="card-input" placeholder="YOUR NAME" maxlength="20" autocomplete="off">
+                                    <label data-i18n="login.cardHolder"></label>
+                                    <input type="text" id="cardHolderInput" class="card-input" data-i18n-placeholder="login.yourName" maxlength="20" autocomplete="off">
                                 </div>
                                 <div class="card-expiry">
-                                    <label>EXPIRES</label>
+                                    <label data-i18n="login.expires"></label>
                                     <span>07/32</span>
                                 </div>
                             </div>
-                            <button class="card-next-btn" id="cardNextBtn" onclick="flipCardToBack()">Continue</button>
+                            <button class="card-next-btn" id="cardNextBtn" onclick="flipCardToBack()" data-i18n="login.continue"></button>
                         </div>
                         
                         <!-- Card Back -->
                         <div class="credit-card card-back">
                             <div class="card-stripe"></div>
                             <div class="card-signature-strip">
-                                <div class="signature-label">AUTHORIZED SIGNATURE</div>
+                                <div class="signature-label" data-i18n="login.authorizedSignature"></div>
                                 <div class="signature-display" id="signatureDisplay">-</div>
                             </div>
                             <div class="card-cvv-section">
-                                <label>SECURITY CODE</label>
+                                <label data-i18n="login.securityCode"></label>
                                 <input type="password" id="cardCvvInput" class="cvv-input" placeholder="***" maxlength="20" autocomplete="off">
                             </div>
                             <div class="card-back-actions">
-                                <button class="card-back-btn" onclick="flipCardToFront()">Back</button>
-                                <button class="card-login-btn" id="cardLoginBtn" onclick="attemptLogin()">Login</button>
+                                <button class="card-back-btn" onclick="flipCardToFront()" data-i18n="login.back"></button>
+                                <button class="card-login-btn" id="cardLoginBtn" onclick="attemptLogin()" data-i18n="login.login"></button>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="login-hint">This is not real banking information</div>
+                    <div class="login-hint" data-i18n="login.hint"></div>
                 </div>
                 
                 <div class="phone-apps">
@@ -108,38 +105,38 @@
                         <div class="app-icon trader-icon">
                             <span>F</span>
                         </div>
-                        <span class="app-name">Fortune Trader</span>
+                        <span class="app-name" data-i18n="apps.fortuneTrader"></span>
                         <div class="app-lock-badge" id="traderLockBadge">🔒</div>
                     </div>
                     <div class="phone-app" onclick="launchApp('banker')">
                         <div class="app-icon banker-icon">
                             <span>$</span>
                         </div>
-                        <span class="app-name">Baker's Bank</span>
+                        <span class="app-name" data-i18n="apps.bakersBank"></span>
                     </div>
                     <div class="phone-app" onclick="launchApp('shop')">
                         <div class="app-icon shop-icon">
                             <span>🛍️</span>
                         </div>
-                        <span class="app-name">Shop</span>
+                        <span class="app-name" data-i18n="apps.shop"></span>
                     </div>
                     <div class="phone-app" onclick="launchApp('expenses')">
                         <div class="app-icon expenses-icon">
                             <span>📋</span>
                         </div>
-                        <span class="app-name">Expenses</span>
+                        <span class="app-name" data-i18n="apps.expenses"></span>
                     </div>
                     <div class="phone-app" onclick="launchApp('leaderboard')">
                         <div class="app-icon leaderboard-icon">
                             <span>🏆</span>
                         </div>
-                        <span class="app-name">Whales</span>
+                        <span class="app-name" data-i18n="apps.whales"></span>
                     </div>
                     <div class="phone-app" onclick="launchApp('settings')">
                         <div class="app-icon settings-icon">
                             <span>⚙️</span>
                         </div>
-                        <span class="app-name">Settings</span>
+                        <span class="app-name" data-i18n="apps.settings"></span>
                     </div>
                 </div>
                 <div class="phone-dock">
@@ -150,64 +147,64 @@
                 <div class="banker-app-overlay" id="bankerAppOverlay">
                     <div class="banker-header">
                         <button class="banker-back-btn" onclick="closeBankerApp()">←</button>
-                        <span class="banker-title">Baker's Bank</span>
+                        <span class="banker-title" data-i18n="banker.title"></span>
                         <span class="banker-user" id="bankerUserName"></span>
                     </div>
                     
                     <div class="banker-content">
                         <div class="bank-balance-card">
-                            <div class="bank-balance-label">Bank Balance</div>
+                            <div class="bank-balance-label" data-i18n="banker.balanceLabel"></div>
                             <div class="bank-balance-amount" id="bankBalanceDisplay">$1,000</div>
                         </div>
                         
                         <div class="bank-stats">
                             <button class="bank-stat bank-stat-button" id="earningsToggleButton" type="button" onclick="toggleEarningsPanel()" aria-expanded="false" aria-controls="bankEarningsPanel">
-                                <span class="bank-stat-label">Lifetime Earnings</span>
+                                <span class="bank-stat-label" data-i18n="banker.lifetimeEarnings"></span>
                                 <span class="bank-stat-value" id="lifetimeEarnings">$0</span>
                             </button>
                             <button class="bank-stat bank-stat-button" id="spendingToggleButton" type="button" onclick="toggleSpendingPanel()" aria-expanded="false" aria-controls="bankSpendingPanel">
-                                <span class="bank-stat-label">Lifetime Spendings</span>
+                                <span class="bank-stat-label" data-i18n="banker.lifetimeSpendings"></span>
                                 <span class="bank-stat-value" id="lifetimeSpendings">$0</span>
                             </button>
                         </div>
                         <div class="bank-earnings-panel" id="bankEarningsPanel">
-                            <div class="earnings-panel-header">Trading Round History</div>
+                            <div class="earnings-panel-header" data-i18n="banker.earningsPanelHeader"></div>
                             <div class="earnings-panel-list" id="earningsHistoryList"></div>
                         </div>
                         <div class="bank-spending-panel" id="bankSpendingPanel">
-                            <div class="spending-panel-header">Spending History</div>
+                            <div class="spending-panel-header" data-i18n="banker.spendingPanelHeader"></div>
                             <div class="spending-panel-list" id="spendingHistoryList"></div>
                         </div>
                         <div class="banker-mode-toggle">
-                            <button class="banker-mode-btn active" data-mode="deposit" onclick="setBankerMode('deposit')">Deposit</button>
-                            <button class="banker-mode-btn" data-mode="loan" onclick="setBankerMode('loan')">Loans</button>
+                            <button class="banker-mode-btn active" data-mode="deposit" onclick="setBankerMode('deposit')" data-i18n="banker.deposit">Deposit</button>
+                            <button class="banker-mode-btn" data-mode="loan" onclick="setBankerMode('loan')" data-i18n="banker.loans">Loans</button>
                         </div>
 
                         <div class="banker-mode-section active" id="bankerDepositSection">
                             <div class="deposit-section">
-                                <div class="deposit-label">Deposit to Trading</div>
+                                <div class="deposit-label" data-i18n="banker.depositToTrading"></div>
                                 <div class="deposit-presets">
                                     <button class="deposit-preset" onclick="setDepositAmount(100)">$100</button>
                                     <button class="deposit-preset" onclick="setDepositAmount(250)">$250</button>
                                     <button class="deposit-preset" onclick="setDepositAmount(500)">$500</button>
-                                    <button class="deposit-preset" onclick="depositAll()">All</button>
+                                    <button class="deposit-preset" onclick="depositAll()" data-i18n="banker.all">All</button>
                                 </div>
                                 <div class="deposit-custom">
-                                    <input type="number" id="depositAmountInput" class="deposit-input" placeholder="Amount" min="1">
-                                    <button class="deposit-btn" onclick="executeDeposit()">Deposit</button>
+                                    <input type="number" id="depositAmountInput" class="deposit-input" data-i18n-placeholder="banker.amount" min="1">
+                                    <button class="deposit-btn" onclick="executeDeposit()" data-i18n="banker.depositBtn">Deposit</button>
                                 </div>
                             </div>
 
                             <div class="trading-account-info" id="tradingAccountInfo">
-                                <div class="trading-account-label">Trading Account</div>
+                                <div class="trading-account-label" data-i18n="banker.tradingAccount"></div>
                                 <div class="trading-account-balance" id="tradingAccountBalance">$0</div>
-                                <div class="trading-account-hint">5% fee on cash out</div>
+                                <div class="trading-account-hint" data-i18n="banker.feeHint"></div>
                             </div>
                         </div>
 
                         <div class="banker-mode-section" id="bankerLoanSection">
                             <div class="loan-section">
-                                <div class="loan-section-title">Loan</div>
+                                <div class="loan-section-title" data-i18n="banker.loanSectionTitle"></div>
                                 <div class="loan-active-card" id="loanActiveCard"></div>
                                 <div class="loan-options" id="loanOptionsList"></div>
                             </div>
@@ -218,27 +215,27 @@
                 <!-- Locked Trader Overlay -->
                 <div class="trader-locked-overlay" id="traderLockedOverlay">
                     <div class="locked-icon">🔒</div>
-                    <div class="locked-text">No Trading Funds</div>
-                    <div class="locked-hint">Deposit money from Baker's Bank first</div>
-                    <button class="locked-btn" onclick="switchToBanker()">Open Banker</button>
+                    <div class="locked-text" data-i18n="locked.text"></div>
+                    <div class="locked-hint" data-i18n="locked.hint"></div>
+                    <button class="locked-btn" onclick="switchToBanker()" data-i18n="locked.openBanker"></button>
                 </div>
                 
                 <!-- Expenses App Interface -->
                 <div class="expenses-app-overlay" id="expensesAppOverlay">
                     <div class="expenses-header">
                         <button class="expenses-back-btn" onclick="closeExpensesApp()">←</button>
-                        <span class="expenses-title">Expenses</span>
+                        <span class="expenses-title" data-i18n="expenses.title"></span>
                     </div>
                     
                     <div class="expenses-content">
                         <div class="expenses-summary">
                             <div class="expenses-total-card">
-                                <div class="expenses-total-label">Daily Expenses</div>
+                                <div class="expenses-total-label" data-i18n="expenses.dailyLabel"></div>
                                 <div class="expenses-total-amount" id="expensesTotalAmount">$0</div>
-                                <div class="expenses-total-hint">Charged once per real day</div>
+                                <div class="expenses-total-hint" data-i18n="expenses.chargedPerDay"></div>
                             </div>
                             <div class="expenses-countdown">
-                                <span class="countdown-label">Next charge at midnight</span>
+                                <span class="countdown-label" data-i18n="expenses.nextCharge"></span>
                                 <span class="countdown-value" id="expensesCountdown">--</span>
                             </div>
                         </div>
@@ -249,7 +246,7 @@
                         
                         <div class="expenses-warning" id="expensesWarning">
                             <span class="warning-icon">💡</span>
-                            <span class="warning-text">Adjust your lifestyle spending using +/- buttons. Minimum values shown. Charged daily at midnight!</span>
+                            <span class="warning-text" data-i18n="expenses.warning"></span>
                         </div>
                     </div>
                 </div>
@@ -258,21 +255,21 @@
                 <div class="shop-app-overlay" id="shopAppOverlay">
                     <div class="shop-header">
                         <button class="shop-back-btn" onclick="closeShopApp()">←</button>
-                        <span class="shop-title">List shop</span>
+                        <span class="shop-title" data-i18n="shop.title"></span>
                         <div class="shop-balance">$<span id="shopBalanceAmount">0</span></div>
                     </div>
                     
                     <div class="shop-content">
                         <!-- Category Tabs -->
                         <div class="shop-tabs">
-                            <button class="shop-tab active" data-category="estate" onclick="filterShopCategory('estate')">Estate</button>
-                            <button class="shop-tab" data-category="car" onclick="filterShopCategory('car')">Cars</button>
-                            <button class="shop-tab" data-category="luxury" onclick="filterShopCategory('luxury')">Luxury</button>
+                            <button class="shop-tab active" data-category="estate" onclick="filterShopCategory('estate')" data-i18n="shop.estate">Estate</button>
+                            <button class="shop-tab" data-category="car" onclick="filterShopCategory('car')" data-i18n="shop.cars">Cars</button>
+                            <button class="shop-tab" data-category="luxury" onclick="filterShopCategory('luxury')" data-i18n="shop.luxury">Luxury</button>
                         </div>
                         
                         <!-- Owned Items -->
                         <div class="shop-owned-section" id="shopOwnedSection">
-                            <div class="shop-owned-title">Your Assets</div>
+                            <div class="shop-owned-title" data-i18n="shop.yourAssets"></div>
                             <div class="shop-owned-list" id="shopOwnedList">
                                 <!-- Populated by JavaScript -->
                             </div>
@@ -283,8 +280,7 @@
                             <!-- Populated by JavaScript -->
                         </div>
                         
-                        <div class="shop-hint">
-                            💡 Estate and cars eliminate daily expenses. Luxury items are just for show!
+                        <div class="shop-hint" data-i18n="shop.hint">
                         </div>
                     </div>
                 </div>
@@ -293,47 +289,59 @@
                 <div class="settings-app-overlay" id="settingsAppOverlay">
                     <div class="settings-header">
                         <button class="settings-back-btn" onclick="closeSettingsApp()">←</button>
-                        <span class="settings-title">Settings</span>
+                        <span class="settings-title" data-i18n="settings.title"></span>
                     </div>
                     
                     <div class="settings-content">
                         <div class="settings-section">
-                            <div class="settings-section-title">Account</div>
+                            <div class="settings-section-title" data-i18n="settings.account"></div>
                             <div class="settings-item">
                                 <div class="settings-item-icon">👤</div>
                                 <div class="settings-item-info">
-                                    <div class="settings-item-label">Logged in as</div>
+                                    <div class="settings-item-label" data-i18n="settings.loggedInAs"></div>
                                     <div class="settings-item-value" id="settingsUserName">-</div>
                                 </div>
                             </div>
                             <div class="settings-item clickable" onclick="logout()">
                                 <div class="settings-item-icon danger">🚪</div>
                                 <div class="settings-item-info">
-                                    <div class="settings-item-label">Log Out</div>
-                                    <div class="settings-item-desc">Clear saved login credentials</div>
+                                    <div class="settings-item-label" data-i18n="settings.logOut"></div>
+                                    <div class="settings-item-desc" data-i18n="settings.logOutDesc"></div>
                                 </div>
                                 <div class="settings-item-arrow">›</div>
                             </div>
                         </div>
                         
+                        <div class="settings-section" id="settingsLanguageSection">
+                            <div class="settings-section-title" data-i18n="settings.language"></div>
+                            <div class="settings-item">
+                                <div class="settings-item-icon">🌐</div>
+                                <div class="settings-item-info"></div>
+                                <select id="languageSelect" class="settings-select" onchange="window.setGameLocale && window.setGameLocale(this.value);" aria-label="Language" title="Change interface language">
+                                    <option value="en">English</option>
+                                    <option value="ru">Русский</option>
+                                </select>
+                            </div>
+                        </div>
+                        
                         <div class="settings-section">
-                            <div class="settings-section-title">Game Data</div>
+                            <div class="settings-section-title" data-i18n="settings.gameData"></div>
                             <div class="settings-item clickable" onclick="confirmResetGame()">
                                 <div class="settings-item-icon danger">🔄</div>
                                 <div class="settings-item-info">
-                                    <div class="settings-item-label">Reset Game</div>
-                                    <div class="settings-item-desc">Clear all data and start over</div>
+                                    <div class="settings-item-label" data-i18n="settings.resetGame"></div>
+                                    <div class="settings-item-desc" data-i18n="settings.resetGameDesc"></div>
                                 </div>
                                 <div class="settings-item-arrow">›</div>
                             </div>
                         </div>
 
                         <div class="settings-section">
-                            <div class="settings-section-title">Audio</div>
+                            <div class="settings-section-title" data-i18n="settings.audio"></div>
                             <div class="settings-item">
                                 <div class="settings-item-icon">🔊</div>
                                 <div class="settings-item-info">
-                                    <div class="settings-item-label">Volume</div>
+                                    <div class="settings-item-label" data-i18n="settings.volume"></div>
                                     <div class="settings-item-desc" id="audioVolumeValue">80%</div>
                                 </div>
                                 <input class="settings-slider" id="audioVolumeSlider" type="range" min="0" max="100" step="1" value="80" aria-label="Audio volume">
@@ -341,18 +349,18 @@
                         </div>
                         
                         <div class="settings-section">
-                            <div class="settings-section-title">About</div>
+                            <div class="settings-section-title" data-i18n="settings.about"></div>
                             <div class="settings-item">
                                 <div class="settings-item-icon">ℹ️</div>
                                 <div class="settings-item-info">
-                                    <div class="settings-item-label">Fortune Trader</div>
+                                    <div class="settings-item-label" data-i18n="nav.fortuneTrader"></div>
                                     <div class="settings-item-desc" id="settingsVersionValue">Version</div>
                                 </div>
                             </div>
                             <div class="settings-item">
                                 <div class="settings-item-icon">👨‍💻</div>
                                 <div class="settings-item-info">
-                                    <div class="settings-item-label">Creator</div>
+                                    <div class="settings-item-label" data-i18n="settings.creator"></div>
                                     <div class="settings-item-desc">Pavel Arkhipov · arkhipov.design@gmail.com</div>
                                 </div>
                             </div>
@@ -365,12 +373,12 @@
                     <div class="leaderboard-header">
                         <button class="leaderboard-back-btn" onclick="closeLeaderboardApp()">←</button>
                         <div class="leaderboard-header-content">
-                            <h1 class="leaderboard-title">Best Traders</h1>
-                            <p class="leaderboard-subtitle">Top performers of the season</p>
+                            <h1 class="leaderboard-title" data-i18n="leaderboard.title"></h1>
+                            <p class="leaderboard-subtitle" data-i18n="leaderboard.subtitle"></p>
                         </div>
                     </div>
                     <div class="leaderboard-content">
-                        <div class="leaderboard-status" id="leaderboardStatus">Loading...</div>
+                        <div class="leaderboard-status" id="leaderboardStatus" data-i18n="leaderboard.loading">Loading...</div>
                         <div class="leaderboard-list" id="leaderboardList"></div>
                         <div class="leaderboard-footer">
                             <div class="leaderboard-updated" id="leaderboardUpdated"></div>
@@ -380,11 +388,11 @@
             </div>
         </div>
         
-        <div class="phone-hint" id="phoneHint">Press ESC to toggle phone during gameplay</div>
+        <div class="phone-hint" id="phoneHint" data-i18n="phoneHint"></div>
     </div>
 
     <!-- Phone Toggle Button (visible during gameplay) -->
-    <button class="phone-toggle-btn" id="phoneToggleBtn" onclick="togglePhone()" title="Open Phone">
+    <button class="phone-toggle-btn" id="phoneToggleBtn" onclick="togglePhone()" title="Open Phone" aria-label="Open Phone">
         <span class="phone-toggle-icon">📱</span>
     </button>
 
@@ -393,7 +401,7 @@
             <div class="nav-left">
                 <div class="logo">
                     <div class="logo-icon">F</div>
-                    <span>Fortune Trader</span>
+                    <span data-i18n="nav.fortuneTrader">Fortune Trader</span>
                 </div>
                 <div class="nav-source-selector">
                     <select class="nav-source-select" id="sourceSelect" onchange="changeDataSource(this.value)">
@@ -408,7 +416,7 @@
                 </div>
                 <div class="streak-stat" id="streakStat">
                     <div class="streak-info">
-                        <span class="streak-label">Streak</span>
+                        <span class="streak-label" data-i18n="nav.streak"></span>
                         <span class="streak-value">
                             <span class="streak-icon">🔥</span>
                             <span id="streakNumber">0</span>
@@ -416,26 +424,26 @@
                     </div>
                     <div class="streak-divider"></div>
                     <div class="bet-info">
-                        <span class="bet-label">Bet</span>
+                        <span class="bet-label" data-i18n="nav.bet"></span>
                         <span class="bet-value" id="currentBetAmount">$100</span>
-                        <span class="bet-next" id="betNext">Next: <span>$200</span></span>
+                        <span class="bet-next" id="betNext"><span data-i18n="nav.next"></span>: <span>$200</span></span>
                     </div>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Cash</span>
+                    <span class="stat-label" data-i18n="nav.cash"></span>
                     <span class="stat-value balance" id="balance">$500.00</span>
                 </div>
                 <button class="nav-btn tutorial-btn" id="tutorialBtn" onclick="toggleTutorial()">
                     <span class="nav-btn-icon">📖</span>
-                    <span class="nav-btn-label">Tutorial</span>
+                    <span class="nav-btn-label" data-i18n="nav.tutorial"></span>
                 </button>
                 <button class="nav-btn portfolio-btn" id="portfolioBtn" onclick="togglePortfolioOverlay()">
                     <span class="nav-btn-icon">📊</span>
-                    <span class="nav-btn-label">Portfolio</span>
+                    <span class="nav-btn-label" data-i18n="nav.portfolio"></span>
                 </button>
                 <button class="nav-btn prestige-btn" id="prestigeBtn" onclick="confirmPrestige()">
                     <span class="nav-btn-icon">🏦</span>
-                    <span class="nav-btn-label">Cash Out</span>
+                    <span class="nav-btn-label" data-i18n="nav.cashOut"></span>
                 </button>
             </div>
         </nav>
@@ -449,7 +457,7 @@
                     </div>
                     <div class="stock-holding-compact" id="stockHoldingCompact"></div>
                     <div class="time-frame-selector" id="timeFrameSelector">
-                        <button class="time-frame-btn active" data-frame="LIVE" onclick="changeTimeFrame('LIVE')">Live</button>
+                        <button class="time-frame-btn active" data-frame="LIVE" onclick="changeTimeFrame('LIVE')" data-i18n="chart.live">Live</button>
                         <button class="time-frame-btn" data-frame="1H" onclick="changeTimeFrame('1H')">1H</button>
                         <button class="time-frame-btn" data-frame="1D" onclick="changeTimeFrame('1D')">1D</button>
                         <button class="time-frame-btn" data-frame="1W" onclick="changeTimeFrame('1W')">1W</button>
@@ -467,7 +475,7 @@
                     <div class="bet-markers-container" id="betMarkersContainer"></div>
                     <div class="chart-loading-overlay" id="chartLoadingOverlay">
                         <div class="loading-spinner"></div>
-                        <div class="loading-text">Loading market data...</div>
+                        <div class="loading-text" data-i18n="chart.loading"></div>
                     </div>
                 </div>
 
@@ -475,38 +483,38 @@
                     <div class="positions-row" id="activePositions"></div>
                     <div class="trade-buttons">
                         <button class="trade-btn long" onclick="openPosition('long')">
-                            Long
+                            <span data-i18n="chart.long">Long</span>
                             <kbd class="btn-shortcut">A</kbd>
                         </button>
                         <button class="trade-btn short" onclick="openPosition('short')">
-                            Short
+                            <span data-i18n="chart.short">Short</span>
                             <kbd class="btn-shortcut">D</kbd>
                         </button>
                     </div>
                     <div class="stock-trade-buttons">
                         <button class="trade-btn stock-buy" onclick="buyStock()">
                             <span class="btn-text">
-                                Buy Stock
+                                <span data-i18n="chart.buyStock">Buy Stock</span>
                                 <kbd class="btn-shortcut">Space</kbd>
                             </span>
                           
                         </button>
-                        <button class="trade-btn stock-sell" onclick="sellStock()">Sell All Stock</button>
+                        <button class="trade-btn stock-sell" onclick="sellStock()" data-i18n="chart.sellAllStock">Sell All Stock</button>
                     </div>
                     <div class="margin-trade-buttons" id="marginTradeButtons">
                         <button class="trade-btn margin-long" onclick="openMarginPosition('long')">
-                            Long Margin
+                            <span data-i18n="chart.longMargin">Long Margin</span>
                             <kbd class="btn-shortcut">Z</kbd>
                         </button>
                         <button class="trade-btn margin-short" onclick="openMarginPosition('short')">
-                            Short Margin
+                            <span data-i18n="chart.shortMargin">Short Margin</span>
                             <kbd class="btn-shortcut">C</kbd>
                         </button>
                     </div>
                     <div class="margin-close-button-container" id="marginCloseButtonContainer" style="display: none;">
                         <button class="trade-btn margin-close" id="marginCloseButton" onclick="closeMarginPosition()">
                             <div class="margin-close-content">
-                                <div class="margin-close-text" id="marginCloseText">Close Position</div>
+                                <div class="margin-close-text" id="marginCloseText" data-i18n="chart.closePosition">Close Position</div>
                                 <div class="margin-close-pnl" id="marginClosePnl">$0.00</div>
                             </div>
                             <div class="margin-timer-bar" id="marginTimerBar">
@@ -522,15 +530,15 @@
                     <div class="panel-tabs">
                         <button class="panel-tab active" data-tab="cookie" onclick="switchRightPanelTab('cookie')">
                             <span class="tab-icon">🥠</span>
-                            <span class="tab-label">Cookie Shop</span>
+                            <span class="tab-label" data-i18n="cookie.cookieShop"></span>
                         </button>
                         <button class="panel-tab" data-tab="news" onclick="switchRightPanelTab('news')">
                             <span class="tab-icon">📰</span>
-                            <span class="tab-label">News</span>
+                            <span class="tab-label" data-i18n="cookie.news"></span>
                         </button>
                         <button class="panel-tab" data-tab="bots" onclick="switchRightPanelTab('bots')">
                             <span class="tab-icon">⚡</span>
-                            <span class="tab-label">Console</span>
+                            <span class="tab-label" data-i18n="cookie.console"></span>
                         </button>
                     </div>
                 </div>
@@ -542,15 +550,15 @@
                             <div class="tier-info">
                                 <div class="tier-icon oracle" id="cookieBuyIcon">🥠</div>
                                 <div class="tier-details">
-                                    <span class="tier-name" id="cookieBuyName">Fortune Cookie</span>
-                                    <span class="tier-accuracy" id="cookieBuyDesc">Basic prophecy</span>
+                                    <span class="tier-name" id="cookieBuyName" data-i18n="cookie.fortuneCookie">Fortune Cookie</span>
+                                    <span class="tier-accuracy" id="cookieBuyDesc" data-i18n="cookie.basicProphecy">Basic prophecy</span>
                                 </div>
                             </div>
                             <span class="tier-price" id="cookieBuyPrice">$100</span>
                         </div>
                         <button class="shop-toggle-btn" id="shopToggleBtn" onclick="toggleShop()">
                             <span class="shop-icon">🛒</span>
-                            <span class="shop-label">Shop</span>
+                            <span class="shop-label" data-i18n="cookie.shopLabel">Shop</span>
                         </button>
                     </div>
 
@@ -565,18 +573,18 @@
                         <div class="cookie-content" id="cookieContent">
                             <div class="cookie-inventory-section">
                                 <div class="inventory-header">
-                                    <span class="inventory-title">Cookie Stash</span>
+                                    <span class="inventory-title" data-i18n="cookie.stash"></span>
                                     <span class="inventory-count" id="inventoryCount">0 cookies</span>
                                 </div>
                                 <div class="cookie-inventory" id="cookieInventory">
-                                    <div class="inventory-empty">No cookies yet. Purchase some above!</div>
+                                    <div class="inventory-empty" data-i18n="cookie.noCookies"></div>
                                 </div>
                             </div>
 
                             <div class="signal-reveal" id="signalReveal" ondragover="handleDragOver(event)" ondrop="handleDrop(event)" ondragleave="handleDragLeave(event)">
                                 <div class="empty-state" id="emptyState">
                                     <div class="empty-state-icon">⚡</div>
-                                    <div class="empty-state-text">Drag a cookie here to unpack its prophecy</div>
+                                    <div class="empty-state-text" data-i18n="cookie.dragCookie"></div>
                                 </div>
                             </div>
                         </div>
@@ -587,11 +595,11 @@
                 <div class="panel-content hidden" id="newsContent">
                     <div class="news-panel">
                         <div class="news-header">
-                            <span class="news-title">Market News</span>
+                            <span class="news-title" data-i18n="news.title"></span>
                             <span class="news-count" id="newsCount">0 articles</span>
                         </div>
                         <div class="news-list" id="newsList">
-                            <div class="news-empty">No news yet. Market updates will appear here.</div>
+                            <div class="news-empty" data-i18n="news.empty"></div>
                         </div>
                     </div>
                 </div>
@@ -602,23 +610,23 @@
                         <div class="console-header">
                             <div class="console-title">
                                 <span class="console-icon">⚡</span>
-                                <span>SYSTEM CONSOLE v1.0</span>
+                                <span data-i18n="bots.consoleTitle">SYSTEM CONSOLE v1.0</span>
                             </div>
-                            <div class="console-status" id="consoleStatus">READY</div>
+                            <div class="console-status" id="consoleStatus" data-i18n="bots.ready">READY</div>
                         </div>
                         <div class="console-output" id="consoleOutput">
                             <div class="console-line console-welcome">
                                 <span class="console-prompt">></span>
-                                <span class="console-text">Fortune Trader System Console</span>
+                                <span class="console-text" data-i18n="bots.welcome1"></span>
                             </div>
                             <div class="console-line console-welcome">
                                 <span class="console-prompt">></span>
-                                <span class="console-text">Type 'help' for available commands</span>
+                                <span class="console-text" data-i18n="bots.welcome2"></span>
                             </div>
                         </div>
                         <div class="console-input-wrapper">
                             <span class="console-prompt">></span>
-                            <input type="text" class="console-input" id="consoleInput" placeholder="Enter command..." autocomplete="off" spellcheck="false">
+                            <input type="text" class="console-input" id="consoleInput" data-i18n-placeholder="bots.placeholder" autocomplete="off" spellcheck="false">
                         </div>
                     </div>
                 </div>
@@ -626,11 +634,11 @@
 
             <section class="panel deals-panel">
                 <div class="panel-header">
-                    <span class="panel-title">Active Prophecies</span>
+                    <span class="panel-title" data-i18n="deals.title"></span>
                     <span class="panel-badge" id="dealCount">0 Active</span>
                 </div>
                 <div class="deals-scroll" id="dealsContainer">
-                    <div class="empty-deals">No active prophecies. Purchase a fortune cookie to receive trading insights.</div>
+                    <div class="empty-deals" data-i18n="deals.empty"></div>
                 </div>
             </section>
         </main>
@@ -649,7 +657,7 @@
             <div class="streamer-overlay-top">
                 <div class="streamer-live-pill">
                     <span class="streamer-live-dot"></span>
-                    <span class="streamer-live-label">LIVE</span>
+                    <span class="streamer-live-label" data-i18n="streamer.live"></span>
                 </div>
             </div>
             <div class="streamer-overlay-bottom">
@@ -665,7 +673,7 @@
     <div class="overlay-backdrop" id="portfolioBackdrop" onclick="togglePortfolioOverlay()"></div>
     <div class="portfolio-overlay" id="portfolioOverlay">
         <div class="overlay-header">
-            <h2 class="overlay-title">📊 Portfolio</h2>
+            <h2 class="overlay-title">📊 <span data-i18n="portfolio.title">Portfolio</span></h2>
             <button class="overlay-close" onclick="togglePortfolioOverlay()">&times;</button>
         </div>
         <div class="overlay-content">
@@ -685,11 +693,11 @@
     <div class="overlay-backdrop" id="resetBackdrop" onclick="cancelResetGame()"></div>
     <div class="confirm-modal" id="resetModal">
         <div class="confirm-icon">⚠️</div>
-        <h3 class="confirm-title">Reset Game?</h3>
-        <p class="confirm-text">This will reset your bank balance to $1,000 and <strong>permanently delete ALL saved data</strong> for this login/password pair from both your device and cloud storage. This action cannot be undone.</p>
+        <h3 class="confirm-title" data-i18n="modals.resetTitle"></h3>
+        <p class="confirm-text" data-i18n="modals.resetText" data-i18n-html="true"></p>
         <div class="confirm-actions">
-            <button class="confirm-btn cancel" onclick="cancelResetGame()">Cancel</button>
-            <button class="confirm-btn danger" onclick="executeResetGame()">Reset & Delete All Data</button>
+            <button class="confirm-btn cancel" onclick="cancelResetGame()" data-i18n="modals.cancel"></button>
+            <button class="confirm-btn danger" onclick="executeResetGame()" data-i18n="modals.resetDelete"></button>
         </div>
     </div>
 
@@ -697,11 +705,11 @@
     <div class="overlay-backdrop" id="gameOverBackdrop"></div>
     <div class="confirm-modal game-over-modal" id="gameOverModal">
         <div class="confirm-icon">💀</div>
-        <h3 class="confirm-title">Game Over</h3>
-        <p class="confirm-text" id="gameOverMessage">You have less than $50 in your bank account and less than $50 in your trading account. With no loan available, your trading journey has come to an end.</p>
-        <p class="confirm-text" style="margin-top: 12px; font-weight: 600;">Would you like to restart and try again?</p>
+        <h3 class="confirm-title" data-i18n="modals.gameOverTitle"></h3>
+        <p class="confirm-text" id="gameOverMessage"></p>
+        <p class="confirm-text" style="margin-top: 12px; font-weight: 600;" data-i18n="modals.gameOverQuestion"></p>
         <div class="confirm-actions">
-            <button class="confirm-btn danger" onclick="restartGameFromGameOver()">Restart Game</button>
+            <button class="confirm-btn danger" onclick="restartGameFromGameOver()" data-i18n="modals.restartGame"></button>
         </div>
     </div>
 
@@ -709,29 +717,29 @@
     <div class="overlay-backdrop" id="prestigeBackdrop" onclick="cancelPrestige()"></div>
     <div class="confirm-modal prestige-modal" id="prestigeModal">
         <div class="confirm-icon">🏦</div>
-        <h3 class="confirm-title">Cash Out?</h3>
-        <p class="confirm-text">Transfer your portfolio to your bank account and start a new trading round.</p>
+        <h3 class="confirm-title" data-i18n="modals.prestigeTitle"></h3>
+        <p class="confirm-text" data-i18n="modals.prestigeText"></p>
         <div class="prestige-summary">
             <div class="prestige-row">
-                <span>Portfolio Value</span>
+                <span data-i18n="modals.prestigePortfolioValue"></span>
                 <span class="prestige-value" id="prestigePortfolioValue">$0</span>
             </div>
             <div class="prestige-row fee">
-                <span>Cash Out Fee (5%)</span>
+                <span data-i18n="modals.prestigeFee"></span>
                 <span class="prestige-value" id="prestigeFee">-$0</span>
             </div>
             <div class="prestige-row profit-row" id="prestigeProfitRow">
-                <span>Net Profit/Loss</span>
+                <span data-i18n="modals.prestigeNetProfit"></span>
                 <span class="prestige-value" id="prestigeNetProfit">$0</span>
             </div>
             <div class="prestige-row total">
-                <span>You Receive</span>
+                <span data-i18n="modals.prestigeYouReceive"></span>
                 <span class="prestige-value" id="prestigeReceive">$0</span>
             </div>
         </div>
         <div class="confirm-actions">
-            <button class="confirm-btn cancel" onclick="cancelPrestige()">Cancel</button>
-            <button class="confirm-btn success" onclick="executePrestige()">Cash Out</button>
+            <button class="confirm-btn cancel" onclick="cancelPrestige()" data-i18n="modals.cancel"></button>
+            <button class="confirm-btn success" onclick="executePrestige()" data-i18n="modals.cashOutBtn"></button>
         </div>
     </div>
 
@@ -739,7 +747,7 @@
     <div class="overlay-backdrop" id="tutorialBackdrop" onclick="closeTutorial()"></div>
     <div class="tutorial-overlay" id="tutorialOverlay">
         <div class="tutorial-header">
-            <h2 class="tutorial-title">📖 Trading Basics Tutorial</h2>
+            <h2 class="tutorial-title">📖 <span data-i18n="modals.tutorialTitle"></span></h2>
             <button class="tutorial-close" onclick="closeTutorial()">&times;</button>
         </div>
         <div class="tutorial-content">
@@ -747,11 +755,11 @@
                 <!-- Steps will be populated by JavaScript -->
             </div>
             <div class="tutorial-navigation">
-                <button class="tutorial-nav-btn" id="tutorialPrevBtn" onclick="tutorialPrevious()" disabled>Previous</button>
+                <button class="tutorial-nav-btn" id="tutorialPrevBtn" onclick="tutorialPrevious()" disabled data-i18n="modals.previous">Previous</button>
                 <div class="tutorial-progress">
                     <span id="tutorialStepNumber">1</span> / <span id="tutorialTotalSteps">1</span>
                 </div>
-                <button class="tutorial-nav-btn" id="tutorialNextBtn" onclick="tutorialNext()">Next</button>
+                <button class="tutorial-nav-btn" id="tutorialNextBtn" onclick="tutorialNext()" data-i18n="modals.next">Next</button>
             </div>
         </div>
     </div>
@@ -764,7 +772,10 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <!-- Game scripts -->
+    <!-- Game scripts: embedded locales (work with file:// when fetch is blocked by CORS) -->
+    <script src="locales/locales-en.js"></script>
+    <script src="locales/locales-ru.js"></script>
+    <script src="js/i18n.js"></script>
     <script src="js/config.js"></script>
     <script src="js/version.js"></script>
     <script src="js/audio.js"></script>

@@ -466,7 +466,7 @@ async function syncPendingSaveSnapshot() {
         }
         
         const snapshot = JSON.parse(pendingSaveData);
-        console.log('⚠️ Found unsaved snapshot from previous session, verifying integrity...');
+        console.log('Found pending save from previous session, verifying...');
         
         // Show sync overlay to block UI
         showSyncOverlay(true, 'Verifying saved data...');
@@ -480,62 +480,49 @@ async function syncPendingSaveSnapshot() {
         
         // Check for signature
         if (!snapshot.security?.signature) {
-            console.error('🚨 SECURITY BREACH: Pending snapshot has no signature!');
-            console.error('This indicates tampering or SecurityService bypass attempt');
-            
+            console.warn('Pending save has no signature; will re-sign and sync.');
             if (typeof SecurityService !== 'undefined') {
                 SecurityService.addFlag('missing_signature_pending_snapshot', { 
-                    reason: 'Snapshot without signature detected - possible bypass attempt',
+                    reason: 'Snapshot without signature detected',
                     timestamp: Date.now(),
                     snapshotTimestamp: snapshot.timestamp
                 });
             }
-            
-            showSyncOverlay(true, '⚠️ Unsigned data detected - loading locally only');
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
+            showSyncOverlay(true, 'Re-signing save...');
+            await new Promise(resolve => setTimeout(resolve, 800));
             signatureValid = false;
             shouldSyncToFirebase = false;
         } else if (typeof SecurityService !== 'undefined') {
-            // Verify the signature
             const verification = await SecurityService.verifyLoadedSave(snapshot);
-            
             if (!verification.valid) {
-                // Signature invalid - snapshot might be tampered with!
-                console.error('🚨 SIGNATURE MISMATCH: Pending snapshot signature invalid!');
-                console.error('Reason:', verification.reason);
+                console.warn('Pending save signature outdated or invalid; re-signing and syncing.');
                 SecurityService.addFlag('invalid_signature_pending_snapshot', { 
                     reason: verification.reason,
                     timestamp: Date.now(),
                     snapshotTimestamp: snapshot.timestamp
                 });
-                
-                showSyncOverlay(true, '⚠️ Data integrity issue - loading locally only');
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
+                showSyncOverlay(true, 'Re-signing save...');
+                await new Promise(resolve => setTimeout(resolve, 800));
                 signatureValid = false;
                 shouldSyncToFirebase = false;
             } else {
-                console.log('✅ Signature verified - snapshot is authentic');
+                console.log('Save verified.');
                 signatureValid = true;
                 shouldSyncToFirebase = true;
             }
         } else {
-            // SecurityService not available - CRITICAL SECURITY ISSUE
-            console.error('🚨 SECURITY ERROR: SecurityService unavailable during verification!');
-            showSyncOverlay(true, '⚠️ Security system unavailable - loading locally only');
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            console.warn('SecurityService unavailable; will re-sign and sync.');
+            showSyncOverlay(true, 'Re-signing save...');
+            await new Promise(resolve => setTimeout(resolve, 800));
             signatureValid = false;
             shouldSyncToFirebase = false;
         }
         
         // LOAD SNAPSHOT LOCALLY REGARDLESS OF SIGNATURE STATUS
         // This preserves the most recent state (prevents save-scumming via failed verification)
-        console.log(`Loading pending snapshot locally (${signatureValid ? 'signed' : 'unsigned/invalid'})`);
+        console.log('Loading pending save locally.');
         
-        // If signature is invalid, we need to RE-SIGN and sync before allowing gameplay
         if (!shouldSyncToFirebase) {
-            console.warn('⚠️ Snapshot has invalid/missing signature - will re-sign and sync');
             showSyncOverlay(true, 'Re-signing data...');
             
             // Re-sign the snapshot with a fresh signature
@@ -570,8 +557,8 @@ async function syncPendingSaveSnapshot() {
                         resignedAndSynced: true
                     };
                 } catch (error) {
-                    console.error('❌ Failed to re-sign and sync:', error);
-                    showSyncOverlay(true, '⚠️ Sync failed - data saved locally only');
+                    console.warn('Re-sign/sync failed; data will stay local for now.', error?.message || error);
+                    showSyncOverlay(true, 'Sync failed – saved locally');
                     await new Promise(resolve => setTimeout(resolve, 1500));
                     showSyncOverlay(false);
                     
@@ -586,7 +573,7 @@ async function syncPendingSaveSnapshot() {
                     };
                 }
             } else {
-                console.error('🚨 Cannot re-sign: SecurityService unavailable');
+                console.warn('Cannot re-sign: SecurityService unavailable; loading save locally.');
                 showSyncOverlay(false);
                 return { 
                     hadPendingSave: true, 

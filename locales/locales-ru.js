@@ -1,0 +1,328 @@
+window.__LOCALE_RU__ = {
+  "welcome": {
+    "title": "Добро пожаловать в Fortune Trader",
+    "disclaimer": "Это <strong>симулятор биржевой торговли</strong> в мире, где печеньки с предсказаниями действительно предсказывают будущее. Все деньги и сделки в игре вымышлены. Пожалуйста, не рискуйте реальными деньгами, если в вашем мире печенье работает иначе.",
+    "ok": "Понятно"
+  },
+  "login": {
+    "title": "Банк Пекаря",
+    "subtitle": "Введите данные для входа",
+    "cardLogo": "Банк Пекаря",
+    "cardHolder": "ВЛАДЕЛЕЦ КАРТЫ",
+    "yourName": "ВАШЕ ИМЯ",
+    "expires": "ДЕЙСТВ. ДО",
+    "continue": "Далее",
+    "authorizedSignature": "ПОДПИСЬ ВЛАДЕЛЬЦА",
+    "securityCode": "КОД БЕЗОПАСНОСТИ",
+    "back": "Назад",
+    "login": "Войти",
+    "hint": "Это не реальные банковские данные"
+  },
+  "apps": {
+    "fortuneTrader": "Fortune Trader",
+    "bakersBank": "Банк Пекаря",
+    "shop": "Магазин",
+    "expenses": "Расходы",
+    "whales": "Киты",
+    "settings": "Настройки"
+  },
+  "sync": {
+    "title": "Синхронизация...",
+    "message": "Сохранение сессии в облако",
+    "status": "Подождите..."
+  },
+  "banker": {
+    "title": "Банк Пекаря",
+    "balanceLabel": "Баланс в банке",
+    "lifetimeEarnings": "Заработок за всё время",
+    "lifetimeSpendings": "Траты за всё время",
+    "earningsPanelHeader": "История выводов",
+    "spendingPanelHeader": "История трат",
+    "deposit": "Пополнить",
+    "loans": "Кредиты",
+    "depositToTrading": "Пополнение счёта для торговли",
+    "all": "Всё",
+    "amount": "Сумма",
+    "depositBtn": "Пополнить",
+    "tradingAccount": "Торговый счёт",
+    "feeHint": "5% комиссия при выводе",
+    "loanSectionTitle": "Кредит",
+    "noRoundsYet": "Пока не было выводов.",
+    "noSpendingsYet": "Траты пока не записывались."
+  },
+  "locked": {
+    "text": "Нет средств для торговли",
+    "hint": "Сначала пополните счёт в Банке Пекаря",
+    "openBanker": "Открыть банк"
+  },
+  "expenses": {
+    "title": "Расходы",
+    "dailyLabel": "Ежедневные расходы",
+    "chargedPerDay": "Списываются раз в реальный день",
+    "nextCharge": "Следующее списание в полночь",
+    "warning": "Меняйте суммы кнопками +/-. Показаны минимумы. Списывается каждый день в полночь!",
+    "rent": { "name": "Аренда", "description": "Аренда квартиры" },
+    "utilities": { "name": "Коммуналка", "description": "Электричество, вода, газ" },
+    "groceries": { "name": "Продукты", "description": "Еда и необходимое" },
+    "transport": { "name": "Транспорт", "description": "Бензин, проезд, парковка" },
+    "phone": { "name": "Телефон", "description": "Мобильная связь" },
+    "internet": { "name": "Интернет", "description": "Домашний интернет" },
+    "insurance": { "name": "Страховка", "description": "Здоровье и жизнь" },
+    "subscriptions": { "name": "Подписки", "description": "Стриминг, приложения и т.д." },
+    "eliminated": "✅ Отменён!"
+  },
+  "shop": {
+    "title": "Магазин",
+    "estate": "Недвижимость",
+    "cars": "Авто",
+    "luxury": "Роскошь",
+    "yourAssets": "Ваши активы",
+    "hint": "Недвижимость и авто убирают ежедневные расходы. Роскошь — только для вида!",
+    "buy": "Купить",
+    "owned": "Куплено",
+    "sell": "Продать",
+    "micro_flat": { "name": "Микро-квартира в городе", "description": "Небольшая своя квартира. Отменяет расход на аренду." },
+    "new_build_flat": { "name": "Квартира в новостройке", "description": "Современная квартира в престижном районе. Отменяет аренду." },
+    "family_house": { "name": "Дом за городом", "description": "Отдельный дом с садом. Отменяет аренду." },
+    "villa_estate": { "name": "Вилла", "description": "Элитная вилла с участком. Отменяет аренду." },
+    "compact_used": { "name": "Подержанный компакт", "description": "Простой автомобиль. Отменяет расход на транспорт." },
+    "performance_car": { "name": "Спортивное купе", "description": "Быстро и громко. Отменяет транспорт." },
+    "executive_vehicle": { "name": "Представительский авто", "description": "Комфорт и статус. Отменяет транспорт." },
+    "exotic_supercar": { "name": "Экзотический суперкар", "description": "Максимум скорости и престижа. Отменяет транспорт." },
+    "mechanical_watch": { "name": "Механические часы", "description": "Люксовый хронометр. Только статус." },
+    "fine_jewelry": { "name": "Ювелирный набор", "description": "Драгоценности. Ярко и классически." },
+    "tailored_wardrobe": { "name": "Гардероб по мерке", "description": "Одежда по индивидуальному пошиву." },
+    "original_art": { "name": "Оригинал современного искусства", "description": "Работа известного художника." },
+    "motor_yacht": { "name": "Моторная яхта (25 м)", "description": "Личная яхта для отдыха и статуса." },
+    "private_jet": { "name": "Частный самолёт (лёгкий класс)", "description": "Перелёты и престиж." }
+  },
+  "settings": {
+    "title": "Настройки",
+    "account": "Аккаунт",
+    "loggedInAs": "Вход выполнен как",
+    "logOut": "Выйти",
+    "logOutDesc": "Очистить сохранённые данные входа",
+    "gameData": "Данные игры",
+    "resetGame": "Сбросить игру",
+    "resetGameDesc": "Удалить все данные и начать заново",
+    "audio": "Звук",
+    "volume": "Громкость",
+    "about": "О программе",
+    "version": "Версия",
+    "creator": "Автор",
+    "language": "Язык"
+  },
+  "leaderboard": {
+    "title": "Лучшие трейдеры",
+    "subtitle": "Топ сезона",
+    "loading": "Загрузка...",
+    "offline": "Таблица недоступна (офлайн).",
+    "loadError": "Не удалось загрузить: {{error}}",
+    "noPlayers": "Пока никого в таблице.",
+    "updated": "Обновлено {{date}}",
+    "failed": "Ошибка загрузки: {{error}}"
+  },
+  "phoneHint": "Нажмите ESC, чтобы открыть/закрыть телефон",
+  "openPhone": "Открыть телефон",
+  "nav": {
+    "fortuneTrader": "Fortune Trader",
+    "live": "ОНЛАЙН",
+    "streak": "Серия",
+    "bet": "Ставка",
+    "next": "Дальше",
+    "cash": "Наличные",
+    "tutorial": "Обучение",
+    "portfolio": "Портфель",
+    "cashOut": "Вывести"
+  },
+  "chart": {
+    "live": "В реальном времени",
+    "loading": "Загрузка данных...",
+    "long": "Лонг",
+    "short": "Шорт",
+    "buyStock": "Купить акции",
+    "sellAllStock": "Продать все акции",
+    "longMargin": "Лонг с плечом",
+    "shortMargin": "Шорт с плечом",
+    "closePosition": "Закрыть позицию"
+  },
+  "cookie": {
+    "cookieShop": "Магазин печенья",
+    "news": "Новости",
+    "console": "Консоль",
+    "fortuneCookie": "Печенье с предсказанием",
+    "basicProphecy": "Базовое предсказание",
+    "shopLabel": "Магазин",
+    "stash": "Запас печенья",
+    "cookiesCount": "{{count}} шт.",
+    "noCookies": "Печенья пока нет. Купите выше!",
+    "dragCookie": "Перетащите сюда печенье, чтобы раскрыть предсказание"
+  },
+  "news": {
+    "title": "Рыночные новости",
+    "articlesCount": "{{count}} статей",
+    "empty": "Новостей пока нет. Они появятся здесь."
+  },
+  "bots": {
+    "consoleTitle": "СИСТЕМНАЯ КОНСОЛЬ v1.0",
+    "ready": "ГОТОВ",
+    "welcome1": "Консоль Fortune Trader",
+    "welcome2": "Введите 'help' для списка команд",
+    "placeholder": "Введите команду..."
+  },
+  "deals": {
+    "title": "Активные предсказания",
+    "activeCount": "{{count}} активных",
+    "empty": "Нет активных предсказаний. Купите печенье с предсказанием."
+  },
+  "portfolio": {
+    "title": "Портфель",
+    "portfolioValue": "Стоимость портфеля",
+    "cashOutFee": "Комиссия вывода (5%)",
+    "netProfit": "Чистая прибыль/убыток",
+    "youReceive": "Вы получите"
+  },
+  "modals": {
+    "resetTitle": "Сбросить игру?",
+    "resetText": "Баланс в банке станет $1 000, а <strong>все сохранённые данные</strong> для этого входа будут безвозвратно удалены с устройства и из облака. Отменить нельзя.",
+    "cancel": "Отмена",
+    "resetDelete": "Сбросить и удалить всё",
+    "gameOverTitle": "Конец игры",
+    "gameOverMessage": "В банке и на торговом счёте меньше $50. {{reason}} Ваш путь трейдера завершён.",
+    "gameOverReasonLoan": "У вас уже есть активный кредит, новый получить нельзя.",
+    "gameOverReasonNoEarnings": "Нет заработка за всё время — кредит недоступен (сумма кредита = заработок).",
+    "gameOverReasonNone": "Вам недоступны кредиты.",
+    "gameOverQuestion": "Начать заново?",
+    "restartGame": "Начать заново",
+    "prestigeTitle": "Вывести средства?",
+    "prestigeText": "Перевести портфель на банковский счёт и начать новый раунд.",
+    "prestigePortfolioValue": "Стоимость портфеля",
+    "prestigeFee": "Комиссия вывода (5%)",
+    "prestigeNetProfit": "Чистая прибыль/убыток",
+    "prestigeYouReceive": "Вы получите",
+    "cashOutBtn": "Вывести",
+    "tutorialTitle": "Обучение: основы торговли",
+    "previous": "Назад",
+    "next": "Далее",
+    "finish": "Готово"
+  },
+  "streamer": {
+    "live": "ЭФИР",
+    "watching": "{{count}} смотрят"
+  },
+  "notifications": {
+    "wrongPassword": "Неверный пароль для этого имени.",
+    "alreadyHaveLoan": "У вас уже есть активный кредит.",
+    "loanNotConfigured": "Система кредитов не настроена.",
+    "needEarningsForLoan": "Нужен заработок за всё время для кредита.",
+    "loanApproved": "Кредит одобрен: ${{amount}} под {{rate}}% в неделю!",
+    "insufficientRepay": "Недостаточно средств в банке для погашения.",
+    "loanRepaid": "Кредит погашен на ${{amount}}.",
+    "loanAutoRepaid": "Кредит погашен автоматически: ${{amount}}.",
+    "insufficientFunds": "Недостаточно средств!",
+    "itemNotFound": "Предмет не найден!",
+    "noFundsToCashOut": "Нечего выводить",
+    "depositSuccess": "Пополнение прошло успешно.",
+    "depositError": "Ошибка пополнения.",
+    "purchaseSuccess": "Покупка совершена!",
+    "sellSuccess": "Предмет продан."
+  },
+  "loan": {
+    "name": "Кредит",
+    "description": "Сумма зависит от вашего суммарного заработка"
+  },
+  "upgrades": {
+    "cookieDiscount": { "name": "Скидка на печенье I", "description": "10% скидка на печенье" },
+    "cookieDiscount2": { "name": "Скидка на печенье II", "description": "25% скидка" },
+    "cookieDiscount3": { "name": "Скидка на печенье III", "description": "50% скидка" },
+    "autoReveal": { "name": "Автораскрытие I", "description": "1 буква за тик" },
+    "autoReveal2": { "name": "Автораскрытие II", "description": "2 буквы за тик" },
+    "autoReveal3": { "name": "Автораскрытие III", "description": "4 буквы за тик" },
+    "betCombo1": { "name": "Комбо ставок I", "description": "Более высокие ставки" },
+    "betCombo2": { "name": "Комбо ставок II", "description": "Ещё выше ставки" },
+    "betCombo3": { "name": "Комбо ставок III", "description": "Максимальные ставки" },
+    "predictionZone1": { "name": "Зона предсказания I", "description": "Увеличенная зона на графике" },
+    "predictionZone2": { "name": "Зона предсказания II", "description": "Ещё больше зона для лёгких побед" },
+    "goldenCookie": { "name": "Золотое печенье", "description": "Более точные предсказания" },
+    "diamondCookie": { "name": "Редкое печенье", "description": "Очень точные предсказания" },
+    "newsAccess1": { "name": "Доступ к новостям I", "description": "Открыто 25% статей" },
+    "newsAccess2": { "name": "Доступ к новостям II", "description": "Открыто 50% статей" },
+    "newsAccess3": { "name": "Доступ к новостям III", "description": "Открыто 100% статей" },
+    "stockTradingUnlock": { "name": "Разблокировка акций", "description": "Покупка и продажа акций" },
+    "marginTradingUnlock": { "name": "Маржинальная торговля", "description": "Плечо x25" },
+    "marginMultiplier1": { "name": "Множитель маржи I", "description": "Плечо до 30x" },
+    "marginMultiplier2": { "name": "Множитель маржи II", "description": "Плечо до 40x" },
+    "marginMultiplier3": { "name": "Множитель маржи III", "description": "Плечо до 55x" },
+    "newsTabUnlock": { "name": "Вкладка новостей", "description": "Разблокировка вкладки новостей" },
+    "consoleTabUnlock": { "name": "Вкладка консоли", "description": "Разблокировка консоли" },
+    "botBetTier1": { "name": "Уровень ботов I", "description": "Боты ставят 25% от вашей ставки" },
+    "botBetTier2": { "name": "Уровень ботов II", "description": "Боты ставят 50%" },
+    "botBetTier3": { "name": "Уровень ботов III", "description": "Боты ставят 100%" },
+    "cookieStockHint": { "name": "Подсказка акции на печенье", "description": "Показывает акцию на нераскрытом печенье" },
+    "cookieProphecyHint": { "name": "Подсказка типа предсказания", "description": "Показывает тип предсказания на печенье" }
+  },
+  "cookieTiers": {
+    "1": { "name": "Печенье с предсказанием", "description": "Базовое предсказание" },
+    "2": { "name": "Золотое печенье", "description": "Улучшенное предсказание" },
+    "3": { "name": "Редкое печенье", "description": "Премиум предсказание" }
+  },
+  "prophecy": {
+    "trendUp": { "name": "Сила роста", "description": "Режим восходящего тренда" },
+    "trendDown": { "name": "Сила падения", "description": "Режим нисходящего тренда" },
+    "shore": { "name": "Берег", "description": "Гарантированный минимум и максимум цены" },
+    "inevitableZone": { "name": "Неизбежная зона", "description": "Цена коснётся этой зоны" },
+    "volatilitySpike": { "name": "Всплеск волатильности", "description": "Высокая волатильность" },
+    "volatilityCalm": { "name": "Затишье", "description": "Низкая волатильность" }
+  },
+  "stocks": {
+    "APLS": "Apples Corp.",
+    "LOOGL": "Loogle Inc.",
+    "MAСFT": "Macrosoft Corp.",
+    "LST": "List Inc.",
+    "NWTN": "Newton Inc."
+  },
+  "newsTemplates": {
+    "trendUp": [
+      "{{stock}} демонстрирует рост на фоне уверенности инвесторов",
+      "Аналитики отмечают бычьи сигналы по {{stock}}",
+      "{{stock}} набирает популярность при позитивном настроении",
+      "Срочно: {{stock}} показывает значительный рост",
+      "Инвесторы скупают {{stock}} на позитиве"
+    ],
+    "trendDown": [
+      "{{stock}} под давлением продаж",
+      "Аналитики фиксируют медвежьи индикаторы по {{stock}}",
+      "{{stock}} снижается на фоне неопределённости",
+      "Срочно: {{stock}} в минусе",
+      "Инвесторы осторожничают с {{stock}}"
+    ],
+    "volatility": [
+      "Высокая волатильность по {{stock}}",
+      "{{stock}} переживает всплеск волатильности",
+      "Неопределённость двигает цену {{stock}}",
+      "Трейдеры готовятся к волатильности {{stock}}",
+      "{{stock}} — активная торговля и резкие движения"
+    ],
+    "general": [
+      "Аналитики выпустили отчёт по {{stock}}",
+      "Объём торгов {{stock}} вырос",
+      "Срочно: важное событие для {{stock}}",
+      "{{stock}} демонстрирует интересную динамику",
+      "За {{stock}} внимательно следят"
+    ]
+  },
+  "tutorial": {
+    "step0_title": "Добро пожаловать в Fortune Trader",
+    "step1_title": "График и цена",
+    "step2_title": "Основы: лонг и шорт",
+    "step3_title": "Ставки и серии побед",
+    "step4_title": "Печенье и предсказания",
+    "step5_title": "Панель активных предсказаний",
+    "step6_title": "Навигация и баланс",
+    "step7_title": "Торговля акциями (опционально)",
+    "step8_title": "Маржинальная торговля (продвинуто)",
+    "step9_title": "Горячие клавиши",
+    "step10_title": "Советы для начала"
+  }
+}
+;

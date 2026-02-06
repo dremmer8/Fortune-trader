@@ -189,7 +189,7 @@ async function attemptLogin() {
                 const isPasswordMatch = [normalizedUserId, storedNormalizedId, storedLegacyId].includes(existingUserId);
                 
                 if (existingUserId && !isPasswordMatch) {
-                    showNotification('Password is wrong for this name.', 'error');
+                    showNotification(typeof t === 'function' ? t('notifications.wrongPassword') : 'Password is wrong for this name.', 'error');
                     shakeLogin();
                     return;
                 }
@@ -480,7 +480,11 @@ function formatCompactNumber(value) {
 function updateSettingsDisplay() {
     const userNameEl = document.getElementById('settingsUserName');
     if (userNameEl) {
-        userNameEl.textContent = playerName || 'Not logged in';
+        userNameEl.textContent = playerName || (typeof t === 'function' ? t('settings.loggedInAs') : 'Not logged in');
+    }
+    const langSelect = document.getElementById('languageSelect');
+    if (langSelect && typeof i18n !== 'undefined' && i18n.getLocale) {
+        langSelect.value = i18n.getLocale();
     }
 }
 
@@ -533,7 +537,7 @@ async function loadLeaderboard() {
     const updatedEl = document.getElementById('leaderboardUpdated');
 
     if (statusEl) {
-        statusEl.textContent = 'Loading leaderboard...';
+        statusEl.textContent = typeof t === 'function' ? t('leaderboard.loading') : 'Loading leaderboard...';
     }
     if (listEl) {
         listEl.innerHTML = '';
@@ -544,7 +548,7 @@ async function loadLeaderboard() {
 
     if (typeof FirebaseService === 'undefined' || !FirebaseService.isAvailable()) {
         if (statusEl) {
-            statusEl.textContent = 'Leaderboard unavailable (offline).';
+            statusEl.textContent = typeof t === 'function' ? t('leaderboard.offline') : 'Leaderboard unavailable (offline).';
         }
         return;
     }
@@ -553,7 +557,7 @@ async function loadLeaderboard() {
         const result = await FirebaseService.getLeaderboard();
         if (!result.success) {
             if (statusEl) {
-                statusEl.textContent = `Unable to load leaderboard: ${result.error || 'Unknown error'}`;
+                statusEl.textContent = (typeof t === 'function' ? t('leaderboard.loadError', { error: result.error || 'Unknown error' }) : 'Unable to load leaderboard: ' + (result.error || 'Unknown error'));
             }
             return;
         }
@@ -561,7 +565,7 @@ async function loadLeaderboard() {
         const leaderboard = result.leaderboard || [];
         if (leaderboard.length === 0) {
             if (statusEl) {
-                statusEl.textContent = 'No players on the leaderboard yet.';
+                statusEl.textContent = typeof t === 'function' ? t('leaderboard.noPlayers') : 'No players on the leaderboard yet.';
             }
             return;
         }
@@ -617,11 +621,11 @@ async function loadLeaderboard() {
         }
 
         if (updatedEl) {
-            updatedEl.textContent = `Updated ${new Date().toLocaleString()}`;
+            updatedEl.textContent = (typeof t === 'function' ? t('leaderboard.updated', { date: new Date().toLocaleString() }) : 'Updated ' + new Date().toLocaleString());
         }
     } catch (error) {
         if (statusEl) {
-            statusEl.textContent = `Failed to load leaderboard: ${error.message}`;
+            statusEl.textContent = (typeof t === 'function' ? t('leaderboard.failed', { error: error.message }) : 'Failed to load leaderboard: ' + error.message);
         }
     }
 }
@@ -716,7 +720,7 @@ function updateEarningsHistoryPanel() {
 
     const history = (state.earningsHistory || []).slice().sort((a, b) => a.timestamp - b.timestamp);
     if (history.length === 0) {
-        listEl.innerHTML = '<div class="earnings-entry-empty">No rounds cashed out yet.</div>';
+        listEl.innerHTML = '<div class="earnings-entry-empty">' + (typeof t === 'function' ? t('banker.noRoundsYet') : 'No rounds cashed out yet.') + '</div>';
         return;
     }
 
@@ -759,7 +763,7 @@ function updateSpendingHistoryPanel() {
 
     const history = (state.spendingHistory || []).slice().sort((a, b) => a.timestamp - b.timestamp);
     if (history.length === 0) {
-        listEl.innerHTML = '<div class="spending-entry-empty">No spendings recorded yet.</div>';
+        listEl.innerHTML = '<div class="spending-entry-empty">' + (typeof t === 'function' ? t('banker.noSpendingsYet') : 'No spendings recorded yet.') + '</div>';
         return;
     }
 
@@ -951,19 +955,19 @@ function updateLoanDisplay() {
 
 async function takeLoan() {
     if (state.activeLoan) {
-        showNotification('You already have an active loan.', 'error');
+        showNotification(typeof t === 'function' ? t('notifications.alreadyHaveLoan') : 'You already have an active loan.', 'error');
         return;
     }
     
     if (!LOAN_CONFIG) {
-        showNotification('Loan system not configured.', 'error');
+        showNotification(typeof t === 'function' ? t('notifications.loanNotConfigured') : 'Loan system not configured.', 'error');
         return;
     }
     
     // Check if player has lifetime earnings
     const lifetimeEarnings = state.totalEarnings || 0;
     if (lifetimeEarnings <= 0) {
-        showNotification('You need lifetime earnings to get a loan.', 'error');
+        showNotification(typeof t === 'function' ? t('notifications.needEarningsForLoan') : 'You need lifetime earnings to get a loan.', 'error');
         return;
     }
     
@@ -1003,7 +1007,7 @@ async function takeLoan() {
     updateBankerDisplay();
     renderLoanOptions();
     
-    showNotification(`Loan approved for $${amount.toLocaleString()} at ${(rate * 100).toFixed(2)}% per week!`, 'success');
+    showNotification((typeof t === 'function' ? t('notifications.loanApproved', { amount: amount.toLocaleString(), rate: (rate * 100).toFixed(2) }) : 'Loan approved for $' + amount.toLocaleString() + ' at ' + (rate * 100).toFixed(2) + '% per week!'), 'success');
 }
 
 async function repayLoan() {
@@ -1014,7 +1018,7 @@ async function repayLoan() {
     const payoff = getLoanPayoff(loan, useFullTerm);
     
     if (state.bankBalance < payoff.total) {
-        showNotification('Insufficient bank balance to repay loan.', 'error');
+        showNotification(typeof t === 'function' ? t('notifications.insufficientRepay') : 'Insufficient bank balance to repay loan.', 'error');
         return;
     }
     
@@ -1030,7 +1034,7 @@ async function repayLoan() {
     updateBankerDisplay();
     renderLoanOptions();
     
-    showNotification(`Loan repaid for $${payoff.total.toLocaleString()}.`, 'success');
+    showNotification((typeof t === 'function' ? t('notifications.loanRepaid', { amount: payoff.total.toLocaleString() }) : 'Loan repaid for $' + payoff.total.toLocaleString() + '.'), 'success');
     
     // Check for game over condition after repaying loan
     checkGameOver();
@@ -1053,7 +1057,7 @@ async function processLoanDue() {
         await saveGameState();
         updateBankerDisplay();
         renderLoanOptions();
-        showNotification(`Loan auto-repaid for $${payoff.total.toLocaleString()}.`, 'info');
+        showNotification((typeof t === 'function' ? t('notifications.loanAutoRepaid', { amount: payoff.total.toLocaleString() }) : 'Loan auto-repaid for $' + payoff.total.toLocaleString() + '.'), 'info');
         
         // Check for game over condition
         checkGameOver();
@@ -1184,18 +1188,17 @@ function renderOwnedLuxuryItems() {
     section.style.display = 'block';
     
     container.innerHTML = state.ownedItems.map(item => {
-        // Calculate potential sell return range for display
         const minReturn = Math.floor(item.price * ITEM_SELL_RETURN_PERCENT.min);
         const maxReturn = Math.floor(item.price * ITEM_SELL_RETURN_PERCENT.max);
-        
+        const itemName = (typeof t === 'function' ? t('shop.' + item.id + '.name') : item.name);
         return `
         <div class="shop-owned-item">
             <div class="shop-owned-item-icon">${item.icon}</div>
             <div class="shop-owned-item-info">
-                <div class="shop-owned-item-name">${item.name}</div>
+                <div class="shop-owned-item-name">${itemName}</div>
                 <div class="shop-owned-item-desc">Sell: $${minReturn.toLocaleString()}-${maxReturn.toLocaleString()}</div>
             </div>
-            <button class="shop-sell-btn" onclick="sellShopItem('${item.id}')">Sell</button>
+            <button class="shop-sell-btn" onclick="sellShopItem('${item.id}')">${(typeof t === 'function' ? t('shop.sell') : 'Sell')}</button>
         </div>
     `;
     }).join('');
@@ -1218,28 +1221,29 @@ function renderLuxuryShopItems() {
     
     const filteredItems = SHOP_ITEMS.filter(item => item.category === currentShopCategory);
     
+    const buyLabel = (typeof t === 'function' ? t('shop.buy') : 'Buy');
+    const ownedLabel = (typeof t === 'function' ? t('shop.owned') : 'Owned');
+    const sellLabel = (typeof t === 'function' ? t('shop.sell') : 'Sell');
     container.innerHTML = filteredItems.map(item => {
         const owned = state.ownedItems.some(ownedItem => ownedItem.id === item.id);
         const canAfford = state.bankBalance >= item.price;
-        
         let statusClass = '';
-        let buttonText = 'Buy';
+        let buttonText = buyLabel;
         let buttonDisabled = false;
-        
         if (owned) {
             statusClass = 'owned';
-            buttonText = 'Owned';
+            buttonText = ownedLabel;
             buttonDisabled = true;
         } else if (!canAfford) {
             buttonDisabled = true;
-            buttonText = 'Buy';
+            buttonText = buyLabel;
         }
-        
+        const itemName = (typeof t === 'function' ? t('shop.' + item.id + '.name') : item.name);
         return `
             <div class="shop-item ${statusClass}">
                 <div class="shop-item-icon">${item.icon}</div>
                 <div class="shop-item-info">
-                    <div class="shop-item-name">${item.name}</div>
+                    <div class="shop-item-name">${itemName}</div>
                     <div class="shop-item-price">
                         <div class="shop-item-price-value">${formatShopPrice(item.price)}</div>
                     </div>
@@ -1262,7 +1266,7 @@ function buyShopItem(itemId) {
     
     // Check if can afford
     if (state.bankBalance < item.price) {
-        showNotification('Insufficient funds!', 'error');
+        showNotification(typeof t === 'function' ? t('notifications.insufficientFunds') : 'Insufficient funds!', 'error');
         return;
     }
     
@@ -1312,7 +1316,7 @@ function buyShopItem(itemId) {
 function sellShopItem(itemId) {
     const itemIndex = state.ownedItems.findIndex(item => item.id === itemId);
     if (itemIndex === -1) {
-        showNotification('Item not found!', 'error');
+        showNotification(typeof t === 'function' ? t('notifications.itemNotFound') : 'Item not found!', 'error');
         return;
     }
     
@@ -1425,12 +1429,14 @@ function renderExpensesList() {
             ? state.customExpenseAmounts[expense.id] 
             : expense.amount;
         
+        const name = (typeof t === 'function' ? t('expenses.' + expense.id + '.name') : expense.name);
+        const desc = isEliminated ? (typeof t === 'function' ? t('expenses.eliminated') : 'Eliminated!') : (typeof t === 'function' ? t('expenses.' + expense.id + '.description') : expense.description);
         return `
             <div class="expense-item ${classNames.join(' ')}">
                 <div class="expense-icon">${expense.icon}</div>
                 <div class="expense-info">
-                    <div class="expense-name">${expense.name}</div>
-                    <div class="expense-desc">${isEliminated ? '✅ Eliminated!' : expense.description}</div>
+                    <div class="expense-name">${name}</div>
+                    <div class="expense-desc">${desc}</div>
                 </div>
                 ${isEliminated ? 
                     '<div class="expense-amount">FREE</div>' : 
@@ -1692,18 +1698,12 @@ function showGameOverModal() {
     // Update message based on why game over occurred
     const lifetimeEarnings = state.totalEarnings || 0;
     const hasActiveLoan = state.activeLoan !== null;
-    let reason = '';
-    
-    if (hasActiveLoan) {
-        reason = 'You already have an active loan and cannot get another one.';
-    } else if (lifetimeEarnings <= 0) {
-        reason = 'You have no lifetime earnings, so no loan is available (loan amount = lifetime earnings).';
-    } else {
-        reason = 'No loans are available to you.';
-    }
-    
+    let reasonKey = 'modals.gameOverReasonNone';
+    if (hasActiveLoan) reasonKey = 'modals.gameOverReasonLoan';
+    else if (lifetimeEarnings <= 0) reasonKey = 'modals.gameOverReasonNoEarnings';
+    const reason = typeof t === 'function' ? t(reasonKey) : 'No loans are available to you.';
     if (messageEl) {
-        messageEl.textContent = `You have less than $50 in your bank account and less than $50 in your trading account. ${reason} Your trading journey has come to an end.`;
+        messageEl.textContent = typeof t === 'function' ? t('modals.gameOverMessage', { reason: reason }) : 'You have less than $50 in your bank account and less than $50 in your trading account. ' + reason + ' Your trading journey has come to an end.';
     }
     
     if (modal && backdrop) {
@@ -1806,7 +1806,7 @@ function confirmPrestige() {
     const portfolioValue = getTotalPortfolioValue();
     
     if (portfolioValue <= 0) {
-        showNotification('No funds to cash out', 'error');
+        showNotification(typeof t === 'function' ? t('notifications.noFundsToCashOut') : 'No funds to cash out', 'error');
         return;
     }
     
@@ -3141,18 +3141,44 @@ function initWelcomeOverlay() {
     okBtn.addEventListener('click', dismissWelcome);
 }
 
-// Initialize the application (hub first)
+// Initialize the application (hub first). Load i18n first so UI is translated.
 function initApp() {
-    initWelcomeOverlay();
-    initVersionStamp();
-    initAudioControls();
-    initButtonClickSounds();
-    if (typeof initStreamerToggle === 'function') initStreamerToggle();
-    updateStreamerViewerCount(50); // initial neutral = 0 watching
-    // Initialize the hub/phone interface first
-    initHub();
-    console.log('Hub initialized - waiting for app selection');
+    const runAfterI18n = function () {
+        initWelcomeOverlay();
+        initVersionStamp();
+        initAudioControls();
+        initButtonClickSounds();
+        if (typeof initStreamerToggle === 'function') initStreamerToggle();
+        updateStreamerViewerCount(50); // initial neutral = 0 watching
+        initHub();
+        console.log('Hub initialized - waiting for app selection');
+    };
+    if (typeof i18n !== 'undefined' && i18n.init) {
+        i18n.init().then(runAfterI18n).catch(function () { runAfterI18n(); });
+    } else {
+        runAfterI18n();
+    }
 }
+
+// Set game language (from Settings). Refreshes UI and persists to localStorage.
+function setGameLocale(lang) {
+    var sel = document.getElementById('languageSelect');
+    if (sel) sel.value = lang || 'en';
+    if (typeof i18n === 'undefined' || !i18n.setLocale) return;
+    i18n.setLocale(lang || 'en').then(function () {
+        if (sel) sel.value = i18n.getLocale();
+        updateSettingsDisplay();
+        updateBankerDisplay();
+        updateExpensesDisplay();
+        if (typeof renderLuxuryShopItems === 'function') renderLuxuryShopItems();
+        if (typeof renderOwnedLuxuryItems === 'function') renderOwnedLuxuryItems();
+        if (typeof renderExpensesList === 'function') renderExpensesList();
+    }).catch(function (err) {
+        console.warn('Locale switch failed:', err);
+        if (sel) sel.value = (i18n && i18n.getLocale ? i18n.getLocale() : 'en');
+    });
+}
+window.setGameLocale = setGameLocale;
 
 // Start the app when DOM is ready
 if (document.readyState === 'loading') {

@@ -294,11 +294,11 @@ function renderTutorialStep() {
     }
     
     const step = tutorialSteps[currentTutorialStep];
-    
+    const stepTitle = (typeof t === 'function' ? t('tutorial.step' + currentTutorialStep + '_title') : step.title);
     stepContainer.innerHTML = `
         <div class="tutorial-step-title">
             <span class="tutorial-step-icon">${step.icon}</span>
-            ${step.title}
+            ${stepTitle}
         </div>
         <div class="tutorial-step-content">
             ${step.content}
@@ -317,7 +317,9 @@ function renderTutorialStep() {
         prevBtn.disabled = currentTutorialStep === 0;
     }
     if (nextBtn) {
-        nextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1 ? 'Finish' : 'Next';
+        nextBtn.textContent = currentTutorialStep === tutorialSteps.length - 1
+            ? (typeof t === 'function' ? t('modals.finish') : 'Finish')
+            : (typeof t === 'function' ? t('modals.next') : 'Next');
     }
     
     // Always remove previous highlight first
