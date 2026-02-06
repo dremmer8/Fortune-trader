@@ -30,7 +30,7 @@ function updateVersionStamp() {
 
     const settingsVersion = document.getElementById('settingsVersionValue');
     if (settingsVersion) {
-        settingsVersion.textContent = `Version ${versionText}`;
+        settingsVersion.textContent = (typeof t === 'function' ? t('common.versionLabel', { version: versionText }) : 'Version ' + versionText);
     }
 }
 
@@ -732,18 +732,18 @@ function updateEarningsHistoryPanel() {
         const amountClass = netProfit >= 0 ? 'positive' : 'negative';
         const detailParts = [];
 
+        var lb = typeof t === 'function' ? t : function (k) { return k; };
         if (typeof entry.initialDeposit === 'number') {
-            detailParts.push(`Deposit $${Math.round(entry.initialDeposit).toLocaleString()}`);
+            detailParts.push(lb('banker.depositLabel') + ' $' + Math.round(entry.initialDeposit).toLocaleString());
         }
         if (typeof entry.amountAfterFee === 'number') {
-            detailParts.push(`Cashout $${Math.round(entry.amountAfterFee).toLocaleString()}`);
+            detailParts.push(lb('banker.cashoutLabel') + ' $' + Math.round(entry.amountAfterFee).toLocaleString());
         }
         if (typeof entry.fee === 'number') {
-            detailParts.push(`Fee $${Math.round(entry.fee).toLocaleString()}`);
+            detailParts.push(lb('banker.feeLabel') + ' $' + Math.round(entry.fee).toLocaleString());
         }
-
-        const detailLine = detailParts.length ? `${detailParts.join(' • ')} • ${dateLabel}` : dateLabel;
-        const roundLabel = entry.roundNumber ? `Round ${entry.roundNumber}` : 'Trading Round';
+        var detailLine = detailParts.length ? detailParts.join(' • ') + ' • ' + dateLabel : dateLabel;
+        var roundLabel = entry.roundNumber ? (typeof t === 'function' ? t('banker.roundLabel', { n: entry.roundNumber }) : 'Round ' + entry.roundNumber) : (typeof t === 'function' ? t('banker.tradingRound') : 'Trading Round');
 
         return `
             <div class="earnings-entry">
@@ -876,46 +876,27 @@ function renderLoanOptions() {
     // Player can take loan if they have lifetime earnings and no active loan
     const isDisabled = hasLoan || lifetimeEarnings <= 0;
     
-    let lockMessage = '';
+    var lb = typeof t === 'function' ? t : function (k) { return k; };
+    var lockMessage = '';
     if (lifetimeEarnings <= 0) {
-        lockMessage = `<div class="loan-lock-message">🔒 Unavailable - You need lifetime earnings to get a loan</div>`;
+        lockMessage = '<div class="loan-lock-message">🔒 ' + lb('banker.loanUnavailableEarnings') + '</div>';
     } else if (hasLoan) {
-        lockMessage = `<div class="loan-lock-message">🔒 Unavailable - You already have an active loan</div>`;
+        lockMessage = '<div class="loan-lock-message">🔒 ' + lb('banker.loanUnavailableActive') + '</div>';
     }
-    
-    const loanAmount = lifetimeEarnings;
-    // Get current date-based interest rate (deterministic - same date = same rate)
-    const currentRate = getCurrentLoanInterestRate();
-    const currentRatePercent = (currentRate * 100).toFixed(2);
-    
-    container.className = `loan-options ${isDisabled ? 'disabled' : ''}`;
-    container.innerHTML = `
-        ${lockMessage}
-        <div class="loan-bubbles-container">
-            <div class="loan-top-bubble">
-                <div class="loan-bubble-row">
-                    <div class="loan-bubble-item">
-                        <div class="loan-bubble-label">Term</div>
-                        <div class="loan-bubble-value">${LOAN_CONFIG.termWeeks} week</div>
-                    </div>
-                    <div class="loan-bubble-divider"></div>
-                    <div class="loan-bubble-item">
-                        <div class="loan-bubble-label">Interest Rate</div>
-                        <div class="loan-bubble-value">${currentRatePercent}%</div>
-                    </div>
-                </div>
-                <div class="loan-bubble-hint">Today's rate (locked once loan)</div>
-            </div>
-            <div class="loan-bottom-bubble">
-                <div class="loan-bubble-label">Loan Amount</div>
-                <div class="loan-bubble-value">$${loanAmount.toLocaleString()}</div>
-                <div class="loan-bubble-hint">Based on lifetime earnings</div>
-            </div>
-        </div>
-        <button class="loan-option-btn" onclick="takeLoan()" ${isDisabled ? 'disabled' : ''}>
-            ${hasLoan ? 'Already have loan' : lifetimeEarnings <= 0 ? 'No earnings yet' : 'Take loan'}
-        </button>
-    `;
+    var loanAmount = lifetimeEarnings;
+    var currentRate = getCurrentLoanInterestRate();
+    var currentRatePercent = (currentRate * 100).toFixed(2);
+    var btnText = hasLoan ? lb('banker.alreadyHaveLoanBtn') : (lifetimeEarnings <= 0 ? lb('banker.noEarningsYet') : lb('banker.takeLoan'));
+    container.className = 'loan-options ' + (isDisabled ? 'disabled' : '');
+    container.innerHTML = lockMessage
+        + '<div class="loan-bubbles-container"><div class="loan-top-bubble"><div class="loan-bubble-row">'
+        + '<div class="loan-bubble-item"><div class="loan-bubble-label">' + lb('banker.term') + '</div><div class="loan-bubble-value">' + LOAN_CONFIG.termWeeks + ' week</div></div>'
+        + '<div class="loan-bubble-divider"></div>'
+        + '<div class="loan-bubble-item"><div class="loan-bubble-label">' + lb('banker.interestRate') + '</div><div class="loan-bubble-value">' + currentRatePercent + '%</div></div>'
+        + '</div><div class="loan-bubble-hint">' + lb('banker.todaysRate') + '</div></div>'
+        + '<div class="loan-bottom-bubble"><div class="loan-bubble-label">' + lb('banker.loanAmount') + '</div><div class="loan-bubble-value">$' + loanAmount.toLocaleString() + '</div>'
+        + '<div class="loan-bubble-hint">' + lb('banker.basedOnEarnings') + '</div></div></div>'
+        + '<button class="loan-option-btn" onclick="takeLoan()" ' + (isDisabled ? 'disabled' : '') + '>' + btnText + '</button>';
 }
 
 function updateLoanDisplay() {
@@ -938,19 +919,20 @@ function updateLoanDisplay() {
     const remainingDays = Math.max(0, Math.ceil((loan.dueTimestamp - Date.now()) / (1000 * 60 * 60 * 24)));
     const isOverdue = Date.now() >= loan.dueTimestamp;
     
-    activeCard.innerHTML = `
-        <div><strong>${loan.name}</strong> is active.</div>
-        <div class="loan-active-grid">
-            <div class="loan-active-item">Principal<strong>$${loan.principal.toLocaleString()}</strong></div>
-            <div class="loan-active-item">Rate<strong>${formatLoanRate(loan.annualRate)} p.w.</strong></div>
-            <div class="loan-active-item">Term<strong>${loan.termWeeks} weeks</strong></div>
-            <div class="loan-active-item">Due date<strong>${dueDate}</strong></div>
-            <div class="loan-active-item">Payoff today<strong>$${payoffToday.total.toLocaleString()}</strong></div>
-            <div class="loan-active-item">${isOverdue ? 'Overdue by' : 'Days remaining'}<strong>${remainingDays} days</strong></div>
-        </div>
-        <div class="loan-option-detail">Full term payoff: $${payoffFull.total.toLocaleString()}</div>
-        <button class="loan-repay-btn" onclick="repayLoan()">Repay loan now</button>
-    `;
+    var lb = typeof t === 'function' ? t : function (k) { return k; };
+    var loanName = (typeof t === 'function' ? t('loan.name') : loan.name);
+    activeCard.innerHTML = ''
+        + '<div><strong>' + loanName + '</strong> ' + lb('banker.loanActive') + '</div>'
+        + '<div class="loan-active-grid">'
+        + '<div class="loan-active-item">' + lb('banker.principal') + '<strong>$' + loan.principal.toLocaleString() + '</strong></div>'
+        + '<div class="loan-active-item">' + lb('banker.rate') + '<strong>' + formatLoanRate(loan.annualRate) + ' p.w.</strong></div>'
+        + '<div class="loan-active-item">' + lb('banker.term') + '<strong>' + loan.termWeeks + ' ' + lb('banker.termWeeks') + '</strong></div>'
+        + '<div class="loan-active-item">' + lb('banker.dueDate') + '<strong>' + dueDate + '</strong></div>'
+        + '<div class="loan-active-item">' + lb('banker.payoffToday') + '<strong>$' + payoffToday.total.toLocaleString() + '</strong></div>'
+        + '<div class="loan-active-item">' + (isOverdue ? lb('banker.overdueBy') : lb('banker.daysRemaining')) + '<strong>' + remainingDays + ' days</strong></div>'
+        + '</div>'
+        + '<div class="loan-option-detail">' + lb('banker.fullTermPayoff') + ': $' + payoffFull.total.toLocaleString() + '</div>'
+        + '<button class="loan-repay-btn" onclick="repayLoan()">' + lb('banker.repayNow') + '</button>';
 }
 
 async function takeLoan() {
@@ -1636,9 +1618,9 @@ function showExpenseNotification(amount, days = 1) {
     }
     
     if (days > 1) {
-        notif.textContent = `${days} days expenses: -$${amount}`;
+        notif.textContent = (typeof t === 'function' ? t('expenses.daysExpenses', { days: days, amount: amount }) : days + ' days expenses: -$' + amount);
     } else {
-        notif.textContent = `Daily expenses: -$${amount}`;
+        notif.textContent = (typeof t === 'function' ? t('expenses.dailyExpensesNotif', { amount: amount }) : 'Daily expenses: -$' + amount);
     }
     notif.classList.add('show');
     
@@ -1976,7 +1958,7 @@ function changeDataSource(source) {
     
     state.dataMode = source;
     assetName.textContent = config.name;
-    assetTag.textContent = config.tag;
+    assetTag.textContent = (typeof t === 'function' ? t('stocks.' + state.dataMode) : config.tag);
     
     // Clear time frame cache for this symbol (will regenerate on demand)
     clearTimeFrameCache(source);
@@ -2010,7 +1992,7 @@ function changeDataSource(source) {
     }
     
     // Show LIVE status
-    status.textContent = 'LIVE';
+    status.textContent = (typeof t === 'function' ? t('nav.live') : 'LIVE');
     status.classList.add('live');
     
     showChartLoading(false);
@@ -2467,7 +2449,7 @@ function changeTimeFrame(timeFrame) {
     const tf = TIME_FRAMES[timeFrame];
     
     if (timeFrame === 'LIVE') {
-        status.textContent = 'LIVE';
+        status.textContent = (typeof t === 'function' ? t('nav.live') : 'LIVE');
         status.classList.add('live');
     } else {
         status.textContent = tf.label;

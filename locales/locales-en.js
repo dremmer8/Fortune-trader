@@ -48,7 +48,32 @@ window.__LOCALE_EN__ = {
     "feeHint": "5% fee on cash out",
     "loanSectionTitle": "Loan",
     "noRoundsYet": "No rounds cashed out yet.",
-    "noSpendingsYet": "No spendings recorded yet."
+    "noSpendingsYet": "No spendings recorded yet.",
+    "term": "Term",
+    "interestRate": "Interest Rate",
+    "todaysRate": "Today's rate (locked once loan)",
+    "loanAmount": "Loan Amount",
+    "basedOnEarnings": "Based on lifetime earnings",
+    "alreadyHaveLoanBtn": "Already have loan",
+    "noEarningsYet": "No earnings yet",
+    "takeLoan": "Take loan",
+    "loanUnavailableEarnings": "Unavailable - You need lifetime earnings to get a loan",
+    "loanUnavailableActive": "Unavailable - You already have an active loan",
+    "principal": "Principal",
+    "rate": "Rate",
+    "termWeeks": "weeks",
+    "dueDate": "Due date",
+    "payoffToday": "Payoff today",
+    "daysRemaining": "Days remaining",
+    "overdueBy": "Overdue by",
+    "fullTermPayoff": "Full term payoff",
+    "repayNow": "Repay loan now",
+    "loanActive": "is active.",
+    "roundLabel": "Round {{n}}",
+    "tradingRound": "Trading Round",
+    "depositLabel": "Deposit",
+    "cashoutLabel": "Cashout",
+    "feeLabel": "Fee"
   },
   "locked": {
     "text": "No Trading Funds",
@@ -69,7 +94,9 @@ window.__LOCALE_EN__ = {
     "internet": { "name": "Internet", "description": "Home internet service" },
     "insurance": { "name": "Insurance", "description": "Health & life insurance" },
     "subscriptions": { "name": "Subscriptions", "description": "Streaming, apps, etc." },
-    "eliminated": "✅ Eliminated!"
+    "eliminated": "✅ Eliminated!",
+    "daysExpenses": "{{days}} days expenses: -${{amount}}",
+    "dailyExpensesNotif": "Daily expenses: -${{amount}}"
   },
   "shop": {
     "title": "List shop",
@@ -144,7 +171,8 @@ window.__LOCALE_EN__ = {
     "sellAllStock": "Sell All Stock",
     "longMargin": "Long Margin",
     "shortMargin": "Short Margin",
-    "closePosition": "Close Position"
+    "closePosition": "Close Position",
+    "positionLocked": "Position Locked"
   },
   "cookie": {
     "cookieShop": "Cookie Shop",
@@ -156,19 +184,65 @@ window.__LOCALE_EN__ = {
     "stash": "Cookie Stash",
     "cookiesCount": "{{count}} cookies",
     "noCookies": "No cookies yet. Purchase some above!",
-    "dragCookie": "Drag a cookie here to unpack its prophecy"
+    "dragCookie": "Drag a cookie here to unpack its prophecy",
+    "cookieCountOne": "{{count}} cookie",
+    "cookieCountMany": "{{count}} cookies",
+    "clickToUnwrap": "Click to unwrap your prophecy ({{current}}/5)",
+    "addedToStash": "{{name}} added to stash",
+    "cookieReadyToUnpack": "Cookie ready to unpack!",
+    "prophecyDecoded": "Prophecy decoded!",
+    "prophecyExpired": "Prophecy for {{stock}} expired",
+    "pleaseWaitBet": "Please wait {{s}}s before betting again",
+    "pleaseWaitBuy": "Please wait {{s}}s before buying again",
+    "pleaseWaitTrade": "Please wait {{s}}s before trading again",
+    "insufficientFunds": "Insufficient funds",
+    "predictionPlaced": "Prediction placed at ${{price}}",
+    "positionOpened": "{{dir}} position opened",
+    "predictionWon": "Prediction won! +${{amount}} 🔥",
+    "predictionLost": "Prediction lost -${{amount}}",
+    "stockUnlockRequired": "Purchase \"Stock Trading Unlock\" upgrade to unlock stock trading",
+    "marginUnlockRequired": "Purchase \"Margin Trading Unlock\" upgrade to unlock margin trading",
+    "closeMarginFirst": "Close your current margin position first",
+    "positionLockedMsg": "Position is still locked. Wait for the timer to finish.",
+    "insufficientFundsFee": "Insufficient funds (need ${{total}} including ${{fee}} fee)",
+    "boughtShares": "Bought {{shares}} shares @ ${{price}} (fee: ${{fee}})",
+    "noSharesToSell": "No shares to sell",
+    "soldSharesProfit": "Sold {{shares}} shares +${{pnl}}",
+    "soldSharesLoss": "Sold {{shares}} shares -${{pnl}}",
+    "noStocksToSell": "No stocks to sell",
+    "failedToSell": "Failed to sell any stocks",
+    "soldAllCount": "Sold {{count}} stock",
+    "soldAllCountPlural": "Sold {{count}} stocks",
+    "noProfitableStocks": "No profitable stocks to sell",
+    "soldProfitableCount": "Sold {{count}} profitable stock",
+    "soldProfitableCountPlural": "Sold {{count}} profitable stocks",
+    "marginPositionOpened": "{{dir}} margin position opened (x{{mult}})",
+    "marginClosedProfit": "Margin position closed! +${{pnl}} 🔥",
+    "marginClosedLoss": "Margin position closed. -${{pnl}}",
+    "marginCall": "Margin call! Position closed. Balance: $0"
   },
   "news": {
     "title": "Market News",
     "articlesCount": "{{count}} articles",
-    "empty": "No news yet. Market updates will appear here."
+    "empty": "No news yet. Market updates will appear here.",
+    "tabUnlockRequired": "Purchase \"News Tab Unlock\" upgrade to access news",
+    "consoleUnlockRequired": "Purchase \"Console Tab Unlock\" upgrade to access console"
   },
   "bots": {
     "consoleTitle": "SYSTEM CONSOLE v1.0",
     "ready": "READY",
     "welcome1": "Fortune Trader System Console",
     "welcome2": "Type 'help' for available commands",
-    "placeholder": "Enter command..."
+    "placeholder": "Enter command...",
+    "selectStrategy": "Please select a strategy",
+    "alreadyExists": "{{name}} already exists. Only one bot per strategy allowed.",
+    "botCreated": "Bot \"{{name}}\" created!",
+    "botEnabled": "{{name}} enabled",
+    "botDisabled": "{{name}} disabled",
+    "botDeleted": "Bot \"{{name}}\" deleted",
+    "disable": "Disable",
+    "enable": "Enable",
+    "deleteBot": "Delete Bot"
   },
   "deals": {
     "title": "Active Prophecies",
@@ -323,6 +397,34 @@ window.__LOCALE_EN__ = {
     "step8_title": "Margin Trading (Advanced)",
     "step9_title": "Keyboard Shortcuts",
     "step10_title": "Getting Started Tips"
+  },
+  "common": {
+    "versionLabel": "Version {{version}}",
+    "max": "MAX!"
+  },
+  "ui": {
+    "upgradeRequiredFirst": "Purchase \"{{name}}\" upgrade first",
+    "insufficientFunds": "Insufficient funds",
+    "stockTradingUnlocked": "Stock trading unlocked! You can now buy and sell stocks.",
+    "marginTradingUnlocked": "Margin trading unlocked! You can now trade with leverage.",
+    "marginMultiplierIncreased": "Margin multiplier increased to x{{mult}}!",
+    "newsTabUnlocked": "News tab unlocked!",
+    "consoleTabUnlocked": "Console tab unlocked!",
+    "botBetIncreased": "Bot bet percentage increased to {{pct}}%!",
+    "upgradePurchased": "{{name}} purchased!",
+    "unknownUpgrade": "Unknown upgrade",
+    "alreadyPurchased": "Already purchased!",
+    "sendProfitableStock": "Send All Profitable Stock",
+    "sendProfitableStockCount": "Send All Profitable Stock ({{count}})",
+    "resettingGame": "Resetting game and deleting all data...",
+    "gameResetComplete": "Game reset complete! All data deleted.",
+    "noStocksToSell": "No stocks to sell",
+    "sellAllStocks": "Sell all stocks",
+    "showStream": "Show stream",
+    "hideStream": "Hide stream",
+    "unlockStockTrading": "Purchase \"Stock Trading Unlock\" upgrade to unlock",
+    "unlockMarginTrading": "Purchase \"Margin Trading Unlock\" upgrade to unlock",
+    "closeMarginFirst": "Close your current margin position first"
   }
 }
 ;

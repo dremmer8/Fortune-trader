@@ -212,11 +212,11 @@ function renderNews() {
     const visibilityLevel = getNewsVisibilityLevel();
     
     if (countEl) {
-        countEl.textContent = `${count} article${count !== 1 ? 's' : ''}`;
+        countEl.textContent = typeof t === 'function' ? t('news.articlesCount', { count: count }) : count + ' article' + (count !== 1 ? 's' : '');
     }
     
     if (count === 0) {
-        container.innerHTML = '<div class="news-empty">No news yet. Market updates will appear here.</div>';
+        container.innerHTML = '<div class="news-empty">' + (typeof t === 'function' ? t('news.empty') : 'No news yet. Market updates will appear here.') + '</div>';
         return;
     }
     
@@ -290,13 +290,13 @@ function switchRightPanelTab(tab) {
     
     // Check if trying to access locked tabs
     if (tab === 'news' && !newsUnlocked) {
-        showNotification('Purchase "News Tab Unlock" upgrade to access news', 'error');
+        showNotification(typeof t === 'function' ? t('news.tabUnlockRequired') : 'Purchase "News Tab Unlock" upgrade to access news', 'error');
         AudioManager.playError();
         return;
     }
     
     if (tab === 'bots' && !consoleUnlocked) {
-        showNotification('Purchase "Console Tab Unlock" upgrade to access console', 'error');
+        showNotification(typeof t === 'function' ? t('news.consoleUnlockRequired') : 'Purchase "Console Tab Unlock" upgrade to access console', 'error');
         AudioManager.playError();
         return;
     }

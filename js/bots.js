@@ -902,6 +902,8 @@ function renderActiveBots() {
         return;
     }
     
+    var toggleTitleKey = function (enabled) { return typeof t === 'function' ? (enabled ? t('bots.disable') : t('bots.enable')) : (enabled ? 'Disable' : 'Enable'); };
+    var deleteBotTitle = typeof t === 'function' ? t('bots.deleteBot') : 'Delete Bot';
     botsList.innerHTML = activeBots.map(bot => {
         const strategyNames = {
             'trendFollowing': 'The Follower',
@@ -912,6 +914,7 @@ function renderActiveBots() {
         
         const statusClass = bot.enabled ? 'bot-status-active' : 'bot-status-disabled';
         const statusText = bot.enabled ? 'Active' : 'Disabled';
+        const toggleTitle = toggleTitleKey(bot.enabled);
         const isExpanded = bot.viewExpanded || false;
         
         // Calculate win rate
@@ -990,10 +993,10 @@ function renderActiveBots() {
                     <div class="bot-card-strategy">${strategyNames[bot.strategy] || bot.strategy}</div>
                     <div class="bot-card-header-right">
                         <div class="bot-card-status-compact ${statusClass}">${statusText} ${winRate}%</div>
-                        <button class="bot-card-toggle" onclick="event.stopPropagation(); toggleBot('${bot.id}')" title="${bot.enabled ? 'Disable' : 'Enable'}">
+                        <button class="bot-card-toggle" onclick="event.stopPropagation(); toggleBot('${bot.id}')" title="${toggleTitle}">
                             ${bot.enabled ? '⏸' : '▶'}
                         </button>
-                        <button class="bot-card-delete" onclick="event.stopPropagation(); deleteBot('${bot.id}')" title="Delete Bot">×</button>
+                        <button class="bot-card-delete" onclick="event.stopPropagation(); deleteBot('${bot.id}')" title="${deleteBotTitle}">×</button>
                     </div>
                 </div>
                 <div class="bot-card-stats-compact">
@@ -1023,10 +1026,10 @@ function renderActiveBots() {
                     <div class="bot-thinking-title">${strategyNames[bot.strategy] || bot.strategy}</div>
                     <div class="bot-thinking-header-right">
                         <div class="bot-thinking-status ${statusClass}">${statusText} ${winRate}%</div>
-                        <button class="bot-card-toggle" onclick="event.stopPropagation(); toggleBot('${bot.id}')" title="${bot.enabled ? 'Disable' : 'Enable'}">
+                        <button class="bot-card-toggle" onclick="event.stopPropagation(); toggleBot('${bot.id}')" title="${toggleTitle}">
                             ${bot.enabled ? '⏸' : '▶'}
                         </button>
-                        <button class="bot-card-delete" onclick="event.stopPropagation(); deleteBot('${bot.id}')" title="Delete Bot">×</button>
+                        <button class="bot-card-delete" onclick="event.stopPropagation(); deleteBot('${bot.id}')" title="${deleteBotTitle}">×</button>
                     </div>
                 </div>
                 ${hasActivePosition ? `
@@ -1108,13 +1111,14 @@ function createBot() {
     
     // Validation
     if (!strategy) {
-        showNotification('Please select a strategy', 'error');
+        showNotification(typeof t === 'function' ? t('bots.selectStrategy') : 'Please select a strategy', 'error');
         return;
     }
     
     // Check if bot of this strategy already exists
     if (botStrategyExists(strategy)) {
-        showNotification(`${getBotNameFromStrategy(strategy)} already exists. Only one bot per strategy allowed.`, 'error');
+        var existingName = getBotNameFromStrategy(strategy);
+        showNotification(typeof t === 'function' ? t('bots.alreadyExists', { name: existingName }) : existingName + ' already exists. Only one bot per strategy allowed.', 'error');
         return;
     }
     
@@ -1205,7 +1209,7 @@ function createBot() {
     renderActiveBots();
     updateBotsCount();
     
-    showNotification(`Bot "${name}" created!`, 'success');
+    showNotification(typeof t === 'function' ? t('bots.botCreated', { name: bot.name }) : 'Bot "' + bot.name + '" created!', 'success');
     AudioManager.playClick();
 }
 
@@ -1230,7 +1234,7 @@ function toggleBot(botId) {
     renderActiveBots();
     updateBotsCount();
     
-    showNotification(`${bot.name} ${bot.enabled ? 'enabled' : 'disabled'}`, 'info');
+    showNotification(typeof t === 'function' ? (bot.enabled ? t('bots.botEnabled', { name: bot.name }) : t('bots.botDisabled', { name: bot.name })) : bot.name + ' ' + (bot.enabled ? 'enabled' : 'disabled'), 'info');
     AudioManager.playClick();
 }
 
@@ -1276,7 +1280,7 @@ function deleteBot(botId) {
     autoSave();
     
     updateConsoleStatus();
-    showNotification(`Bot "${bot.name}" deleted`, 'info');
+    showNotification(typeof t === 'function' ? t('bots.botDeleted', { name: bot.name }) : 'Bot "' + bot.name + '" deleted', 'info');
     AudioManager.playClick();
 }
 

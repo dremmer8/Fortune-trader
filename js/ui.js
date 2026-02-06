@@ -26,27 +26,29 @@ function purchaseUpgrade(upgradeId) {
     // Get upgrade config from config.js
     const upgrade = getUpgradeConfig(upgradeId);
     if (!upgrade) {
-        showNotification('Unknown upgrade', 'error');
+        showNotification(typeof t === 'function' ? t('ui.unknownUpgrade') : 'Unknown upgrade', 'error');
         return;
     }
     
     // Check if already purchased
     if (state.purchasedUpgrades && state.purchasedUpgrades.includes(upgradeId)) {
-        showNotification('Already purchased!', 'info');
+        showNotification(typeof t === 'function' ? t('ui.alreadyPurchased') : 'Already purchased!', 'info');
         return;
     }
     
+    var u = function (key, opts) { return typeof t === 'function' ? t(key, opts || {}) : key; };
+    var req = function (prereqId) { return u('ui.upgradeRequiredFirst', { name: u('upgrades.' + prereqId + '.name') }); };
     // Check upgrade dependencies
     // Cookie Discount tiers
     if (upgradeId === 'cookieDiscount2') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('cookieDiscount')) {
-            showNotification('Purchase "Cookie Discount I" upgrade first', 'error');
+            showNotification(req('cookieDiscount'), 'error');
             return;
         }
     }
     if (upgradeId === 'cookieDiscount3') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('cookieDiscount2')) {
-            showNotification('Purchase "Cookie Discount II" upgrade first', 'error');
+            showNotification(req('cookieDiscount2'), 'error');
             return;
         }
     }
@@ -54,13 +56,13 @@ function purchaseUpgrade(upgradeId) {
     // Auto Reveal tiers
     if (upgradeId === 'autoReveal2') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('autoReveal')) {
-            showNotification('Purchase "Auto Reveal I" upgrade first', 'error');
+            showNotification(req('autoReveal'), 'error');
             return;
         }
     }
     if (upgradeId === 'autoReveal3') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('autoReveal2')) {
-            showNotification('Purchase "Auto Reveal II" upgrade first', 'error');
+            showNotification(req('autoReveal2'), 'error');
             return;
         }
     }
@@ -68,13 +70,13 @@ function purchaseUpgrade(upgradeId) {
     // Bet Combo tiers
     if (upgradeId === 'betCombo2') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('betCombo1')) {
-            showNotification('Purchase "Bet Combo I" upgrade first', 'error');
+            showNotification(req('betCombo1'), 'error');
             return;
         }
     }
     if (upgradeId === 'betCombo3') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('betCombo2')) {
-            showNotification('Purchase "Bet Combo II" upgrade first', 'error');
+            showNotification(req('betCombo2'), 'error');
             return;
         }
     }
@@ -82,7 +84,7 @@ function purchaseUpgrade(upgradeId) {
     // Chart Prediction Zone tiers
     if (upgradeId === 'predictionZone2') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('predictionZone1')) {
-            showNotification('Purchase "Chart Prediction Zone I" upgrade first', 'error');
+            showNotification(req('predictionZone1'), 'error');
             return;
         }
     }
@@ -90,7 +92,7 @@ function purchaseUpgrade(upgradeId) {
     // Cookie tiers
     if (upgradeId === 'diamondCookie') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('goldenCookie')) {
-            showNotification('Purchase "Golden Cookie" upgrade first', 'error');
+            showNotification(req('goldenCookie'), 'error');
             return;
         }
     }
@@ -99,19 +101,19 @@ function purchaseUpgrade(upgradeId) {
     if (upgradeId === 'newsAccess1' || upgradeId === 'newsAccess2' || upgradeId === 'newsAccess3') {
         const newsTabUnlocked = typeof isNewsTabUnlocked === 'function' ? isNewsTabUnlocked() : false;
         if (!newsTabUnlocked) {
-            showNotification('Purchase "News Tab Unlock" upgrade first', 'error');
+            showNotification(req('newsTabUnlock'), 'error');
             return;
         }
     }
     if (upgradeId === 'newsAccess2') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('newsAccess1')) {
-            showNotification('Purchase "News Access I" upgrade first', 'error');
+            showNotification(req('newsAccess1'), 'error');
             return;
         }
     }
     if (upgradeId === 'newsAccess3') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('newsAccess2')) {
-            showNotification('Purchase "News Access II" upgrade first', 'error');
+            showNotification(req('newsAccess2'), 'error');
             return;
         }
     }
@@ -120,19 +122,19 @@ function purchaseUpgrade(upgradeId) {
     if (upgradeId === 'botBetTier1' || upgradeId === 'botBetTier2' || upgradeId === 'botBetTier3') {
         const consoleTabUnlocked = typeof isConsoleTabUnlocked === 'function' ? isConsoleTabUnlocked() : false;
         if (!consoleTabUnlocked) {
-            showNotification('Purchase "Console Tab Unlock" upgrade first', 'error');
+            showNotification(req('consoleTabUnlock'), 'error');
             return;
         }
     }
     if (upgradeId === 'botBetTier2') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('botBetTier1')) {
-            showNotification('Purchase "Bot Bet Tier I" upgrade first', 'error');
+            showNotification(req('botBetTier1'), 'error');
             return;
         }
     }
     if (upgradeId === 'botBetTier3') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('botBetTier2')) {
-            showNotification('Purchase "Bot Bet Tier II" upgrade first', 'error');
+            showNotification(req('botBetTier2'), 'error');
             return;
         }
     }
@@ -140,7 +142,7 @@ function purchaseUpgrade(upgradeId) {
     // Margin multiplier upgrades - require unlock first
     if ((upgradeId === 'marginMultiplier1' || upgradeId === 'marginMultiplier2' || upgradeId === 'marginMultiplier3')) {
         if (typeof isMarginTradingUnlocked === 'function' && !isMarginTradingUnlocked()) {
-            showNotification('Purchase "Margin Trading Unlock" upgrade first', 'error');
+            showNotification(req('marginTradingUnlock'), 'error');
             return;
         }
     }
@@ -148,7 +150,7 @@ function purchaseUpgrade(upgradeId) {
     // Margin multiplier 2 requires tier 1
     if (upgradeId === 'marginMultiplier2') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('marginMultiplier1')) {
-            showNotification('Purchase "Margin Multiplier I" upgrade first', 'error');
+            showNotification(req('marginMultiplier1'), 'error');
             return;
         }
     }
@@ -156,14 +158,14 @@ function purchaseUpgrade(upgradeId) {
     // Margin multiplier 3 requires tier 2
     if (upgradeId === 'marginMultiplier3') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('marginMultiplier2')) {
-            showNotification('Purchase "Margin Multiplier II" upgrade first', 'error');
+            showNotification(req('marginMultiplier2'), 'error');
             return;
         }
     }
     
     // Check funds
     if (state.balance < upgrade.price) {
-        showNotification('Insufficient funds', 'error');
+        showNotification(typeof t === 'function' ? t('ui.insufficientFunds') : 'Insufficient funds', 'error');
         return;
     }
     
@@ -208,20 +210,20 @@ function purchaseUpgrade(upgradeId) {
     if (upgradeId === 'stockTradingUnlock') {
         // Update stock trading button states
         updateBetLockButtons();
-        showNotification('Stock trading unlocked! You can now buy and sell stocks.', 'success');
+        showNotification(typeof t === 'function' ? t('ui.stockTradingUnlocked') : 'Stock trading unlocked! You can now buy and sell stocks.', 'success');
     }
     
     if (upgradeId === 'marginTradingUnlock') {
         // Update margin trading button states
         updateBetLockButtons();
-        showNotification('Margin trading unlocked! You can now trade with leverage.', 'success');
+        showNotification(typeof t === 'function' ? t('ui.marginTradingUnlocked') : 'Margin trading unlocked! You can now trade with leverage.', 'success');
     }
     
     // Special handling for margin multiplier upgrades
     if (upgradeId === 'marginMultiplier1' || upgradeId === 'marginMultiplier2' || upgradeId === 'marginMultiplier3') {
         const multiplier = typeof getMarginMultiplier === 'function' ? getMarginMultiplier() : 25;
         updateBetLockButtons();
-        showNotification(`Margin multiplier increased to x${multiplier}!`, 'success');
+        showNotification(typeof t === 'function' ? t('ui.marginMultiplierIncreased', { mult: multiplier }) : 'Margin multiplier increased to x' + multiplier + '!', 'success');
     }
     
     if (upgradeId === 'newsTabUnlock') {
@@ -229,7 +231,7 @@ function purchaseUpgrade(upgradeId) {
         if (typeof updateTabLockStates === 'function') {
             updateTabLockStates();
         }
-        showNotification('News tab unlocked!', 'success');
+        showNotification(typeof t === 'function' ? t('ui.newsTabUnlocked') : 'News tab unlocked!', 'success');
     }
     
     if (upgradeId === 'consoleTabUnlock') {
@@ -237,14 +239,14 @@ function purchaseUpgrade(upgradeId) {
         if (typeof updateTabLockStates === 'function') {
             updateTabLockStates();
         }
-        showNotification('Console tab unlocked!', 'success');
+        showNotification(typeof t === 'function' ? t('ui.consoleTabUnlocked') : 'Console tab unlocked!', 'success');
     }
     
     // Special handling for bot bet tier upgrades
     if (upgradeId === 'botBetTier1' || upgradeId === 'botBetTier2' || upgradeId === 'botBetTier3') {
         const botBetPercentage = typeof getBotBetPercentage === 'function' ? getBotBetPercentage() : 0.1;
         const percentageDisplay = Math.round(botBetPercentage * 100);
-        showNotification(`Bot bet percentage increased to ${percentageDisplay}%!`, 'success');
+        showNotification(typeof t === 'function' ? t('ui.botBetIncreased', { pct: percentageDisplay }) : 'Bot bet percentage increased to ' + percentageDisplay + '%!', 'success');
         // Update bot displays if visible
         if (typeof renderActiveBots === 'function') {
             renderActiveBots();
@@ -263,7 +265,8 @@ function purchaseUpgrade(upgradeId) {
     autoSave(); // Save after upgrade purchase
     
     if (upgradeId !== 'stockTradingUnlock' && upgradeId !== 'marginTradingUnlock' && upgradeId !== 'newsTabUnlock' && upgradeId !== 'consoleTabUnlock' && upgradeId !== 'marginMultiplier1' && upgradeId !== 'marginMultiplier2' && upgradeId !== 'marginMultiplier3') {
-        showNotification(`${upgrade.name} purchased!`, 'success');
+        var name = typeof t === 'function' ? t('upgrades.' + upgradeId + '.name') : upgrade.name;
+        showNotification(typeof t === 'function' ? t('ui.upgradePurchased', { name: name }) : name + ' purchased!', 'success');
     }
 }
 
@@ -294,8 +297,8 @@ function updateCookieTierPrices() {
     const priceEl = document.getElementById('cookieBuyPrice');
     
     if (iconEl) iconEl.textContent = tierConfig.icon;
-    if (nameEl) nameEl.textContent = tierConfig.name;
-    if (descEl) descEl.textContent = tierConfig.description;
+    if (nameEl) nameEl.textContent = typeof t === 'function' ? t('cookieTiers.' + tier + '.name') : tierConfig.name;
+    if (descEl) descEl.textContent = typeof t === 'function' ? t('cookieTiers.' + tier + '.description') : tierConfig.description;
     
     // Apply discount to price display
     const effectivePrice = typeof getEffectiveCookiePrice !== 'undefined' 
@@ -349,11 +352,12 @@ function renderPurchasedUpgrades() {
     const html = state.purchasedUpgrades.map(upgradeId => {
         const upgrade = SHOP_UPGRADES[upgradeId];
         if (!upgrade) return '';
-        
+        const name = typeof t === 'function' ? t('upgrades.' + upgradeId + '.name') : upgrade.name;
+        const desc = typeof t === 'function' ? t('upgrades.' + upgradeId + '.description') : upgrade.description;
         return `
             <div class="purchased-upgrade-icon" 
-                 data-name="${upgrade.name}" 
-                 title="${upgrade.name}: ${upgrade.description}">
+                 data-name="${name.replace(/"/g, '&quot;')}" 
+                 title="${(name + ': ' + desc).replace(/"/g, '&quot;')}">
                 ${upgrade.icon}
             </div>
         `;
@@ -483,12 +487,13 @@ function renderShopItems() {
         }
         
         const lockedClass = isLocked ? 'locked' : '';
-        
+        const name = typeof t === 'function' ? t('upgrades.' + upgradeId + '.name') : upgrade.name;
+        const desc = typeof t === 'function' ? t('upgrades.' + upgradeId + '.description') : upgrade.description;
         return `
-            <div class="shop-item ${lockedClass} ${purchasedClass}" data-tooltip="${upgrade.description}" onclick="purchaseUpgrade('${upgradeId}')">
+            <div class="shop-item ${lockedClass} ${purchasedClass}" data-tooltip="${desc.replace(/"/g, '&quot;')}" onclick="purchaseUpgrade('${upgradeId}')">
                 <div class="shop-item-icon">${upgrade.icon}</div>
                 <div class="shop-item-info">
-                    <span class="shop-item-name">${upgrade.name}</span>
+                    <span class="shop-item-name">${name}</span>
                 </div>
                 <span class="shop-item-price">$${upgrade.price.toLocaleString()}</span>
             </div>
@@ -614,13 +619,14 @@ function updateBetLockButtons() {
     // Check if stock trading is unlocked
     const stockTradingUnlocked = typeof isStockTradingUnlocked === 'function' ? isStockTradingUnlocked() : false;
     
+    var tl = function (key, opts) { return typeof t === 'function' ? t(key, opts || {}) : key; };
     if (longBtn) {
         longBtn.disabled = !canBet || !hasFunds;
         if (!canBet) {
             const remaining = getBetLockRemaining();
-            longBtn.title = `Please wait ${remaining}s before betting again`;
+            longBtn.title = tl('cookie.pleaseWaitBet', { s: remaining });
         } else if (!hasFunds) {
-            longBtn.title = 'Insufficient funds';
+            longBtn.title = tl('ui.insufficientFunds');
         } else {
             longBtn.title = '';
         }
@@ -630,9 +636,9 @@ function updateBetLockButtons() {
         shortBtn.disabled = !canBet || !hasFunds;
         if (!canBet) {
             const remaining = getBetLockRemaining();
-            shortBtn.title = `Please wait ${remaining}s before betting again`;
+            shortBtn.title = tl('cookie.pleaseWaitBet', { s: remaining });
         } else if (!hasFunds) {
-            shortBtn.title = 'Insufficient funds';
+            shortBtn.title = tl('ui.insufficientFunds');
         } else {
             shortBtn.title = '';
         }
@@ -641,7 +647,7 @@ function updateBetLockButtons() {
     if (stockBuyBtn) {
         if (!stockTradingUnlocked) {
             stockBuyBtn.disabled = true;
-            stockBuyBtn.title = 'Purchase "Stock Trading Unlock" upgrade to unlock';
+            stockBuyBtn.title = tl('ui.unlockStockTrading');
             stockBuyBtn.classList.add('locked');
             stockBuyBtn.classList.add('hidden');
         } else {
@@ -650,11 +656,11 @@ function updateBetLockButtons() {
             stockBuyBtn.disabled = !canBet || !hasFundsForStock;
             if (!canBet) {
                 const remaining = getBetLockRemaining();
-                stockBuyBtn.title = `Please wait ${remaining}s before buying again`;
+                stockBuyBtn.title = tl('cookie.pleaseWaitBuy', { s: remaining });
             } else if (!hasFundsForStock) {
-                stockBuyBtn.title = `Insufficient funds (need $${amount + fee} including $${fee} fee)`;
+                stockBuyBtn.title = tl('cookie.insufficientFundsFee', { total: amount + fee, fee: fee });
             } else {
-                stockBuyBtn.title = `Buy stock ($${fee} transaction fee)`;
+                stockBuyBtn.title = typeof t === 'function' ? t('chart.buyStock') + ' ($' + fee + ' ' + (t('portfolio.cashOutFee') || 'fee') + ')' : 'Buy stock ($' + fee + ' transaction fee)';
             }
         }
     }
@@ -662,7 +668,7 @@ function updateBetLockButtons() {
     if (stockSellBtn) {
         if (!stockTradingUnlocked) {
             stockSellBtn.disabled = true;
-            stockSellBtn.title = 'Purchase "Stock Trading Unlock" upgrade to unlock';
+            stockSellBtn.title = tl('ui.unlockStockTrading');
             stockSellBtn.classList.add('locked');
             stockSellBtn.classList.add('hidden');
         } else {
@@ -672,9 +678,9 @@ function updateBetLockButtons() {
             const holding = typeof getCurrentStockHolding === 'function' ? getCurrentStockHolding() : null;
             stockSellBtn.disabled = !holding || holding.shares === 0;
             if (!holding || holding.shares === 0) {
-                stockSellBtn.title = 'No stocks to sell';
+                stockSellBtn.title = tl('ui.noStocksToSell');
             } else {
-                stockSellBtn.title = 'Sell all stocks';
+                stockSellBtn.title = tl('ui.sellAllStocks');
             }
         }
     }
@@ -697,7 +703,7 @@ function updateBetLockButtons() {
     if (marginLongBtn) {
         if (!marginTradingUnlocked) {
             marginLongBtn.disabled = true;
-            marginLongBtn.title = 'Purchase "Margin Trading Unlock" upgrade to unlock';
+            marginLongBtn.title = tl('ui.unlockMarginTrading');
             marginLongBtn.classList.add('locked');
             marginLongBtn.classList.add('hidden');
         } else {
@@ -705,14 +711,14 @@ function updateBetLockButtons() {
             marginLongBtn.classList.remove('hidden');
             marginLongBtn.disabled = !canBet || !hasFunds || hasMarginPosition;
             if (hasMarginPosition) {
-                marginLongBtn.title = 'Close your current margin position first';
+                marginLongBtn.title = tl('ui.closeMarginFirst');
             } else if (!canBet) {
                 const remaining = getBetLockRemaining();
-                marginLongBtn.title = `Please wait ${remaining}s before trading again`;
+                marginLongBtn.title = tl('cookie.pleaseWaitTrade', { s: remaining });
             } else if (!hasFunds) {
-                marginLongBtn.title = 'Insufficient funds';
+                marginLongBtn.title = tl('ui.insufficientFunds');
             } else {
-                marginLongBtn.title = `Open long margin position (x${marginMultiplier} multiplier)`;
+                marginLongBtn.title = (typeof t === 'function' ? t('chart.longMargin') : 'Long Margin') + ' (x' + marginMultiplier + ')';
             }
         }
     }
@@ -720,7 +726,7 @@ function updateBetLockButtons() {
     if (marginShortBtn) {
         if (!marginTradingUnlocked) {
             marginShortBtn.disabled = true;
-            marginShortBtn.title = 'Purchase "Margin Trading Unlock" upgrade to unlock';
+            marginShortBtn.title = tl('ui.unlockMarginTrading');
             marginShortBtn.classList.add('locked');
             marginShortBtn.classList.add('hidden');
         } else {
@@ -728,14 +734,14 @@ function updateBetLockButtons() {
             marginShortBtn.classList.remove('hidden');
             marginShortBtn.disabled = !canBet || !hasFunds || hasMarginPosition;
             if (hasMarginPosition) {
-                marginShortBtn.title = 'Close your current margin position first';
+                marginShortBtn.title = tl('ui.closeMarginFirst');
             } else if (!canBet) {
                 const remaining = getBetLockRemaining();
-                marginShortBtn.title = `Please wait ${remaining}s before trading again`;
+                marginShortBtn.title = tl('cookie.pleaseWaitTrade', { s: remaining });
             } else if (!hasFunds) {
-                marginShortBtn.title = 'Insufficient funds';
+                marginShortBtn.title = tl('ui.insufficientFunds');
             } else {
-                marginShortBtn.title = `Open short margin position (x${marginMultiplier} multiplier)`;
+                marginShortBtn.title = (typeof t === 'function' ? t('chart.shortMargin') : 'Short Margin') + ' (x' + marginMultiplier + ')';
             }
         }
     }
@@ -1008,7 +1014,7 @@ function updatePortfolioOverlay() {
         if (profitableBtn) {
             const profitableCount = holdings.length;
             profitableBtn.disabled = profitableCount === 0;
-            profitableBtn.textContent = `Send All Profitable Stock${profitableCount > 0 ? ` (${profitableCount})` : ''}`;
+            profitableBtn.textContent = typeof t === 'function' ? (profitableCount > 0 ? t('ui.sendProfitableStockCount', { count: profitableCount }) : t('ui.sendProfitableStock')) : 'Send All Profitable Stock' + (profitableCount > 0 ? ' (' + profitableCount + ')' : '');
         }
     }
 }
@@ -1042,7 +1048,7 @@ function cancelResetGame() {
 
 async function executeResetGame() {
     // Show loading state
-    showNotification('Resetting game and deleting all data...', 'info');
+    showNotification(typeof t === 'function' ? t('ui.resettingGame') : 'Resetting game and deleting all data...', 'info');
     
     // Close all overlays first
     if (typeof closePhoneOverlays === 'function') {
@@ -1100,7 +1106,7 @@ async function executeResetGame() {
         showLoginCard();
     }
     
-    showNotification('Game reset complete! All data deleted.', 'success');
+    showNotification(typeof t === 'function' ? t('ui.gameResetComplete') : 'Game reset complete! All data deleted.', 'success');
 }
 
 // (Streamer window jitter now handled purely via CSS animation on .streamer-video)
@@ -1292,7 +1298,7 @@ function updateStreamerViewerCount(level) {
     const el = document.getElementById('streamerViewerCount');
     if (!el) return;
     const n = getStreamerViewerCountForLevel(level);
-    el.textContent = n === 0 ? '0 watching' : `${n.toLocaleString()} watching`;
+    el.textContent = typeof t === 'function' ? t('streamer.watching', { count: n }) : (n === 0 ? '0 watching' : n.toLocaleString() + ' watching');
 }
 
 function toggleStreamerWindow() {
@@ -1305,8 +1311,8 @@ function toggleStreamerWindow() {
     } catch (e) {}
     const icon = btn.querySelector('.streamer-toggle-icon');
     if (icon) icon.textContent = isHidden ? '▶' : '−';
-    btn.title = isHidden ? 'Show stream' : 'Hide stream';
-    btn.setAttribute('aria-label', isHidden ? 'Show streamer window' : 'Hide streamer window');
+    btn.title = typeof t === 'function' ? (isHidden ? t('ui.showStream') : t('ui.hideStream')) : (isHidden ? 'Show stream' : 'Hide stream');
+    btn.setAttribute('aria-label', btn.title);
 }
 
 function initStreamerToggle() {
@@ -1320,16 +1326,16 @@ function initStreamerToggle() {
             win.classList.add('streamer-window-hidden');
             const icon = btn.querySelector('.streamer-toggle-icon');
             if (icon) icon.textContent = '▶';
-            btn.title = 'Show stream';
-            btn.setAttribute('aria-label', 'Show streamer window');
+            btn.title = typeof t === 'function' ? t('ui.showStream') : 'Show stream';
+            btn.setAttribute('aria-label', btn.title);
         }
     } catch (e) {
         // If localStorage fails, default to hidden
         win.classList.add('streamer-window-hidden');
         const icon = btn.querySelector('.streamer-toggle-icon');
         if (icon) icon.textContent = '▶';
-        btn.title = 'Show stream';
-        btn.setAttribute('aria-label', 'Show streamer window');
+        btn.title = typeof t === 'function' ? t('ui.showStream') : 'Show stream';
+        btn.setAttribute('aria-label', btn.title);
     }
     btn.addEventListener('click', toggleStreamerWindow);
 }

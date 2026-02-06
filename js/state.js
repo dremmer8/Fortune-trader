@@ -277,12 +277,13 @@ function updateComboCounter() {
     streakNum.textContent = state.streakCount;
     betAmount.textContent = '$' + getCurrentBet().toLocaleString();
     
-    // Update next bet info
-    const betAmounts = typeof getCurrentBetAmounts === 'function' ? getCurrentBetAmounts() : BET_AMOUNTS;
+    var betAmounts = typeof getCurrentBetAmounts === 'function' ? getCurrentBetAmounts() : BET_AMOUNTS;
+    var nextLabel = (typeof window !== 'undefined' && typeof window.t === 'function') ? window.t('nav.next') : 'Next';
+    var maxLabel = (typeof window !== 'undefined' && typeof window.t === 'function') ? window.t('common.max') : 'MAX!';
     if (state.betIndex < betAmounts.length - 1) {
-        betNext.innerHTML = 'Next: <span>$' + betAmounts[state.betIndex + 1].toLocaleString() + '</span>';
+        betNext.innerHTML = nextLabel + ': <span>$' + betAmounts[state.betIndex + 1].toLocaleString() + '</span>';
     } else {
-        betNext.innerHTML = '<span class="bet-max">MAX!</span>';
+        betNext.innerHTML = '<span class="bet-max">' + maxLabel + '</span>';
     }
     
     // Update visual style based on streak

@@ -158,7 +158,7 @@ function buyCookie() {
     const price = getEffectiveCookiePrice(tier);
     
     if (state.balance < price) {
-        showNotification('Insufficient funds', 'error');
+        showNotification(typeof t === 'function' ? t('cookie.insufficientFunds') : 'Insufficient funds', 'error');
         return;
     }
 
@@ -200,7 +200,8 @@ function buyCookie() {
     state.cookieInventory.push(cookie);
     renderCookieInventory();
     autoSave(); // Save after buying cookie
-    showNotification(`${tierConfig.name} added to stash`, 'success');
+    var name = (typeof t === 'function' ? t('cookieTiers.' + (cookie.tier || 1) + '.name') : tierConfig.name);
+    showNotification(typeof t === 'function' ? t('cookie.addedToStash', { name: name }) : tierConfig.name + ' added to stash', 'success');
 }
 
 // Render the cookie inventory
@@ -211,10 +212,10 @@ function renderCookieInventory() {
     if (!container) return;
     
     const count = state.cookieInventory.length;
-    countEl.textContent = count + (count === 1 ? ' cookie' : ' cookies');
+    countEl.textContent = (typeof t === 'function' ? (count === 1 ? t('cookie.cookieCountOne', { count }) : t('cookie.cookieCountMany', { count })) : count + (count === 1 ? ' cookie' : ' cookies'));
     
     if (count === 0) {
-        container.innerHTML = '<div class="inventory-empty">No cookies yet. Purchase some above!</div>';
+        container.innerHTML = '<div class="inventory-empty">' + (typeof t === 'function' ? t('cookie.noCookies') : 'No cookies yet. Purchase some above!') + '</div>';
         return;
     }
     
@@ -331,7 +332,7 @@ function handleDrop(event) {
     
     renderCookieInventory();
     renderSignal();
-    showNotification('Cookie ready to unpack!', 'info');
+    showNotification(typeof t === 'function' ? t('cookie.cookieReadyToUnpack') : 'Cookie ready to unpack!', 'info');
 }
 
 // Generate prophecy-specific data based on type
@@ -606,7 +607,7 @@ function crackCookie() {
         }
         
         if (hintEl) {
-            hintEl.textContent = `Click to unwrap your prophecy (${state.cookieUnwrapFrame}/5)`;
+            hintEl.textContent = typeof t === 'function' ? t('cookie.clickToUnwrap', { current: state.cookieUnwrapFrame }) : 'Click to unwrap your prophecy (' + state.cookieUnwrapFrame + '/5)';
         }
     }
 }
@@ -804,7 +805,7 @@ function handleDecodeKeypress(event) {
         calculateProphecyValues(prophecy);
         state.selectedProphecyId = null;
         AudioManager.playProphecyDecoded();
-        showNotification('Prophecy decoded!', 'success');
+        showNotification(typeof t === 'function' ? t('cookie.prophecyDecoded') : 'Prophecy decoded!', 'success');
         renderDeals();
         return;
     }
@@ -838,7 +839,7 @@ function handleDecodeKeypress(event) {
                 calculateProphecyValues(prophecy);
                 state.selectedProphecyId = null;
                 AudioManager.playProphecyDecoded();
-                showNotification('Prophecy decoded!', 'success');
+                showNotification(typeof t === 'function' ? t('cookie.prophecyDecoded') : 'Prophecy decoded!', 'success');
             }
             
             renderDeals();
@@ -940,10 +941,10 @@ document.addEventListener('keydown', handleTradingShortcuts);
 function renderDeals() {
     const container = document.getElementById('dealsContainer');
     const activeDeals = state.deals.filter(d => !d.resolved);
-    document.getElementById('dealCount').textContent = activeDeals.length + ' Active';
+    document.getElementById('dealCount').textContent = typeof t === 'function' ? t('deals.activeCount', { count: activeDeals.length }) : activeDeals.length + ' Active';
     
     if (activeDeals.length === 0) {
-        container.innerHTML = '<div class="empty-deals">No active prophecies. Purchase a fortune cookie to receive trading insights.</div>';
+        container.innerHTML = '<div class="empty-deals">' + (typeof t === 'function' ? t('deals.empty') : 'No active prophecies. Purchase a fortune cookie to receive trading insights.') + '</div>';
         return;
     }
 
@@ -1144,7 +1145,7 @@ function updateDeals() {
         if (remaining <= 0) {
             // Prophecy expired - just remove it (info-only, no payout)
             deal.resolved = true;
-            showNotification(`Prophecy for ${deal.targetStockName} expired`, 'info');
+            showNotification(typeof t === 'function' ? t('cookie.prophecyExpired', { stock: deal.targetStockName }) : 'Prophecy for ' + deal.targetStockName + ' expired', 'info');
             return false;
         }
         return true;
@@ -1159,7 +1160,7 @@ function createPrediction(clickedPrice) {
     if (!canPlaceBet()) {
         const remaining = getBetLockRemaining();
         AudioManager.playCantPlaceBetNow();
-        showNotification(`Please wait ${remaining}s before betting again`, 'error', { skipErrorSound: true });
+        showNotification(typeof t === 'function' ? t('cookie.pleaseWaitBet', { s: remaining }) : 'Please wait ' + remaining + 's before betting again', 'error', { skipErrorSound: true });
         return;
     }
 
@@ -1169,7 +1170,7 @@ function createPrediction(clickedPrice) {
 
     if (amount > state.balance) {
         AudioManager.playCantPlaceBetNow();
-        showNotification('Insufficient funds', 'error', { skipErrorSound: true });
+        showNotification(typeof t === 'function' ? t('cookie.insufficientFunds') : 'Insufficient funds', 'error', { skipErrorSound: true });
         return;
     }
 
@@ -1233,7 +1234,7 @@ function createPrediction(clickedPrice) {
         drawChartSmooth();
     }
     
-    showNotification(`Prediction placed at $${clickedPrice.toFixed(2)}`, 'success');
+    showNotification(typeof t === 'function' ? t('cookie.predictionPlaced', { price: clickedPrice.toFixed(2) }) : 'Prediction placed at $' + clickedPrice.toFixed(2), 'success');
 }
 
 function openPosition(direction) {
@@ -1241,7 +1242,7 @@ function openPosition(direction) {
     if (!canPlaceBet()) {
         const remaining = getBetLockRemaining();
         AudioManager.playCantPlaceBetNow();
-        showNotification(`Please wait ${remaining}s before betting again`, 'error', { skipErrorSound: true });
+        showNotification(typeof t === 'function' ? t('cookie.pleaseWaitBet', { s: remaining }) : 'Please wait ' + remaining + 's before betting again', 'error', { skipErrorSound: true });
         return;
     }
 
@@ -1249,7 +1250,7 @@ function openPosition(direction) {
 
     if (amount > state.balance) {
         AudioManager.playCantPlaceBetNow();
-        showNotification('Insufficient funds', 'error', { skipErrorSound: true });
+        showNotification(typeof t === 'function' ? t('cookie.insufficientFunds') : 'Insufficient funds', 'error', { skipErrorSound: true });
         return;
     }
 
@@ -1280,7 +1281,8 @@ function openPosition(direction) {
     state.positions.push(position);
     state.lastBetTime = now; // Update bet lock timer
     renderPositions();
-    showNotification(`${direction.toUpperCase()} position opened`, 'success');
+    var dirLabel = typeof t === 'function' ? t('chart.' + (direction === 'long' ? 'long' : 'short')) : direction.toUpperCase();
+    showNotification(typeof t === 'function' ? t('cookie.positionOpened', { dir: dirLabel }) : dirLabel + ' position opened', 'success');
 }
 
 // Update predictions - check if 10 ticks have passed
@@ -1386,7 +1388,7 @@ function resolvePrediction(prediction) {
             updateStreamerMoodOnTrade(true, profit, prediction.amount);
         }
         
-        showNotification(`Prediction won! +$${profit.toLocaleString()} 🔥`, 'success');
+        showNotification(typeof t === 'function' ? t('cookie.predictionWon', { amount: profit.toLocaleString() }) : 'Prediction won! +$' + profit.toLocaleString() + ' 🔥', 'success');
     } else {
         // Player loses - bet is already deducted
         prediction.result = -prediction.amount;
@@ -1409,7 +1411,7 @@ function resolvePrediction(prediction) {
             updateStreamerMoodOnTrade(false, -prediction.amount, prediction.amount);
         }
 
-        showNotification(`Prediction lost -$${prediction.amount.toLocaleString()}`, 'error');
+        showNotification(typeof t === 'function' ? t('cookie.predictionLost', { amount: prediction.amount.toLocaleString() }) : 'Prediction lost -$' + prediction.amount.toLocaleString(), 'error');
     }
     
     // Remove prediction after 4 seconds
@@ -1727,7 +1729,7 @@ function resolvePosition(pos) {
 function buyStock() {
     // Check if stock trading is unlocked
     if (typeof isStockTradingUnlocked === 'function' && !isStockTradingUnlocked()) {
-        showNotification('Purchase "Stock Trading Unlock" upgrade to unlock stock trading', 'error');
+        showNotification(typeof t === 'function' ? t('cookie.stockUnlockRequired') : 'Purchase "Stock Trading Unlock" upgrade to unlock stock trading', 'error');
         AudioManager.playError();
         return;
     }
@@ -1735,7 +1737,7 @@ function buyStock() {
     // Check timing lock
     if (!canPlaceBet()) {
         const remaining = getBetLockRemaining();
-        showNotification(`Please wait ${remaining}s before buying again`, 'error');
+        showNotification(typeof t === 'function' ? t('cookie.pleaseWaitBuy', { s: remaining }) : 'Please wait ' + remaining + 's before buying again', 'error');
         return;
     }
     
@@ -1760,7 +1762,7 @@ function buyStock() {
     
     // Check if player has enough for amount + fee
     if (totalCostWithFee > state.balance) {
-        showNotification(`Insufficient funds (need $${totalCostWithFee} including $${fee} fee)`, 'error');
+        showNotification(typeof t === 'function' ? t('cookie.insufficientFundsFee', { total: totalCostWithFee, fee: fee }) : 'Insufficient funds (need $' + totalCostWithFee + ' including $' + fee + ' fee)', 'error');
         return;
     }
     
@@ -1798,13 +1800,13 @@ function buyStock() {
     
     renderStockHolding();
     autoSave(); // Save after buying stock
-    showNotification(`Bought ${sharesToBuy.toFixed(4)} shares @ $${price.toFixed(2)} (fee: $${fee})`, 'success');
+    showNotification(typeof t === 'function' ? t('cookie.boughtShares', { shares: sharesToBuy.toFixed(4), price: price.toFixed(2), fee: fee }) : 'Bought ' + sharesToBuy.toFixed(4) + ' shares @ $' + price.toFixed(2) + ' (fee: $' + fee + ')', 'success');
 }
 
 function sellStock() {
     // Check if stock trading is unlocked
     if (typeof isStockTradingUnlocked === 'function' && !isStockTradingUnlocked()) {
-        showNotification('Purchase "Stock Trading Unlock" upgrade to unlock stock trading', 'error');
+        showNotification(typeof t === 'function' ? t('cookie.stockUnlockRequired') : 'Purchase "Stock Trading Unlock" upgrade to unlock stock trading', 'error');
         AudioManager.playError();
         return;
     }
@@ -1813,7 +1815,7 @@ function sellStock() {
     const holding = state.stockHoldings[symbol];
     
     if (!holding || holding.shares === 0) {
-        showNotification('No shares to sell', 'error');
+        showNotification(typeof t === 'function' ? t('cookie.noSharesToSell') : 'No shares to sell', 'error');
         return;
     }
 
@@ -1859,7 +1861,7 @@ function sellStock() {
             updateStreamerMoodOnTrade(true, pnl, holding.totalInvested || Math.abs(pnl));
         }
 
-        showNotification(`Sold ${sharesSold.toFixed(4)} shares +$${pnl.toFixed(2)}`, 'success');
+        showNotification(typeof t === 'function' ? t('cookie.soldSharesProfit', { shares: sharesSold.toFixed(4), pnl: pnl.toFixed(2) }) : 'Sold ' + sharesSold.toFixed(4) + ' shares +$' + pnl.toFixed(2), 'success');
     } else {
         flashTradingScreen(false); // Red flash for loss
 
@@ -1867,7 +1869,7 @@ function sellStock() {
             updateStreamerMoodOnTrade(false, pnl, holding.totalInvested || Math.abs(pnl));
         }
 
-        showNotification(`Sold ${sharesSold.toFixed(4)} shares -$${Math.abs(pnl).toFixed(2)}`, 'error');
+        showNotification(typeof t === 'function' ? t('cookie.soldSharesLoss', { shares: sharesSold.toFixed(4), pnl: Math.abs(pnl).toFixed(2) }) : 'Sold ' + sharesSold.toFixed(4) + ' shares -$' + Math.abs(pnl).toFixed(2), 'error');
     }
     
     // Check for game over condition
@@ -1942,7 +1944,7 @@ function sellAllStocks() {
     });
     
     if (holdings.length === 0) {
-        showNotification('No stocks to sell', 'error');
+        showNotification(typeof t === 'function' ? t('cookie.noStocksToSell') : 'No stocks to sell', 'error');
         return;
     }
     
@@ -1964,13 +1966,14 @@ function sellAllStocks() {
     });
     
     if (soldCount === 0) {
-        showNotification('Failed to sell any stocks', 'error');
+        showNotification(typeof t === 'function' ? t('cookie.failedToSell') : 'Failed to sell any stocks', 'error');
         return;
     }
     
     autoSave();
     renderPortfolioOverlay();
     
+    var soldMsg = typeof t === 'function' ? (soldCount === 1 ? t('cookie.soldAllCount', { count: soldCount }) : t('cookie.soldAllCountPlural', { count: soldCount })) : 'Sold ' + soldCount + ' stock' + (soldCount > 1 ? 's' : '');
     if (totalPnl >= 0) {
         flashTradingScreen(true);
         AudioManager.playSuccessfulDeal();
@@ -1979,7 +1982,7 @@ function sellAllStocks() {
             updateStreamerMoodOnTrade(true, totalPnl, Math.abs(totalPnl));
         }
 
-        showNotification(`Sold ${soldCount} stock${soldCount > 1 ? 's' : ''} +$${totalPnl.toFixed(2)}`, 'success');
+        showNotification(soldMsg + ' +$' + totalPnl.toFixed(2), 'success');
     } else {
         flashTradingScreen(false);
 
@@ -1987,7 +1990,7 @@ function sellAllStocks() {
             updateStreamerMoodOnTrade(false, totalPnl, Math.abs(totalPnl));
         }
 
-        showNotification(`Sold ${soldCount} stock${soldCount > 1 ? 's' : ''} -$${Math.abs(totalPnl).toFixed(2)}`, 'error');
+        showNotification(soldMsg + ' -$' + Math.abs(totalPnl).toFixed(2), 'error');
     }
 }
 
@@ -2011,7 +2014,7 @@ function sellAllProfitableStocks() {
     });
     
     if (holdings.length === 0) {
-        showNotification('No profitable stocks to sell', 'error');
+        showNotification(typeof t === 'function' ? t('cookie.noProfitableStocks') : 'No profitable stocks to sell', 'error');
         return;
     }
     
@@ -2031,7 +2034,7 @@ function sellAllProfitableStocks() {
     });
     
     if (soldCount === 0) {
-        showNotification('Failed to sell any stocks', 'error');
+        showNotification(typeof t === 'function' ? t('cookie.failedToSell') : 'Failed to sell any stocks', 'error');
         return;
     }
     
@@ -2040,7 +2043,8 @@ function sellAllProfitableStocks() {
     
     flashTradingScreen(true);
     AudioManager.playSuccessfulDeal();
-    showNotification(`Sold ${soldCount} profitable stock${soldCount > 1 ? 's' : ''} +$${totalPnl.toFixed(2)}`, 'success');
+    var msg = typeof t === 'function' ? (soldCount === 1 ? t('cookie.soldProfitableCount', { count: soldCount }) : t('cookie.soldProfitableCountPlural', { count: soldCount })) : 'Sold ' + soldCount + ' profitable stock' + (soldCount > 1 ? 's' : '');
+    showNotification(msg + ' +$' + totalPnl.toFixed(2), 'success');
 }
 
 function renderStockHolding() {
@@ -2102,14 +2106,14 @@ function openMarginPosition(direction) {
     // Check if margin trading is unlocked
     if (typeof isMarginTradingUnlocked === 'function' && !isMarginTradingUnlocked()) {
         AudioManager.playCantPlaceBetNow();
-        showNotification('Purchase "Margin Trading Unlock" upgrade to unlock margin trading', 'error', { skipErrorSound: true });
+        showNotification(typeof t === 'function' ? t('cookie.marginUnlockRequired') : 'Purchase "Margin Trading Unlock" upgrade to unlock margin trading', 'error', { skipErrorSound: true });
         return;
     }
     
     // Check if there's already an active margin position
     if (state.marginPosition) {
         AudioManager.playCantPlaceBetNow();
-        showNotification('Close your current margin position first', 'error', { skipErrorSound: true });
+        showNotification(typeof t === 'function' ? t('cookie.closeMarginFirst') : 'Close your current margin position first', 'error', { skipErrorSound: true });
         return;
     }
     
@@ -2117,7 +2121,7 @@ function openMarginPosition(direction) {
     if (!canPlaceBet()) {
         const remaining = getBetLockRemaining();
         AudioManager.playCantPlaceBetNow();
-        showNotification(`Please wait ${remaining}s before trading again`, 'error', { skipErrorSound: true });
+        showNotification(typeof t === 'function' ? t('cookie.pleaseWaitTrade', { s: remaining }) : 'Please wait ' + remaining + 's before trading again', 'error', { skipErrorSound: true });
         return;
     }
     
@@ -2125,7 +2129,7 @@ function openMarginPosition(direction) {
     
     if (amount > state.balance) {
         AudioManager.playCantPlaceBetNow();
-        showNotification('Insufficient funds', 'error', { skipErrorSound: true });
+        showNotification(typeof t === 'function' ? t('cookie.insufficientFunds') : 'Insufficient funds', 'error', { skipErrorSound: true });
         return;
     }
     
@@ -2156,7 +2160,8 @@ function openMarginPosition(direction) {
     renderMarginPosition();
     
     const multiplier = typeof getMarginMultiplier === 'function' ? getMarginMultiplier() : MARGIN_MULTIPLIER;
-    showNotification(`${direction.toUpperCase()} margin position opened (x${multiplier})`, 'success');
+    var dirLabel = typeof t === 'function' ? t('chart.' + (direction === 'long' ? 'long' : 'short')) : direction.toUpperCase();
+    showNotification(typeof t === 'function' ? t('cookie.marginPositionOpened', { dir: dirLabel, mult: multiplier }) : dirLabel + ' margin position opened (x' + multiplier + ')', 'success');
     autoSave();
 }
 
@@ -2166,7 +2171,7 @@ function closeMarginPosition() {
     
     // Check if position is in closable phase
     if (state.marginPosition.phase === 'locked') {
-        showNotification('Position is still locked. Wait for the timer to finish.', 'error');
+        showNotification(typeof t === 'function' ? t('cookie.positionLockedMsg') : 'Position is still locked. Wait for the timer to finish.', 'error');
         return;
     }
     
@@ -2217,7 +2222,7 @@ function resolveMarginPosition() {
             updateStreamerMoodOnTrade(true, roundedPnl, position.amount);
         }
 
-        showNotification(`Margin position closed! +$${roundedPnl.toFixed(2)} 🔥`, 'success');
+        showNotification(typeof t === 'function' ? t('cookie.marginClosedProfit', { pnl: roundedPnl.toFixed(2) }) : 'Margin position closed! +$' + roundedPnl.toFixed(2) + ' 🔥', 'success');
     } else {
         AudioManager.playError();
 
@@ -2225,7 +2230,7 @@ function resolveMarginPosition() {
             updateStreamerMoodOnTrade(false, -Math.abs(roundedPnl), position.amount);
         }
 
-        showNotification(`Margin position closed. -$${Math.abs(roundedPnl).toFixed(2)}`, 'error');
+        showNotification(typeof t === 'function' ? t('cookie.marginClosedLoss', { pnl: Math.abs(roundedPnl).toFixed(2) }) : 'Margin position closed. -$' + Math.abs(roundedPnl).toFixed(2), 'error');
     }
     
     // Update streak (only for wins)
@@ -2290,7 +2295,7 @@ function checkMarginCall() {
         // Flash screen red
         flashTradingScreen(false);
         AudioManager.playError();
-        showNotification(`Margin call! Position closed. Balance: $0`, 'error');
+        showNotification(typeof t === 'function' ? t('cookie.marginCall') : 'Margin call! Position closed. Balance: $0', 'error');
         
         // Reset streak
         handleLoss();
@@ -2403,10 +2408,10 @@ function renderMarginPosition() {
     if (closeButton) {
         if (position.phase === 'locked') {
             closeButton.disabled = true;
-            if (closeText) closeText.textContent = 'Position Locked';
+            if (closeText) closeText.textContent = typeof t === 'function' ? t('chart.positionLocked') : 'Position Locked';
         } else {
             closeButton.disabled = false;
-            if (closeText) closeText.textContent = 'Close Position';
+            if (closeText) closeText.textContent = typeof t === 'function' ? t('chart.closePosition') : 'Close Position';
         }
     }
     
