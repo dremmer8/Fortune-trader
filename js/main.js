@@ -2230,8 +2230,22 @@ function generateSimulatedHistory(symbol, pointCount = CHART_VISIBLE_POINTS) {
         // Apply changes
         currentPrice = currentPrice + priceChange;
         
-        // No artificial boundaries - prices can move freely
-        // Mean reversion naturally keeps prices centered around basePrice
+        // Apply inevitable zone magnetism every tick so chart reliably touches the zone
+        const zones = prophecyEffects.inevitableZones || [];
+        for (const zone of zones) {
+            if (zone.prophecy.touched) continue;
+            const effectiveTarget = zone.target;
+            const distanceToZone = effectiveTarget - currentPrice;
+            const urgency = 1 - (zone.remaining / zone.duration);
+            const magnetismStrength = zone.prophecy.magnetismStrength || 0.55;
+            const pullStrength = magnetismStrength * (0.12 + 0.88 * urgency);
+            currentPrice += distanceToZone * pullStrength;
+            const intervalMin = zone.prophecy.intervalMin;
+            const intervalMax = zone.prophecy.intervalMax;
+            if (intervalMin != null && intervalMax != null && currentPrice >= intervalMin && currentPrice <= intervalMax) {
+                zone.prophecy.touched = true;
+            }
+        }
         
         // Only store points for the visible chart range
         if (tick >= displayStartTick) {
@@ -2670,8 +2684,22 @@ function simulatePriceForTick(symbol, simState, currentPrice, basePrice, tick) {
     // Calculate new price
     let newPrice = currentPrice + priceChange;
     
-    // No artificial boundaries - prices can move freely
-    // Mean reversion naturally keeps prices centered around basePrice
+    // Apply inevitable zone magnetism every tick so chart reliably touches the zone
+    const zones = prophecyEffects.inevitableZones || [];
+    for (const zone of zones) {
+        if (zone.prophecy.touched) continue;
+        const effectiveTarget = zone.target;
+        const distanceToZone = effectiveTarget - newPrice;
+        const urgency = 1 - (zone.remaining / zone.duration);
+        const magnetismStrength = zone.prophecy.magnetismStrength || 0.55;
+        const pullStrength = magnetismStrength * (0.12 + 0.88 * urgency);
+        newPrice += distanceToZone * pullStrength;
+        const intervalMin = zone.prophecy.intervalMin;
+        const intervalMax = zone.prophecy.intervalMax;
+        if (intervalMin != null && intervalMax != null && newPrice >= intervalMin && newPrice <= intervalMax) {
+            zone.prophecy.touched = true;
+        }
+    }
     
     return newPrice;
 }
@@ -2747,8 +2775,9 @@ function getProphecyEffectsForSymbol(symbol, timeMs = null) {
     let spikeValue = 1;
     let calmValue = 1;
     const trendProphecies = []; // Array of { type: 'trendUp'|'trendDown', reversalProbability: number }
+    const inevitableZones = []; // Array of { target, remaining, duration, prophecy }
     
-    if (!state.deals) return { volatilityMultiplier, trendProphecies };
+    if (!state.deals) return { volatilityMultiplier, trendProphecies, inevitableZones };
     
     state.deals.forEach(prophecy => {
         if (prophecy.resolved || prophecy.targetStock !== symbol || !prophecy.isDecoded) return;
@@ -2763,6 +2792,15 @@ function getProphecyEffectsForSymbol(symbol, timeMs = null) {
             trendProphecies.push({
                 type: prophecy.prophecyType,
                 reversalProbability: reversalProbability
+            });
+        }
+        // Inevitable zone - store for per-tick magnetism
+        else if (prophecy.prophecyType === 'inevitableZone') {
+            inevitableZones.push({
+                target: prophecy.trueValue,
+                remaining: remaining,
+                duration: prophecy.duration,
+                prophecy: prophecy
             });
         }
         // Volatility prophecies - only active during their time window
@@ -2790,7 +2828,7 @@ function getProphecyEffectsForSymbol(symbol, timeMs = null) {
         volatilityMultiplier = calmValue;
     }
     
-    return { volatilityMultiplier, trendProphecies };
+    return { volatilityMultiplier, trendProphecies, inevitableZones };
 }
 
 // Legacy wrapper for volatility only
@@ -2948,10 +2986,8 @@ function applyProphecyEffectsToActiveChart() {
             
             const distanceToZone = effectiveTarget - currentPrice;
             const urgency = 1 - (zone.remaining / zone.duration);
-            // Use magnetism strength from prophecy config (default 0.25)
-            const magnetismStrength = zone.prophecy.magnetismStrength || 0.25;
-            // Stronger pull that increases with urgency
-            const pullStrength = urgency * urgency * magnetismStrength;
+            const magnetismStrength = zone.prophecy.magnetismStrength || 0.55;
+            const pullStrength = magnetismStrength * (0.15 + 0.85 * urgency);
             currentPrice += distanceToZone * pullStrength;
             modified = true;
             
@@ -3091,8 +3127,23 @@ function initGameSystems() {
     console.log('All charts initialized and running in background');
 }
 
+// Welcome / disclaimer overlay — show on load, hide on Okay
+function initWelcomeOverlay() {
+    const overlay = document.getElementById('welcomeOverlay');
+    const okBtn = document.getElementById('welcomeOkBtn');
+    if (!overlay || !okBtn) return;
+
+    function dismissWelcome() {
+        overlay.classList.add('hidden');
+        if (typeof AudioManager !== 'undefined') AudioManager.playClick();
+    }
+
+    okBtn.addEventListener('click', dismissWelcome);
+}
+
 // Initialize the application (hub first)
 function initApp() {
+    initWelcomeOverlay();
     initVersionStamp();
     initAudioControls();
     initButtonClickSounds();

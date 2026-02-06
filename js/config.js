@@ -542,7 +542,7 @@ const PROPHECY_CONFIG = {
         // Interval width (percentage) - wider = easier to hit
         intervalWidth: { min: 0.4, max: 1.2 },
         // Magnetism pull strength multiplier (higher = stronger pull toward zone)
-        magnetismStrength: 0.25
+        magnetismStrength: 0.55
     },
     
     // ---- VOLATILITY SPIKE ----
@@ -570,8 +570,28 @@ const PROPHECY_CONFIG = {
     }
 };
 
-// All prophecy type keys for random selection
+// All prophecy type keys for random selection (legacy / full list)
 const PROPHECY_TYPE_KEYS = Object.keys(PROPHECY_CONFIG);
+
+// Cookie prophecy pool: trendUp+trendDown = 50%, rest shared equally. volatilitySpike excluded.
+const COOKIE_PROPHECY_WEIGHTS = [
+    { key: 'trendUp', weight: 0.25 },
+    { key: 'trendDown', weight: 0.25 },
+    { key: 'shore', weight: 1 / 6 },
+    { key: 'inevitableZone', weight: 1 / 6 },
+    { key: 'volatilityCalm', weight: 1 / 6 }
+];
+
+// Weighted random prophecy type for new cookies (excludes volatilitySpike)
+function getRandomProphecyType() {
+    const r = Math.random();
+    let acc = 0;
+    for (const { key, weight } of COOKIE_PROPHECY_WEIGHTS) {
+        acc += weight;
+        if (r < acc) return key;
+    }
+    return COOKIE_PROPHECY_WEIGHTS[COOKIE_PROPHECY_WEIGHTS.length - 1].key;
+}
 
 // Pool of classic-style fortune cookie texts for the typing mini-game
 const FORTUNE_TEXTS = [
@@ -784,12 +804,36 @@ const SHOP_UPGRADES = {
             betTier: 3  // Unlocks tier 3 bets
         }
     },
+    predictionZone1: {
+        name: 'Chart Prediction Zone I',
+        description: 'Bigger white zone when betting on price in next 10 ticks',
+        icon: '📐',
+        price: 4000,
+        order: 14,
+        visible: true,
+        locked: false,
+        effects: {
+            predictionZoneTier: 1  // Wider interval (2.6%)
+        }
+    },
+    predictionZone2: {
+        name: 'Chart Prediction Zone II',
+        description: 'Even bigger prediction zone for easier wins',
+        icon: '📏',
+        price: 10000,
+        order: 15,
+        visible: true,
+        locked: false,
+        effects: {
+            predictionZoneTier: 2  // Widest interval (3.2%)
+        }
+    },
     goldenCookie: {
         name: 'Golden Cookie',
         description: 'More precise prophecies',
         icon: '🍪',
         price: 1000,
-        order: 14,
+        order: 16,
         visible: true,
         locked: false,  // Special upgrade
         effects: {
@@ -802,7 +846,7 @@ const SHOP_UPGRADES = {
         description: 'Highly precise prophecies',
         icon: '🟥',
         price: 5000,
-        order: 15,
+        order: 17,
         visible: true,
         locked: false,
         effects: {
@@ -1139,6 +1183,22 @@ function getCurrentBetTier() {
     return 0;  // Default tier
 }
 
+// Get the current chart prediction zone tier (0 = 2%, 1 = 2.6%, 2 = 3.2%)
+function getCurrentPredictionZoneTier() {
+    if (!state.purchasedUpgrades) return 0;
+    if (state.purchasedUpgrades.includes('predictionZone2')) return 2;
+    if (state.purchasedUpgrades.includes('predictionZone1')) return 1;
+    return 0;
+}
+
+// Get prediction interval as decimal (e.g. 0.02 = 2% zone width)
+function getPredictionIntervalPercent() {
+    const tier = getCurrentPredictionZoneTier();
+    const base = 0.02;
+    const perTier = 0.006;  // +0.6% per tier: 2%, 2.6%, 3.2%
+    return base + tier * perTier;
+}
+
 // Get the current bet amounts array based on purchased upgrades
 function getCurrentBetAmounts() {
     const tier = getCurrentBetTier();
@@ -1315,7 +1375,7 @@ const simConfigCache = {
 const stockConfig = {
     'APLS': { name: 'APLS', tag: 'Apples Corp.', basePrice: 180 },
     'LOOGL': { name: 'LOOGL', tag: 'Loogle Inc.', basePrice: 140 },
-    'MASFT': { name: 'MASFT', tag: 'Macrosoft Corp.', basePrice: 380 },
+    'MAСFT': { name: 'MAСFT', tag: 'Macrosoft Corp.', basePrice: 380 },
     'LST': { name: 'LST', tag: 'List Inc.', basePrice: 175 },
     'NWTN': { name: 'NWTN', tag: 'Newton Inc.', basePrice: 250 }
 };

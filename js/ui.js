@@ -79,6 +79,14 @@ function purchaseUpgrade(upgradeId) {
         }
     }
     
+    // Chart Prediction Zone tiers
+    if (upgradeId === 'predictionZone2') {
+        if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('predictionZone1')) {
+            showNotification('Purchase "Chart Prediction Zone I" upgrade first', 'error');
+            return;
+        }
+    }
+    
     // Cookie tiers
     if (upgradeId === 'diamondCookie') {
         if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('goldenCookie')) {
@@ -408,6 +416,13 @@ function renderShopItems() {
             }
         }
         
+        // Chart Prediction Zone tiers
+        if (upgradeId === 'predictionZone2') {
+            if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('predictionZone1')) {
+                isLocked = true;
+            }
+        }
+        
         // Cookie tiers
         if (upgradeId === 'diamondCookie') {
             if (!state.purchasedUpgrades || !state.purchasedUpgrades.includes('goldenCookie')) {
@@ -532,13 +547,13 @@ function updateBalanceDisplay() {
     document.getElementById('balance').textContent = formatted;
 }
 
-function showNotification(message, type = '') {
+function showNotification(message, type = '', options = {}) {
     const notif = document.getElementById('notification');
     notif.textContent = message;
     notif.className = 'notification ' + type + ' show';
     
-    // Play appropriate sound based on notification type
-    if (type === 'error') {
+    // Play appropriate sound based on notification type (caller can skip if it plays its own, e.g. cantPlaceBetNow)
+    if (type === 'error' && !options.skipErrorSound) {
         AudioManager.playError();
     }
     

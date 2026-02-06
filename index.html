@@ -12,6 +12,20 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <!-- Welcome / Disclaimer overlay (shown on first load) -->
+    <div class="welcome-overlay" id="welcomeOverlay">
+        <div class="welcome-backdrop"></div>
+        <div class="welcome-modal">
+            <div class="welcome-icon">🥠</div>
+            <h2 class="welcome-title">Welcome to Fortune Trader</h2>
+            <p class="welcome-disclaimer">
+                This is a <strong>stock trader simulator game</strong> set in a world where fortune cookies actually predict the future.
+                All money and trades in this game are fictional. Please do not gamble or risk real money if in your world cookies work differently.
+            </p>
+            <button type="button" class="welcome-ok-btn" id="welcomeOkBtn">Okay</button>
+        </div>
+    </div>
+
     <!-- Hub Screen - Introduction Layer -->
     <div class="hub-screen" id="hubScreen">
         <div class="hub-background">

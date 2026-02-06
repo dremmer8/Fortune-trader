@@ -26,12 +26,16 @@ const AudioManager = {
         cookieAnimation5: 'audio/cookie_animation_5.wav',
         cookiePurchase: 'audio/cookie_purchase.wav',
         error: 'audio/error.ogg',
+        cantPlaceBetNow: 'audio/cantplacebeetnow.wav',
+        marginBetPlaced: 'audio/marginBetPlaced.wav',
+        stockBought: 'audio/stock_bought.wav',
+        betPlaced: 'audio/short-long or chart bet_placed.wav',
         openApp: 'audio/openApp.ogg',
         openTrader: 'audio/openTrader.ogg',
         prophecyDecoded: 'audio/prophecyDecoded.ogg',
         tickOfChart: 'audio/tickOfChart.ogg',
-        successfulDeal: 'audio/succesfullDeal.ogg',
-        successfulDealMaxCombo: 'audio/succesfullDealMaxCombo.ogg',
+        successfulDeal: 'audio/succesfullDeal.wav',
+        successfulDealMaxCombo: 'audio/succesfullDealMaxCombo.wav',
         upgradePurchased: 'audio/upgradePurchused.ogg'
     },
     
@@ -118,6 +122,26 @@ const AudioManager = {
     // Play error sound
     playError(volumeMultiplier = 0.6) {
         this.play('error', volumeMultiplier);
+    },
+
+    // Play "can't place bet now" sound (when bet placement is blocked)
+    playCantPlaceBetNow(volumeMultiplier = 0.6) {
+        this.play('cantPlaceBetNow', volumeMultiplier);
+    },
+
+    // Play margin bet placed sound
+    playMarginBetPlaced(volumeMultiplier = 1.0) {
+        this.play('marginBetPlaced', volumeMultiplier);
+    },
+
+    // Play stock bought sound
+    playStockBought(volumeMultiplier = 1.0) {
+        this.play('stockBought', volumeMultiplier);
+    },
+
+    // Play long/short or chart bet placed sound
+    playBetPlaced(volumeMultiplier = 1.0) {
+        this.play('betPlaced', volumeMultiplier);
     },
     
     // Play app open sound (generic)

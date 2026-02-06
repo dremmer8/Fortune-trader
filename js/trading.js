@@ -168,8 +168,8 @@ function buyCookie() {
     state.balance -= price;
     updateBalance();
 
-    // Pick random prophecy type
-    const prophecyType = PROPHECY_TYPE_KEYS[Math.floor(Math.random() * PROPHECY_TYPE_KEYS.length)];
+    // Pick random prophecy type (weighted: trend 50%, rest shared; volatilitySpike excluded)
+    const prophecyType = getRandomProphecyType();
     const typeConfig = PROPHECY_CONFIG[prophecyType];
     
     // Get per-prophecy duration from config, apply tier modifier
@@ -347,22 +347,17 @@ function generateProphecyData(prophecyType, currentPrice, duration, tierModifier
     switch (prophecyType) {
         case 'trendUp':
         case 'trendDown': {
-            // Calculate reversal probability based on tier
-            // Tier 1: 33%, Tier 2: 66%, Tier 3: 95%
-            // Map strengthBonus to tier probabilities
+            // Reversal probability by tier (trend 2x effective; higher tiers less drastic)
+            // Tier 1: 66%, Tier 2: 75%, Tier 3 (diamond): 95%
             let reversalProbability;
             if (strengthBonus === 0) {
-                // Tier 1
-                reversalProbability = 0.33;
+                reversalProbability = 0.66;   // Tier 1
             } else if (strengthBonus === 0.15) {
-                // Tier 2
-                reversalProbability = 0.66;
+                reversalProbability = 0.75;   // Tier 2
             } else if (strengthBonus === 0.3) {
-                // Tier 3
-                reversalProbability = 0.95;
+                reversalProbability = 0.95;   // Tier 3 diamond
             } else {
-                // Fallback: interpolate or use tier 1
-                reversalProbability = 0.33;
+                reversalProbability = 0.66;
             }
             
             return {
@@ -1163,7 +1158,8 @@ function createPrediction(clickedPrice) {
     // Check timing lock
     if (!canPlaceBet()) {
         const remaining = getBetLockRemaining();
-        showNotification(`Please wait ${remaining}s before betting again`, 'error');
+        AudioManager.playCantPlaceBetNow();
+        showNotification(`Please wait ${remaining}s before betting again`, 'error', { skipErrorSound: true });
         return;
     }
 
@@ -1172,18 +1168,20 @@ function createPrediction(clickedPrice) {
     const amount = baseAmount * 2;
 
     if (amount > state.balance) {
-        showNotification('Insufficient funds', 'error');
+        AudioManager.playCantPlaceBetNow();
+        showNotification('Insufficient funds', 'error', { skipErrorSound: true });
         return;
     }
 
-    // Play click sound for placing prediction
-    AudioManager.playClick();
+    // Play chart bet placed sound for placing prediction
+    AudioManager.playBetPlaced();
     
     state.balance -= amount;
     updateBalance();
 
-    // Calculate interval around clicked price (2% range)
-    const intervalWidth = clickedPrice * 0.02; // 2% of price
+    // Calculate interval around clicked price; size depends on prediction zone tier (2% base, bigger with upgrades)
+    const intervalPercent = typeof getPredictionIntervalPercent === 'function' ? getPredictionIntervalPercent() : 0.02;
+    const intervalWidth = clickedPrice * intervalPercent;
     const intervalMin = clickedPrice - intervalWidth / 2;
     const intervalMax = clickedPrice + intervalWidth / 2;
 
@@ -1242,19 +1240,21 @@ function openPosition(direction) {
     // Check timing lock
     if (!canPlaceBet()) {
         const remaining = getBetLockRemaining();
-        showNotification(`Please wait ${remaining}s before betting again`, 'error');
+        AudioManager.playCantPlaceBetNow();
+        showNotification(`Please wait ${remaining}s before betting again`, 'error', { skipErrorSound: true });
         return;
     }
 
     const amount = getCurrentBet();
 
     if (amount > state.balance) {
-        showNotification('Insufficient funds', 'error');
+        AudioManager.playCantPlaceBetNow();
+        showNotification('Insufficient funds', 'error', { skipErrorSound: true });
         return;
     }
 
-    // Play click sound for placing bet
-    AudioManager.playClick();
+    // Play long/short bet placed sound
+    AudioManager.playBetPlaced();
     
     state.balance -= amount;
     updateBalance();
@@ -1764,8 +1764,8 @@ function buyStock() {
         return;
     }
     
-    // Play click sound for buying stock
-    AudioManager.playClick();
+    // Play stock bought sound
+    AudioManager.playStockBought();
     
     const symbol = state.dataMode;
     const price = state.currentPrice;
@@ -2101,33 +2101,36 @@ function updateStockHoldingDisplay() {
 function openMarginPosition(direction) {
     // Check if margin trading is unlocked
     if (typeof isMarginTradingUnlocked === 'function' && !isMarginTradingUnlocked()) {
-        showNotification('Purchase "Margin Trading Unlock" upgrade to unlock margin trading', 'error');
-        AudioManager.playError();
+        AudioManager.playCantPlaceBetNow();
+        showNotification('Purchase "Margin Trading Unlock" upgrade to unlock margin trading', 'error', { skipErrorSound: true });
         return;
     }
     
     // Check if there's already an active margin position
     if (state.marginPosition) {
-        showNotification('Close your current margin position first', 'error');
+        AudioManager.playCantPlaceBetNow();
+        showNotification('Close your current margin position first', 'error', { skipErrorSound: true });
         return;
     }
     
     // Check timing lock
     if (!canPlaceBet()) {
         const remaining = getBetLockRemaining();
-        showNotification(`Please wait ${remaining}s before trading again`, 'error');
+        AudioManager.playCantPlaceBetNow();
+        showNotification(`Please wait ${remaining}s before trading again`, 'error', { skipErrorSound: true });
         return;
     }
     
     const amount = getCurrentBet();
     
     if (amount > state.balance) {
-        showNotification('Insufficient funds', 'error');
+        AudioManager.playCantPlaceBetNow();
+        showNotification('Insufficient funds', 'error', { skipErrorSound: true });
         return;
     }
     
-    // Play click sound
-    AudioManager.playClick();
+    // Play margin bet placed sound
+    AudioManager.playMarginBetPlaced();
     
     // Deduct bet amount
     state.balance -= amount;
