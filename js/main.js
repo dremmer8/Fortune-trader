@@ -1252,8 +1252,8 @@ function buyShopItem(itemId) {
         return;
     }
     
-    // Play click sound for purchase
-    AudioManager.playClick();
+    // Play cookie purchase sound (same as cookie shop)
+    AudioManager.playCookiePurchase();
     
     // Deduct price from bank balance
     state.bankBalance -= item.price;
