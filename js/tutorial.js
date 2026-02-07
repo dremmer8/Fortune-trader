@@ -295,13 +295,14 @@ function renderTutorialStep() {
     
     const step = tutorialSteps[currentTutorialStep];
     const stepTitle = (typeof t === 'function' ? t('tutorial.step' + currentTutorialStep + '_title') : step.title);
+    const stepContent = (typeof t === 'function' ? t('tutorial.step' + currentTutorialStep + '_content') : null) || step.content;
     stepContainer.innerHTML = `
         <div class="tutorial-step-title">
             <span class="tutorial-step-icon">${step.icon}</span>
             ${stepTitle}
         </div>
         <div class="tutorial-step-content">
-            ${step.content}
+            ${stepContent}
         </div>
     `;
     
@@ -585,7 +586,7 @@ function showTutorialButtonPreview(buttonType) {
     if (buttonType === 'stock') {
         buttonsHTML = `
             <div class="tutorial-button-preview">
-                <div class="tutorial-button-preview-label">Stock Trading Buttons</div>
+                <div class="tutorial-button-preview-label">${typeof t === 'function' ? t('tutorial.stockButtonsLabel') : 'Stock Trading Buttons'}</div>
                 <div class="stock-trade-buttons" style="display: flex !important; gap: 12px; justify-content: center; margin-left: 0; padding-left: 0; border-left: none;">
                     <button class="trade-btn stock-buy" style="pointer-events: none; opacity: 1 !important; display: flex !important; visibility: visible !important;">
                         <span class="btn-text">
@@ -600,7 +601,7 @@ function showTutorialButtonPreview(buttonType) {
     } else if (buttonType === 'margin') {
         buttonsHTML = `
             <div class="tutorial-button-preview">
-                <div class="tutorial-button-preview-label">Margin Trading Buttons</div>
+                <div class="tutorial-button-preview-label">${typeof t === 'function' ? t('tutorial.marginButtonsLabel') : 'Margin Trading Buttons'}</div>
                 <div class="margin-trade-buttons" style="display: flex !important; gap: 12px; justify-content: center; margin-left: 0; padding-left: 0; border-left: none;">
                     <button class="trade-btn margin-long" style="pointer-events: none; opacity: 1 !important; display: flex !important; visibility: visible !important;">
                         Long Margin

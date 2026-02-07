@@ -147,7 +147,9 @@ window.__LOCALE_EN__ = {
     "loadError": "Unable to load leaderboard: {{error}}",
     "noPlayers": "No players on the leaderboard yet.",
     "updated": "Updated {{date}}",
-    "failed": "Failed to load leaderboard: {{error}}"
+    "failed": "Failed to load leaderboard: {{error}}",
+    "wealth": "Wealth",
+    "earnings": "Earnings"
   },
   "phoneHint": "Press ESC to toggle phone during gameplay",
   "openPhone": "Open Phone",
@@ -165,6 +167,11 @@ window.__LOCALE_EN__ = {
   "chart": {
     "live": "Live",
     "loading": "Loading market data...",
+    "1h": "1H",
+    "1d": "1D",
+    "1w": "1W",
+    "1m": "1M",
+    "1y": "1Y",
     "long": "Long",
     "short": "Short",
     "buyStock": "Buy Stock",
@@ -179,6 +186,7 @@ window.__LOCALE_EN__ = {
     "news": "News",
     "console": "Console",
     "fortuneCookie": "Fortune Cookie",
+    "fortuneCookieAlt": "Fortune Cookie",
     "basicProphecy": "Basic prophecy",
     "shopLabel": "Shop",
     "stash": "Cookie Stash",
@@ -226,7 +234,9 @@ window.__LOCALE_EN__ = {
     "articlesCount": "{{count}} articles",
     "empty": "No news yet. Market updates will appear here.",
     "tabUnlockRequired": "Purchase \"News Tab Unlock\" upgrade to access news",
-    "consoleUnlockRequired": "Purchase \"Console Tab Unlock\" upgrade to access console"
+    "consoleUnlockRequired": "Purchase \"Console Tab Unlock\" upgrade to access console",
+    "hintTitle": "Unlock More Insights",
+    "hintText": "Purchase News Access upgrades in Cookie Shop to reveal more market insights"
   },
   "bots": {
     "consoleTitle": "SYSTEM CONSOLE v1.0",
@@ -247,14 +257,33 @@ window.__LOCALE_EN__ = {
   "deals": {
     "title": "Active Prophecies",
     "activeCount": "{{count}} Active",
-    "empty": "No active prophecies. Purchase a fortune cookie to receive trading insights."
+    "empty": "No active prophecies. Purchase a fortune cookie to receive trading insights.",
+    "detailStrength": "Strength:",
+    "detailFloor": "Floor:",
+    "detailCeiling": "Ceiling:",
+    "detailZone": "Zone:",
+    "zoneTouched": "Zone touched!",
+    "detailVol": "Vol:"
   },
   "portfolio": {
     "title": "Portfolio",
     "portfolioValue": "Portfolio Value",
     "cashOutFee": "Cash Out Fee (5%)",
     "netProfit": "Net Profit/Loss",
-    "youReceive": "You Receive"
+    "youReceive": "You Receive",
+    "cash": "Cash",
+    "stockHoldings": "Stock Holdings",
+    "totalPortfolio": "Total Portfolio",
+    "totalPnL": "Total P&L",
+    "sendAllStock": "Send All Stock",
+    "emptyText": "No stocks owned yet",
+    "emptyHint": "Buy stocks to see them here",
+    "colStock": "Stock",
+    "colShares": "Shares",
+    "colAvgPrice": "Avg Price",
+    "colCurrent": "Current",
+    "colValue": "Value",
+    "colPnL": "P&L"
   },
   "modals": {
     "resetTitle": "Reset Game?",
@@ -387,16 +416,29 @@ window.__LOCALE_EN__ = {
   },
   "tutorial": {
     "step0_title": "Welcome to Fortune Trader",
+    "step0_content": "<p>Welcome! This tutorial will teach you the basics of trading in Fortune Trader.</p><p>You'll learn how to read the chart, place trades, use fortune cookies, and understand the interface.</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">💡 Tip</div><div class=\"tutorial-highlight-box-content\">You can close this tutorial anytime and reopen it from the Tutorial button in the navigation bar.</div></div>",
     "step1_title": "The Chart & Price Display",
+    "step1_content": "<p>The <strong>chart</strong> shows the real-time price movement of the selected stock. The price updates every 2 seconds (1 tick).</p><p>In the chart header, you'll see:</p><ul><li><strong>Stock Name</strong> - The current stock symbol (APLS, LOOGL, MASFT, etc.)</li><li><strong>Current Price</strong> - The live price of the stock</li><li><strong>Price Change</strong> - How much the price has changed (green = up, red = down)</li><li><strong>Time Frame Selector</strong> - Switch between Live, 1H, 1D, 1W, 1M, 1Y views</li></ul><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">📊 Chart Features</div><div class=\"tutorial-highlight-box-content\">You can click on the right edge of the chart (within 20px) to place position predictions - betting that the price will touch a specific range within 20 seconds!</div></div>",
     "step2_title": "Trading Basics - Long & Short",
+    "step2_content": "<p><strong>Long Position</strong> - Bet that the price will go UP</p><ul><li>Click \"Long\" button (or press <code>A</code>)</li><li>Your bet amount is deducted from balance</li><li>Position lasts for 2 seconds</li><li>If price goes UP → You win 2x your bet (double your money)</li><li>If price goes DOWN or stays same → You lose your bet</li></ul><p><strong>Short Position</strong> - Bet that the price will go DOWN</p><ul><li>Click \"Short\" button (or press <code>D</code>)</li><li>Your bet amount is deducted from balance</li><li>Position lasts for 2 seconds</li><li>If price goes DOWN → You win 2x your bet</li><li>If price goes UP or stays same → You lose your bet</li></ul><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">⏱️ Bet Lock</div><div class=\"tutorial-highlight-box-content\">After placing a bet, you must wait 2 seconds before placing another bet.</div></div>",
     "step3_title": "Bet Amounts & Win Streaks",
+    "step3_content": "<p>Your <strong>bet amount</strong> determines how much you risk on each trade.</p><p><strong>Win Streak System:</strong></p><ul><li>Start with default bet amounts: $50, $100, $150, $200</li><li><strong>Win Streak:</strong> Each win increases your bet to the next tier</li><li><strong>Loss:</strong> Resets bet to the first tier ($50)</li></ul><p>You can see your current streak and bet amount in the navigation bar at the top.</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">💰 Bet Combo Upgrades</div><div class=\"tutorial-highlight-box-content\">Purchase Bet Combo upgrades from the Cookie Shop to unlock higher bet amounts ($150-$1000).</div></div>",
     "step4_title": "Fortune Cookies & Prophecies",
+    "step4_content": "<p><strong>Fortune Cookies</strong> contain prophecies that reveal future price movements!</p><p><strong>How to Purchase:</strong></p><ol><li>Open the <strong>Cookie Shop</strong> (right panel)</li><li>Click the cookie purchase button to buy a cookie</li><li>Cookie is added to your stash below</li></ol><p><strong>How to Decode Prophecies:</strong></p><ol><li><strong>Drag a cookie</strong> from your stash to the \"Signal Reveal\" area (center panel)</li><li><strong>Click the cookie</strong> 6 times to unwrap it (you'll see an animation)</li><li>After unwrapping, the prophecy appears in the <strong>Active Prophecies</strong> panel (left side)</li><li>The prophecy shows <strong>encrypted symbols</strong> (scrambled text) - this is the prophecy information</li><li><strong>Type the fortune text</strong> that appears below the encrypted symbols</li><li>As you type <strong>correctly</strong>, encrypted symbols are revealed one by one</li><li>When you finish typing (or all symbols are revealed), the prophecy <strong>activates automatically</strong>!</li></ol><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">⌨️ Typing Tips</div><div class=\"tutorial-highlight-box-content\"><ul style=\"margin: 8px 0; padding-left: 20px;\"><li>Type the fortune text letter by letter (spaces are skipped automatically)</li><li>Wrong keys will show an error - just keep typing the correct letters</li><li>Each correct letter reveals one encrypted symbol</li><li>You can see your progress as more symbols get revealed</li></ul></div></div><p><strong>Prophecy Types:</strong></p><ul><li><strong>Trend Up/Down</strong> - Price will trend in that direction for 25-35 seconds</li><li><strong>Shore</strong> - Price stays within a safe range (floor and ceiling)</li><li><strong>Inevitable Zone</strong> - Price will definitely touch a specific zone</li><li><strong>Volatility Spike/Calm</strong> - High or low volatility periods</li></ul><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">🎯 Strategy Tip</div><div class=\"tutorial-highlight-box-content\">Use prophecies to time your trades! Open Long positions during Trend Up prophecies, and Short positions during Trend Down prophecies.</div></div>",
     "step5_title": "Active Prophecies Panel",
+    "step5_content": "<p>The <strong>Active Prophecies</strong> panel (left side) shows all currently active prophecies.</p><p>Each prophecy displays:</p><ul><li>Prophecy type and icon</li><li>Target stock (if applicable)</li><li>Time remaining</li><li>Visual indicators on the chart (like trend lines, zones, etc.)</li></ul><p>Watch this panel to know when prophecies are active and plan your trades accordingly!</p>",
     "step6_title": "Navigation & Balance",
+    "step6_content": "<p>The <strong>navigation bar</strong> at the top shows important information:</p><ul><li><strong>Cash</strong> - Your current trading account balance</li><li><strong>Streak & Bet</strong> - Your win streak and current bet amount</li><li><strong>Portfolio</strong> - View all your positions and stocks</li><li><strong>Cash Out</strong> - Transfer profits back to your bank (5% fee)</li></ul><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">🏦 Banking</div><div class=\"tutorial-highlight-box-content\">Press <code>ESC</code> to open the phone interface, then use Baker's Bank to deposit money from your bank to your trading account. You need at least $100 to deposit.</div></div>",
     "step7_title": "Stock Trading (Optional)",
+    "step7_content": "<p><strong>Stock Trading</strong> lets you buy and hold stocks for long-term gains.</p><p><strong>To unlock:</strong> Purchase \"Stock Trading Unlock\" upgrade ($2,500) from Cookie Shop</p><p><strong>How it works:</strong></p><ul><li>Click \"Buy Stock\" (or press <code>Space</code>) to purchase shares</li><li>Shares = Your bet amount ÷ current stock price</li><li>$25 fee per transaction (encourages bulk buying)</li><li>Hold stocks and sell when profitable</li><li>Click \"Sell All Stock\" to sell all shares of current stock</li></ul><p>Your stock holdings are shown in the chart header and Portfolio.</p>",
     "step8_title": "Margin Trading (Advanced)",
+    "step8_content": "<p><strong>Margin Trading</strong> offers high-risk, high-reward trading with multipliers (25x-55x).</p><p><strong>To unlock:</strong> Purchase \"Margin Trading Unlock\" upgrade ($5,000) from Cookie Shop</p><p><strong>How it works:</strong></p><ul><li>Click \"Long Margin\" or \"Short Margin\" (or press <code>Z</code>/<code>C</code>)</li><li><strong>Phase 1 (25 ticks):</strong> Position is LOCKED - you cannot close it</li><li><strong>Phase 2 (25 ticks):</strong> Position is CLOSABLE - you can close anytime</li><li>After Phase 2: Position auto-closes</li><li>Profit = Bet Amount × (Price Change %) × Multiplier</li></ul><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">⚠️ Warning</div><div class=\"tutorial-highlight-box-content\">Margin trading is high risk! Small price movements = big profits/losses. Use with fortune cookie prophecies for better timing.</div></div>",
     "step9_title": "Keyboard Shortcuts",
-    "step10_title": "Getting Started Tips"
+    "step9_content": "<p>Use these keyboard shortcuts for faster trading:</p><ul><li><code>ESC</code> - Toggle phone interface during gameplay</li><li><code>A</code> - Open Long position</li><li><code>D</code> - Open Short position</li><li><code>Space</code> - Buy Stock (if unlocked)</li><li><code>Z</code> - Long Margin (if unlocked)</li><li><code>C</code> - Short Margin (if unlocked)</li></ul>",
+    "step10_title": "Getting Started Tips",
+    "step10_content": "<p><strong>Beginner Strategy:</strong></p><ol><li>Start with small deposits ($100-$250) from Baker's Bank</li><li>Master Long/Short positions first</li><li>Buy fortune cookies and decode them for trading insights</li><li>Don't bet your entire balance on one trade</li><li>Cash out regularly to transfer profits to your bank</li></ol><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">🎯 Pro Tip</div><div class=\"tutorial-highlight-box-content\">Combine fortune cookie prophecies with your trades for better success rates. Trend Up prophecies work great with Long positions!</div></div><p>You're ready to start trading! Good luck! 🚀</p>",
+    "stockButtonsLabel": "Stock Trading Buttons",
+    "marginButtonsLabel": "Margin Trading Buttons"
   },
   "common": {
     "versionLabel": "Version {{version}}",

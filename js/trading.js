@@ -545,12 +545,8 @@ function renderSignal() {
     
     if (!state.cookie) {
         // Show empty drop zone
-        reveal.innerHTML = `
-            <div class="empty-state" id="emptyState">
-                <div class="empty-state-icon">⚡</div>
-                <div class="empty-state-text">Drag a cookie here to unpack its prophecy</div>
-            </div>
-        `;
+        var emptyText = typeof t === 'function' ? t('cookie.dragCookie') : 'Drag a cookie here to unpack its prophecy';
+        reveal.innerHTML = '<div class="empty-state" id="emptyState"><div class="empty-state-icon">⚡</div><div class="empty-state-text">' + emptyText + '</div></div>';
         return;
     }
     
@@ -563,13 +559,12 @@ function renderSignal() {
     const cookieTier = state.cookie.tier || 1;
     const frameImage = `images/trading/${cookieTier}_cookie_${state.cookieUnwrapFrame}.png`;
     
-    // Show cookie animation frame
-    reveal.innerHTML = `
-        <div class="cookie-unwrap-container" id="cookieUnwrapContainer" onclick="crackCookie()">
-            <img src="${frameImage}" class="cookie-unwrap-frame" id="cookieUnwrapFrame" alt="Fortune Cookie">
-            <div class="cookie-unwrap-hint">Click to unwrap your prophecy (${state.cookieUnwrapFrame}/5)</div>
-        </div>
-    `;
+    // Show cookie animation frame (hint localized in crackCookie/update)
+    var altText = typeof t === 'function' ? t('cookie.fortuneCookieAlt') : 'Fortune Cookie';
+    var hintText = typeof t === 'function' ? t('cookie.clickToUnwrap', { current: state.cookieUnwrapFrame }) : 'Click to unwrap your prophecy (' + state.cookieUnwrapFrame + '/5)';
+    reveal.innerHTML = '<div class="cookie-unwrap-container" id="cookieUnwrapContainer" onclick="crackCookie()">' +
+        '<img src="' + frameImage + '" class="cookie-unwrap-frame" id="cookieUnwrapFrame" alt="' + altText.replace(/"/g, '&quot;') + '">' +
+        '<div class="cookie-unwrap-hint">' + hintText + '</div></div>';
 }
 
 function crackCookie() {
@@ -954,12 +949,19 @@ function renderDeals() {
         const isSelected = state.selectedProphecyId === deal.id;
         const progress = deal.remaining / deal.duration;
         
-        // Generate the encrypted/revealed secret display
-        const secretDisplay = renderSecretDisplay(
-            deal.secretInfo, 
-            deal.scrambledSecret, 
-            deal.revealedIndices
-        );
+        // Generate the encrypted/revealed secret display (when decoded, show localized type | stock)
+        var secretDisplay;
+        if (deal.isDecoded && typeof t === 'function') {
+            var typeLabel = t('prophecy.' + deal.prophecyType + '.name');
+            var stockLabel = t('stocks.' + deal.targetStock);
+            secretDisplay = typeLabel + ' | ' + stockLabel;
+        } else {
+            secretDisplay = renderSecretDisplay(
+                deal.secretInfo,
+                deal.scrambledSecret,
+                deal.revealedIndices
+            );
+        }
         
         // Calculate typing progress
         const typedChars = deal.typingPosition;
@@ -1035,54 +1037,27 @@ function renderProphecyDetails(deal) {
         case 'trendUp':
         case 'trendDown':
             if (deal.strengthMin === undefined || deal.strengthMax === undefined) return '';
-            return `
-                <div class="prophecy-detail-row">
-                    <span class="detail-label">Strength:</span>
-                    <span class="detail-value">${deal.strengthMin.toFixed(1)}% - ${deal.strengthMax.toFixed(1)}%</span>
-                </div>
-            `;
+            var lblStr = typeof t === 'function' ? t('deals.detailStrength') : 'Strength:';
+            return '<div class="prophecy-detail-row"><span class="detail-label">' + lblStr + '</span><span class="detail-value">' + deal.strengthMin.toFixed(1) + '% - ' + deal.strengthMax.toFixed(1) + '%</span></div>';
         
         case 'shore':
             if (deal.lowerIntervalMin === undefined || deal.lowerIntervalMax === undefined || 
                 deal.upperIntervalMin === undefined || deal.upperIntervalMax === undefined) return '';
-            return `
-                <div class="prophecy-detail-row">
-                    <span class="detail-label">Floor:</span>
-                    <span class="detail-value price-interval">$${deal.lowerIntervalMin.toFixed(2)}-${deal.lowerIntervalMax.toFixed(2)}</span>
-                </div>
-                <div class="prophecy-detail-row">
-                    <span class="detail-label">Ceiling:</span>
-                    <span class="detail-value price-interval">$${deal.upperIntervalMin.toFixed(2)}-${deal.upperIntervalMax.toFixed(2)}</span>
-                </div>
-            `;
+            var lblFloor = typeof t === 'function' ? t('deals.detailFloor') : 'Floor:';
+            var lblCeil = typeof t === 'function' ? t('deals.detailCeiling') : 'Ceiling:';
+            return '<div class="prophecy-detail-row"><span class="detail-label">' + lblFloor + '</span><span class="detail-value price-interval">$' + deal.lowerIntervalMin.toFixed(2) + '-' + deal.lowerIntervalMax.toFixed(2) + '</span></div><div class="prophecy-detail-row"><span class="detail-label">' + lblCeil + '</span><span class="detail-value price-interval">$' + deal.upperIntervalMin.toFixed(2) + '-' + deal.upperIntervalMax.toFixed(2) + '</span></div>';
         
         case 'inevitableZone':
             if (deal.intervalMin === undefined || deal.intervalMax === undefined) return '';
-            return `
-                <div class="prophecy-detail-row">
-                    <span class="detail-label">Zone:</span>
-                    <span class="detail-value price-interval">$${deal.intervalMin.toFixed(2)}-${deal.intervalMax.toFixed(2)}</span>
-                </div>
-                ${deal.touched ? '<div class="prophecy-guarantee touched">Zone touched!</div>' : ''}
-            `;
+            var lblZone = typeof t === 'function' ? t('deals.detailZone') : 'Zone:';
+            var zoneTouchedHtml = deal.touched ? ('<div class="prophecy-guarantee touched">' + (typeof t === 'function' ? t('deals.zoneTouched') : 'Zone touched!') + '</div>') : '';
+            return '<div class="prophecy-detail-row"><span class="detail-label">' + lblZone + '</span><span class="detail-value price-interval">$' + deal.intervalMin.toFixed(2) + '-' + deal.intervalMax.toFixed(2) + '</span></div>' + zoneTouchedHtml;
         
         case 'volatilitySpike':
-            if (deal.volatilityMin === undefined || deal.volatilityMax === undefined) return '';
-            return `
-                <div class="prophecy-detail-row">
-                    <span class="detail-label">Vol:</span>
-                    <span class="detail-value vol-interval">${deal.volatilityMin.toFixed(1)}x-${deal.volatilityMax.toFixed(1)}x</span>
-                </div>
-            `;
-        
         case 'volatilityCalm':
             if (deal.volatilityMin === undefined || deal.volatilityMax === undefined) return '';
-            return `
-                <div class="prophecy-detail-row">
-                    <span class="detail-label">Vol:</span>
-                    <span class="detail-value vol-interval">${deal.volatilityMin.toFixed(1)}x-${deal.volatilityMax.toFixed(1)}x</span>
-                </div>
-            `;
+            var lblVol = typeof t === 'function' ? t('deals.detailVol') : 'Vol:';
+            return '<div class="prophecy-detail-row"><span class="detail-label">' + lblVol + '</span><span class="detail-value vol-interval">' + deal.volatilityMin.toFixed(1) + 'x-' + deal.volatilityMax.toFixed(1) + 'x</span></div>';
         
         default:
             return '';

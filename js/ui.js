@@ -844,63 +844,38 @@ function renderPortfolioOverlay() {
     const totalPnlPercent = totalInvested > 0 ? (totalPnl / totalInvested) * 100 : 0;
     const totalPortfolio = state.balance + totalStockValue;
     
+    var pl = function (k) { return typeof t === 'function' ? t('portfolio.' + k) : k; };
     // Render summary
-    summaryEl.innerHTML = `
-        <div class="summary-row">
-            <span class="summary-label">Cash</span>
-            <span class="summary-value" id="portfolioCash">$${state.balance.toFixed(2)}</span>
-        </div>
-        <div class="summary-row">
-            <span class="summary-label">Stock Holdings</span>
-            <span class="summary-value" id="portfolioStockHoldings">$${totalStockValue.toFixed(2)}</span>
-        </div>
-        <div class="summary-row highlight">
-            <span class="summary-label">Total Portfolio</span>
-            <span class="summary-value" id="portfolioTotal">$${totalPortfolio.toFixed(2)}</span>
-        </div>
-        ${totalInvested > 0 ? `
-        <div class="summary-row ${totalPnl >= 0 ? 'positive' : 'negative'}" id="portfolioTotalPnLRow">
-            <span class="summary-label">Total P&L</span>
-            <span class="summary-value" id="portfolioTotalPnL">${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)} (${totalPnl >= 0 ? '+' : ''}${totalPnlPercent.toFixed(2)}%)</span>
-        </div>
-        ` : ''}
-    `;
+    summaryEl.innerHTML = '<div class="summary-row"><span class="summary-label">' + pl('cash') + '</span><span class="summary-value" id="portfolioCash">$' + state.balance.toFixed(2) + '</span></div>' +
+        '<div class="summary-row"><span class="summary-label">' + pl('stockHoldings') + '</span><span class="summary-value" id="portfolioStockHoldings">$' + totalStockValue.toFixed(2) + '</span></div>' +
+        '<div class="summary-row highlight"><span class="summary-label">' + pl('totalPortfolio') + '</span><span class="summary-value" id="portfolioTotal">$' + totalPortfolio.toFixed(2) + '</span></div>' +
+        (totalInvested > 0 ? '<div class="summary-row ' + (totalPnl >= 0 ? 'positive' : 'negative') + '" id="portfolioTotalPnLRow"><span class="summary-label">' + pl('totalPnL') + '</span><span class="summary-value" id="portfolioTotalPnL">' + (totalPnl >= 0 ? '+' : '') + '$' + totalPnl.toFixed(2) + ' (' + (totalPnl >= 0 ? '+' : '') + totalPnlPercent.toFixed(2) + '%)</span></div>' : '');
     
     // Render action buttons (only if there are holdings)
     if (holdings.length > 0) {
         const profitableCount = holdings.filter(h => h.pnl > 0).length;
-        actionsEl.innerHTML = `
-            <div class="portfolio-actions-buttons">
-                <button class="portfolio-action-btn portfolio-action-btn-all" onclick="sellAllStocks()">
-                    Send All Stock
-                </button>
-                <button class="portfolio-action-btn portfolio-action-btn-profitable" onclick="sellAllProfitableStocks()" ${profitableCount === 0 ? 'disabled' : ''}>
-                    Send All Profitable Stock${profitableCount > 0 ? ` (${profitableCount})` : ''}
-                </button>
-            </div>
-        `;
+        var sendAllLabel = typeof t === 'function' ? t('portfolio.sendAllStock') : 'Send All Stock';
+        var sendProfitableLabel = typeof t === 'function' ? (profitableCount > 0 ? t('ui.sendProfitableStockCount', { count: profitableCount }) : t('ui.sendProfitableStock')) : 'Send All Profitable Stock' + (profitableCount > 0 ? ' (' + profitableCount + ')' : '');
+        actionsEl.innerHTML = '<div class="portfolio-actions-buttons">' +
+            '<button class="portfolio-action-btn portfolio-action-btn-all" onclick="sellAllStocks()">' + sendAllLabel + '</button>' +
+            '<button class="portfolio-action-btn portfolio-action-btn-profitable" onclick="sellAllProfitableStocks()" ' + (profitableCount === 0 ? 'disabled' : '') + '>' + sendProfitableLabel + '</button>' +
+            '</div>';
     } else {
         actionsEl.innerHTML = '';
     }
     
     // Render holdings
     if (holdings.length === 0) {
-        holdingsEl.innerHTML = `
-            <div class="holdings-empty">
-                <div class="empty-icon">📈</div>
-                <div class="empty-text">No stocks owned yet</div>
-                <div class="empty-hint">Buy stocks to see them here</div>
-            </div>
-        `;
+        holdingsEl.innerHTML = '<div class="holdings-empty"><div class="empty-icon">📈</div><div class="empty-text">' + pl('emptyText') + '</div><div class="empty-hint">' + pl('emptyHint') + '</div></div>';
     } else {
         holdingsEl.innerHTML = `
             <div class="holdings-header">
-                <span>Stock</span>
-                <span>Shares</span>
-                <span>Avg Price</span>
-                <span>Current</span>
-                <span>Value</span>
-                <span>P&L</span>
+                <span>${pl('colStock')}</span>
+                <span>${pl('colShares')}</span>
+                <span>${pl('colAvgPrice')}</span>
+                <span>${pl('colCurrent')}</span>
+                <span>${pl('colValue')}</span>
+                <span>${pl('colPnL')}</span>
             </div>
             ${holdings.map(h => `
                 <div class="holding-row ${state.dataMode === h.symbol ? 'active' : ''}" data-symbol="${h.symbol}">

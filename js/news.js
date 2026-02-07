@@ -62,8 +62,15 @@ function generateNewsForEvent(symbol, newsType, reason = '') {
     const templates = NEWS_TEMPLATES[newsType];
     if (!templates || templates.length === 0) return null;
     
-    const template = templates[Math.floor(Math.random() * templates.length)];
-    const headline = template.replace('{stock}', stockName);
+    const idx = Math.floor(Math.random() * templates.length);
+    const template = templates[idx];
+    var headline;
+    if (typeof t === 'function') {
+        headline = t('newsTemplates.' + newsType + '.' + idx, { stock: stockName });
+        if (headline === 'newsTemplates.' + newsType + '.' + idx) headline = template.replace('{stock}', stockName);
+    } else {
+        headline = template.replace('{stock}', stockName);
+    }
     
     // Determine if this article should be visible based on current visibility level
     const visibilityLevel = getNewsVisibilityLevel();
@@ -229,17 +236,11 @@ function renderNews() {
     const sortedNews = [...news].reverse();
     
     // Build subscription hint HTML if needed (at top)
+    var hintTitle = typeof t === 'function' ? t('news.hintTitle') : 'Unlock More Insights';
+    var hintText = typeof t === 'function' ? t('news.hintText') : 'Purchase News Access upgrades in Cookie Shop to reveal more market insights';
     let hintHtml = '';
     if (hasBlurredArticles && !hasAllUpgrades) {
-        hintHtml = `
-            <div class="news-subscription-hint">
-                <div class="news-hint-icon">🔒</div>
-                <div class="news-hint-content">
-                    <div class="news-hint-title">Unlock More Insights</div>
-                    <div class="news-hint-text">Purchase News Access upgrades in Cookie Shop to reveal more market insights</div>
-                </div>
-            </div>
-        `;
+        hintHtml = '<div class="news-subscription-hint"><div class="news-hint-icon">🔒</div><div class="news-hint-content"><div class="news-hint-title">' + hintTitle + '</div><div class="news-hint-text">' + hintText + '</div></div></div>';
     }
     
     container.innerHTML = hintHtml + sortedNews.map((article) => {

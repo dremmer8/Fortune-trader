@@ -2581,11 +2581,19 @@ html {
 
 .settings-content {
     flex: 1;
-    padding: 16px;
+    padding: 16px 20px 16px 16px; /* extra right padding so slider thumb isn't clipped */
     display: flex;
     flex-direction: column;
     gap: 20px;
     overflow-y: auto;
+    overflow-x: hidden;
+    /* Hide scrollbar but keep scrolling */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.settings-content::-webkit-scrollbar {
+    display: none;
 }
 
 .settings-section {
@@ -2671,9 +2679,18 @@ html {
 
 .settings-slider {
     width: 120px;
+    min-width: 120px;
     accent-color: var(--accent);
     cursor: pointer;
     margin-left: auto;
+    flex-shrink: 0;
+    /* Prevent thumb from being clipped by parent overflow */
+    position: relative;
+}
+
+/* Ensure the volume slider row doesn't clip the range input thumb */
+.settings-item:has(.settings-slider) {
+    overflow: visible;
 }
 
 .settings-select {
@@ -2681,10 +2698,16 @@ html {
     padding: 6px 10px;
     border-radius: 8px;
     border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
     font-size: 0.95rem;
     cursor: pointer;
+}
+
+/* Dropdown options: force dark text on light background so selected/highlighted option is readable (fixes white-on-white when language is switched) */
+.settings-select option {
+    background: #ffffff;
+    color: #1a1a24;
 }
 
 /* ===========================================

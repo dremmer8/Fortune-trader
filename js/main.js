@@ -606,11 +606,11 @@ async function loadLeaderboard() {
                             <div class="leaderboard-player-name">${safeName}</div>
                             <div class="leaderboard-player-stats">
                                 <div class="leaderboard-stat">
-                                    <span class="leaderboard-stat-label">Wealth</span>
+                                    <span class="leaderboard-stat-label">${typeof t === 'function' ? t('leaderboard.wealth') : 'Wealth'}</span>
                                     <strong>$${formatCompactNumber(totalWealth)}</strong>
                                 </div>
                                 <div class="leaderboard-stat">
-                                    <span class="leaderboard-stat-label">Earnings</span>
+                                    <span class="leaderboard-stat-label">${typeof t === 'function' ? t('leaderboard.earnings') : 'Earnings'}</span>
                                     <strong>$${formatCompactNumber(totalEarnings)}</strong>
                                 </div>
                             </div>
