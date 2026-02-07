@@ -1,0 +1,648 @@
+{
+  "welcome": {
+    "title": "Bienvenue sur Fortune Trader",
+    "disclaimer": "Ceci est un <strong>simulateur de trading boursier</strong> dans un monde où les biscuits de fortune prédisent l'avenir. Tout l'argent et les trades sont fictifs. Ne misez pas d'argent réel.",
+    "ok": "D'accord"
+  },
+  "login": {
+    "title": "Banque du Boulanger",
+    "subtitle": "Entrez vos identifiants",
+    "cardLogo": "Banque du Boulanger",
+    "cardHolder": "TITULAIRE",
+    "yourName": "VOTRE NOM",
+    "expires": "EXPIRE",
+    "continue": "Continuer",
+    "authorizedSignature": "SIGNATURE",
+    "securityCode": "CODE SECRET",
+    "back": "Retour",
+    "login": "Connexion",
+    "hint": "Ce ne sont pas de vraies données bancaires"
+  },
+  "apps": {
+    "fortuneTrader": "Fortune Trader",
+    "bakersBank": "Banque du Boulanger",
+    "shop": "Boutique",
+    "expenses": "Dépenses",
+    "whales": "Baleines",
+    "settings": "Paramètres"
+  },
+  "sync": {
+    "title": "Synchronisation...",
+    "message": "Sauvegarde de votre session dans le cloud",
+    "status": "Veuillez patienter..."
+  },
+  "banker": {
+    "title": "Banque du Boulanger",
+    "balanceLabel": "Solde bancaire",
+    "lifetimeEarnings": "Gains totaux",
+    "lifetimeSpendings": "Dépenses totales",
+    "earningsPanelHeader": "Historique des rounds",
+    "spendingPanelHeader": "Historique des dépenses",
+    "deposit": "Dépôt",
+    "loans": "Prêts",
+    "depositToTrading": "Verser sur le trading",
+    "all": "Tout",
+    "amount": "Montant",
+    "depositBtn": "Déposer",
+    "tradingAccount": "Compte de trading",
+    "feeHint": "5% de frais au retrait",
+    "loanSectionTitle": "Prêt",
+    "noRoundsYet": "Aucun retrait encore.",
+    "noSpendingsYet": "Aucune dépense enregistrée.",
+    "term": "Durée",
+    "interestRate": "Taux",
+    "todaysRate": "Taux du jour (figé au prêt)",
+    "loanAmount": "Montant du prêt",
+    "basedOnEarnings": "Selon vos gains totaux",
+    "alreadyHaveLoanBtn": "Prêt déjà en cours",
+    "noEarningsYet": "Aucun gain encore",
+    "takeLoan": "Contracter un prêt",
+    "loanUnavailableEarnings": "Indisponible – Des gains totaux sont requis",
+    "loanUnavailableActive": "Indisponible – Vous avez déjà un prêt actif",
+    "principal": "Montant",
+    "rate": "Taux",
+    "termWeeks": "semaines",
+    "dueDate": "Échéance",
+    "payoffToday": "Rembourser aujourd'hui",
+    "daysRemaining": "Jours restants",
+    "overdueBy": "En retard de",
+    "fullTermPayoff": "Remboursement total",
+    "repayNow": "Rembourser maintenant",
+    "loanActive": "est actif.",
+    "roundLabel": "Round {{n}}",
+    "tradingRound": "Round de trading",
+    "depositLabel": "Dépôt",
+    "cashoutLabel": "Retrait",
+    "feeLabel": "Frais"
+  },
+  "locked": {
+    "text": "Aucun fonds pour trader",
+    "hint": "Déposez d'abord depuis la Banque du Boulanger",
+    "openBanker": "Ouvrir la banque"
+  },
+  "expenses": {
+    "title": "Dépenses",
+    "dailyLabel": "Dépenses quotidiennes",
+    "chargedPerDay": "Prélevées une fois par jour",
+    "nextCharge": "Prochain prélèvement à minuit",
+    "warning": "Ajustez vos dépenses avec +/-. Minimum affiché. Prélevé chaque nuit !",
+    "rent": {
+      "name": "Loyer",
+      "description": "Loyer mensuel"
+    },
+    "utilities": {
+      "name": "Charges",
+      "description": "Électricité, eau, gaz"
+    },
+    "groceries": {
+      "name": "Courses",
+      "description": "Alimentation et essentiels"
+    },
+    "transport": {
+      "name": "Transport",
+      "description": "Carburant, transports"
+    },
+    "phone": {
+      "name": "Téléphone",
+      "description": "Forfait mobile"
+    },
+    "internet": {
+      "name": "Internet",
+      "description": "Connexion domicile"
+    },
+    "insurance": {
+      "name": "Assurance",
+      "description": "Santé et vie"
+    },
+    "subscriptions": {
+      "name": "Abonnements",
+      "description": "Streaming, apps, etc."
+    },
+    "eliminated": "✅ Supprimé !",
+    "daysExpenses": "{{days}} jours de dépenses : -${{amount}}",
+    "dailyExpensesNotif": "Dépenses quotidiennes : -${{amount}}"
+  },
+  "shop": {
+    "title": "Boutique",
+    "estate": "Immobilier",
+    "cars": "Voitures",
+    "luxury": "Luxe",
+    "yourAssets": "Vos actifs",
+    "hint": "Immobilier et voitures suppriment les dépenses quotidiennes. Le luxe est pour le show !",
+    "buy": "Acheter",
+    "owned": "Possédé",
+    "sell": "Vendre",
+    "micro_flat": {
+      "name": "Micro-appartement urbain",
+      "description": "Petit appartement. Supprime le loyer."
+    },
+    "new_build_flat": {
+      "name": "Appartement neuf",
+      "description": "Appartement moderne. Supprime le loyer."
+    },
+    "family_house": {
+      "name": "Maison familiale",
+      "description": "Maison avec jardin. Supprime le loyer."
+    },
+    "villa_estate": {
+      "name": "Villa de prestige",
+      "description": "Villa haut de gamme. Supprime le loyer."
+    },
+    "compact_used": {
+      "name": "Petite voiture d'occasion",
+      "description": "Voiture basique. Supprime le transport."
+    },
+    "performance_car": {
+      "name": "Coupé sport",
+      "description": "Rapide et bruyant. Supprime le transport."
+    },
+    "executive_vehicle": {
+      "name": "Véhicule de standing",
+      "description": "Confort et statut. Supprime le transport."
+    },
+    "exotic_supercar": {
+      "name": "Supercar exotique",
+      "description": "Performance extrême. Supprime le transport."
+    },
+    "mechanical_watch": {
+      "name": "Montre mécanique",
+      "description": "Chronomètre de luxe."
+    },
+    "fine_jewelry": {
+      "name": "Parure de bijoux",
+      "description": "Métaux et pierres précieux."
+    },
+    "tailored_wardrobe": {
+      "name": "Garde-robe sur mesure",
+      "description": "Vêtements sur mesure."
+    },
+    "original_art": {
+      "name": "Œuvre d'art contemporaine",
+      "description": "Pièce d'un artiste reconnu."
+    },
+    "motor_yacht": {
+      "name": "Yacht à moteur (25m)",
+      "description": "Yacht privé."
+    },
+    "private_jet": {
+      "name": "Jet privé (classe légère)",
+      "description": "Voyages en avion privé."
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "account": "Compte",
+    "loggedInAs": "Connecté en tant que",
+    "logOut": "Déconnexion",
+    "logOutDesc": "Effacer les identifiants enregistrés",
+    "gameData": "Données du jeu",
+    "resetGame": "Réinitialiser le jeu",
+    "resetGameDesc": "Effacer toutes les données et recommencer",
+    "audio": "Audio",
+    "volume": "Volume",
+    "about": "À propos",
+    "version": "Version",
+    "creator": "Créateur",
+    "language": "Langue"
+  },
+  "leaderboard": {
+    "title": "Meilleurs traders",
+    "subtitle": "Top de la saison",
+    "loading": "Chargement...",
+    "offline": "Classement indisponible (hors ligne).",
+    "loadError": "Impossible de charger : {{error}}",
+    "noPlayers": "Aucun joueur pour l'instant.",
+    "updated": "Mis à jour {{date}}",
+    "failed": "Erreur : {{error}}",
+    "wealth": "Fortune",
+    "earnings": "Gains"
+  },
+  "phoneHint": "Appuyez sur ESC pour ouvrir/fermer le téléphone",
+  "openPhone": "Ouvrir le téléphone",
+  "nav": {
+    "fortuneTrader": "Fortune Trader",
+    "live": "EN DIRECT",
+    "streak": "Série",
+    "bet": "Mise",
+    "next": "Suivant",
+    "cash": "Trésorerie",
+    "tutorial": "Tutoriel",
+    "portfolio": "Portefeuille",
+    "cashOut": "Retirer"
+  },
+  "chart": {
+    "live": "En direct",
+    "loading": "Chargement des données...",
+    "1h": "1h",
+    "1d": "1j",
+    "1w": "1s",
+    "1m": "1m",
+    "1y": "1a",
+    "long": "Long",
+    "short": "Short",
+    "buyStock": "Acheter des actions",
+    "sellAllStock": "Tout vendre",
+    "longMargin": "Long avec marge",
+    "shortMargin": "Short avec marge",
+    "closePosition": "Fermer la position",
+    "positionLocked": "Position verrouillée"
+  },
+  "cookie": {
+    "cookieShop": "Boutique de biscuits",
+    "news": "Actualités",
+    "console": "Console",
+    "fortuneCookie": "Biscuit de fortune",
+    "fortuneCookieAlt": "Biscuit de fortune",
+    "basicProphecy": "Prophétie de base",
+    "shopLabel": "Boutique",
+    "stash": "Réserve de biscuits",
+    "cookiesCount": "{{count}} biscuits",
+    "noCookies": "Aucun biscuit. Achetez-en ci-dessus !",
+    "dragCookie": "Glissez un biscuit ici pour révéler la prophétie",
+    "cookieCountOne": "{{count}} biscuit",
+    "cookieCountMany": "{{count}} biscuits",
+    "clickToUnwrap": "Cliquez pour déballer ({{current}}/5)",
+    "addedToStash": "{{name}} ajouté à la réserve",
+    "cookieReadyToUnpack": "Biscuit prêt à ouvrir !",
+    "prophecyDecoded": "Prophétie décodée !",
+    "prophecyExpired": "Prophétie pour {{stock}} expirée",
+    "pleaseWaitBet": "Attendez {{s}}s avant de miser",
+    "pleaseWaitBuy": "Attendez {{s}}s avant d'acheter",
+    "pleaseWaitTrade": "Attendez {{s}}s avant de trader",
+    "insufficientFunds": "Fonds insuffisants",
+    "predictionPlaced": "Prédiction à ${{price}}",
+    "positionOpened": "Position {{dir}} ouverte",
+    "predictionWon": "Gagné ! +${{amount}} 🔥",
+    "predictionLost": "Perdu -${{amount}}",
+    "stockUnlockRequired": "Achetez l'upgrade \"Trading d'actions\"",
+    "marginUnlockRequired": "Achetez l'upgrade \"Trading à marge\"",
+    "closeMarginFirst": "Fermez d'abord votre position à marge",
+    "positionLockedMsg": "Position encore verrouillée. Attendez le minuteur.",
+    "insufficientFundsFee": "Fonds insuffisants (il faut ${{total}} dont ${{fee}} de frais)",
+    "boughtShares": "{{shares}} actions à ${{price}} (frais : ${{fee}})",
+    "noSharesToSell": "Aucune action à vendre",
+    "soldSharesProfit": "{{shares}} actions vendues +${{pnl}}",
+    "soldSharesLoss": "{{shares}} actions vendues -${{pnl}}",
+    "noStocksToSell": "Aucune action à vendre",
+    "failedToSell": "Échec de la vente",
+    "soldAllCount": "{{count}} action vendue",
+    "soldAllCountPlural": "{{count}} actions vendues",
+    "noProfitableStocks": "Aucune action rentable",
+    "soldProfitableCount": "{{count}} action rentable vendue",
+    "soldProfitableCountPlural": "{{count}} actions rentables vendues",
+    "marginPositionOpened": "Marge {{dir}} ouverte (x{{mult}})",
+    "marginClosedProfit": "Marge fermée ! +${{pnl}} 🔥",
+    "marginClosedLoss": "Marge fermée. -${{pnl}}",
+    "marginCall": "Appel de marge ! Position fermée. Solde : $0"
+  },
+  "news": {
+    "title": "Actualités marché",
+    "articlesCount": "{{count}} articles",
+    "empty": "Aucune actualité pour l'instant.",
+    "tabUnlockRequired": "Achetez l'upgrade \"Onglet Actualités\"",
+    "consoleUnlockRequired": "Achetez l'upgrade \"Console\"",
+    "hintTitle": "Débloquez plus",
+    "hintText": "Achetez les upgrades Actualités dans la boutique de biscuits"
+  },
+  "bots": {
+    "consoleTitle": "CONSOLE SYSTÈME v1.0",
+    "ready": "PRÊT",
+    "welcome1": "Console Fortune Trader",
+    "welcome2": "Tapez 'help' pour les commandes",
+    "placeholder": "Entrez une commande...",
+    "selectStrategy": "Choisissez une stratégie",
+    "alreadyExists": "{{name}} existe déjà. Un seul bot par stratégie.",
+    "botCreated": "Bot \"{{name}}\" créé !",
+    "botEnabled": "{{name}} activé",
+    "botDisabled": "{{name}} désactivé",
+    "botDeleted": "Bot \"{{name}}\" supprimé",
+    "disable": "Désactiver",
+    "enable": "Activer",
+    "deleteBot": "Supprimer le bot"
+  },
+  "deals": {
+    "title": "Prophéties actives",
+    "activeCount": "{{count}} actives",
+    "empty": "Aucune prophétie active. Achetez un biscuit de fortune.",
+    "detailStrength": "Force :",
+    "detailFloor": "Plancher :",
+    "detailCeiling": "Plafond :",
+    "detailZone": "Zone :",
+    "zoneTouched": "Zone atteinte !",
+    "detailVol": "Vol. :"
+  },
+  "portfolio": {
+    "title": "Portefeuille",
+    "portfolioValue": "Valeur du portefeuille",
+    "cashOutFee": "Frais de retrait (5 %)",
+    "netProfit": "Gain/Perte net",
+    "youReceive": "Vous recevez",
+    "cash": "Trésorerie",
+    "stockHoldings": "Actions",
+    "totalPortfolio": "Portefeuille total",
+    "totalPnL": "P&L total",
+    "sendAllStock": "Tout vendre",
+    "emptyText": "Aucune action encore",
+    "emptyHint": "Achetez des actions pour les voir ici",
+    "colStock": "Action",
+    "colShares": "Nombre",
+    "colAvgPrice": "Prix moy.",
+    "colCurrent": "Actuel",
+    "colValue": "Valeur",
+    "colPnL": "P&L"
+  },
+  "modals": {
+    "resetTitle": "Réinitialiser le jeu ?",
+    "resetText": "Le solde sera $1 000. <strong>Toutes les données enregistrées</strong> seront supprimées. Irréversible.",
+    "cancel": "Annuler",
+    "resetDelete": "Réinitialiser et tout supprimer",
+    "gameOverTitle": "Game Over",
+    "gameOverMessage": "Moins de $50 sur le compte et le compte de trading. {{reason}} Votre aventure s'arrête.",
+    "gameOverReasonLoan": "Vous avez déjà un prêt actif.",
+    "gameOverReasonNoEarnings": "Aucun gain total – pas de prêt possible.",
+    "gameOverReasonNone": "Aucun prêt disponible.",
+    "gameOverQuestion": "Recommencer ?",
+    "restartGame": "Recommencer",
+    "prestigeTitle": "Retirer ?",
+    "prestigeText": "Transférer le portefeuille vers votre banque et nouveau round.",
+    "prestigePortfolioValue": "Valeur du portefeuille",
+    "prestigeFee": "Frais (5 %)",
+    "prestigeNetProfit": "Gain/Perte net",
+    "prestigeYouReceive": "Vous recevez",
+    "cashOutBtn": "Retirer",
+    "tutorialTitle": "Bases du trading",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "finish": "Terminer"
+  },
+  "streamer": {
+    "live": "EN DIRECT",
+    "watching": "{{count}} spectateurs"
+  },
+  "notifications": {
+    "wrongPassword": "Mot de passe incorrect.",
+    "alreadyHaveLoan": "Vous avez déjà un prêt actif.",
+    "loanNotConfigured": "Système de prêt non configuré.",
+    "needEarningsForLoan": "Des gains totaux sont requis pour un prêt.",
+    "loanApproved": "Prêt de ${{amount}} à {{rate}}% par semaine !",
+    "insufficientRepay": "Solde insuffisant pour rembourser.",
+    "loanRepaid": "Prêt de ${{amount}} remboursé.",
+    "loanAutoRepaid": "Prêt remboursé automatiquement : ${{amount}}.",
+    "insufficientFunds": "Fonds insuffisants !",
+    "itemNotFound": "Article introuvable !",
+    "noFundsToCashOut": "Rien à retirer",
+    "depositSuccess": "Dépôt réussi.",
+    "depositError": "Échec du dépôt.",
+    "purchaseSuccess": "Achat réussi !",
+    "sellSuccess": "Vendu."
+  },
+  "loan": {
+    "name": "Prêt",
+    "description": "Montant basé sur vos gains totaux"
+  },
+  "upgrades": {
+    "cookieDiscount": {
+      "name": "Réduction biscuits I",
+      "description": "10 % sur les biscuits de fortune"
+    },
+    "cookieDiscount2": {
+      "name": "Réduction biscuits II",
+      "description": "25 % de réduction"
+    },
+    "cookieDiscount3": {
+      "name": "Réduction biscuits III",
+      "description": "50 % de réduction"
+    },
+    "autoReveal": {
+      "name": "Révélation auto I",
+      "description": "1 lettre par tick"
+    },
+    "autoReveal2": {
+      "name": "Révélation auto II",
+      "description": "2 lettres par tick"
+    },
+    "autoReveal3": {
+      "name": "Révélation auto III",
+      "description": "4 lettres par tick"
+    },
+    "betCombo1": {
+      "name": "Combo mises I",
+      "description": "Mises plus élevées"
+    },
+    "betCombo2": {
+      "name": "Combo mises II",
+      "description": "Mises encore plus élevées"
+    },
+    "betCombo3": {
+      "name": "Combo mises III",
+      "description": "Mises max"
+    },
+    "predictionZone1": {
+      "name": "Zone prophétie I",
+      "description": "Zone plus grande"
+    },
+    "predictionZone2": {
+      "name": "Zone prophétie II",
+      "description": "Zone encore plus grande"
+    },
+    "goldenCookie": {
+      "name": "Biscuit doré",
+      "description": "Prophéties plus précises"
+    },
+    "diamondCookie": {
+      "name": "Biscuit rare",
+      "description": "Prophéties très précises"
+    },
+    "newsAccess1": {
+      "name": "Accès actualités I",
+      "description": "25 % des articles"
+    },
+    "newsAccess2": {
+      "name": "Accès actualités II",
+      "description": "50 % des articles"
+    },
+    "newsAccess3": {
+      "name": "Accès actualités III",
+      "description": "100 % des articles"
+    },
+    "stockTradingUnlock": {
+      "name": "Trading d'actions",
+      "description": "Acheter et vendre des actions"
+    },
+    "marginTradingUnlock": {
+      "name": "Trading à marge",
+      "description": "Effet de levier x25"
+    },
+    "marginMultiplier1": {
+      "name": "Multiplicateur marge I",
+      "description": "Jusqu'à 30x"
+    },
+    "marginMultiplier2": {
+      "name": "Multiplicateur marge II",
+      "description": "Jusqu'à 40x"
+    },
+    "marginMultiplier3": {
+      "name": "Multiplicateur marge III",
+      "description": "Jusqu'à 55x"
+    },
+    "newsTabUnlock": {
+      "name": "Onglet Actualités",
+      "description": "Débloquer l'onglet actualités"
+    },
+    "consoleTabUnlock": {
+      "name": "Onglet Console",
+      "description": "Débloquer la console"
+    },
+    "botBetTier1": {
+      "name": "Mise bot I",
+      "description": "Les bots utilisent 25 % de votre mise"
+    },
+    "botBetTier2": {
+      "name": "Mise bot II",
+      "description": "Les bots utilisent 50 %"
+    },
+    "botBetTier3": {
+      "name": "Mise bot III",
+      "description": "Les bots utilisent 100 %"
+    },
+    "cookieStockHint": {
+      "name": "Indice action sur biscuit",
+      "description": "Affiche l'action sur le biscuit"
+    },
+    "cookieProphecyHint": {
+      "name": "Indice type de prophétie",
+      "description": "Affiche le type sur le biscuit"
+    }
+  },
+  "cookieTiers": {
+    "1": {
+      "name": "Biscuit de fortune",
+      "description": "Prophétie de base"
+    },
+    "2": {
+      "name": "Biscuit doré",
+      "description": "Prophétie améliorée"
+    },
+    "3": {
+      "name": "Biscuit rare",
+      "description": "Prophétie premium"
+    }
+  },
+  "prophecy": {
+    "trendUp": {
+      "name": "Tendance haussière",
+      "description": "Tendance haussière détectée"
+    },
+    "trendDown": {
+      "name": "Tendance baissière",
+      "description": "Tendance baissière détectée"
+    },
+    "shore": {
+      "name": "Rivage",
+      "description": "Plancher et plafond de prix"
+    },
+    "inevitableZone": {
+      "name": "Zone inévitable",
+      "description": "Le prix atteindra cette zone"
+    },
+    "volatilitySpike": {
+      "name": "Pic de volatilité",
+      "description": "Forte volatilité"
+    },
+    "volatilityCalm": {
+      "name": "Accalmie",
+      "description": "Faible volatilité"
+    }
+  },
+  "stocks": {
+    "APLS": "Apples Corp.",
+    "LOOGL": "Loogle Inc.",
+    "MAСFT": "Macrosoft Corp.",
+    "LST": "List Inc.",
+    "NWTN": "Newton Inc."
+  },
+  "newsTemplates": {
+    "trendUp": [
+      "{{stock}} en forte hausse, les investisseurs ont confiance",
+      "Les analystes détectent des signaux haussiers sur {{stock}}",
+      "{{stock}} gagne du terrain avec un marché positif",
+      "Flash : {{stock}} en forte appreciation",
+      "Les investisseurs se ruent sur {{stock}}"
+    ],
+    "trendDown": [
+      "{{stock}} sous pression vendeuse",
+      "Les analystes notent des indicateurs baissiers sur {{stock}}",
+      "{{stock}} recule face à l'incertitude",
+      "Flash : {{stock}} en baisse",
+      "Les investisseurs restent prudents sur {{stock}}"
+    ],
+    "volatility": [
+      "Forte volatilité sur {{stock}}",
+      "{{stock}} connaît une volatilité accrue",
+      "L'incertitude fait fluctuer {{stock}}",
+      "Les traders se préparent à la volatilité sur {{stock}}",
+      "{{stock}} : activité et swings importants"
+    ],
+    "general": [
+      "Nouveau rapport des analystes sur {{stock}}",
+      "Le volume de {{stock}} augmente fortement",
+      "Flash : Développement majeur pour {{stock}}",
+      "{{stock}} affiche un mouvement intéressant",
+      "Les observateurs suivent {{stock}} de près"
+    ]
+  },
+  "tutorial": {
+    "step0_title": "Bienvenue sur Fortune Trader",
+    "step0_content": "<p>Bienvenue ! Ce tutoriel vous apprend les bases du trading dans Fortune Trader.</p><p>Vous apprendrez à lire le graphique, placer des trades, utiliser les biscuits de fortune et comprendre l'interface.</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">💡 Astuce</div><div class=\"tutorial-highlight-box-content\">Vous pouvez fermer ce tutoriel à tout moment et le rouvrir via le bouton Tutoriel dans la barre de navigation.</div></div>",
+    "step1_title": "Graphique et prix",
+    "step1_content": "<p>Le <strong>graphique</strong> affiche le mouvement des prix en temps réel. Mise à jour toutes les 2 secondes (1 tick).</p><p>En-tête : <strong>Nom de l'action</strong>, <strong>prix actuel</strong>, <strong>variation</strong> (vert = hausse, rouge = baisse), <strong>période</strong> (Direct, 1h, 1j, 1s, 1m, 1a).</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">📊 Graphique</div><div class=\"tutorial-highlight-box-content\">Cliquez sur le bord droit du graphique (20 px) pour placer des prédictions – parier que le prix touchera une zone en 20 secondes !</div></div>",
+    "step2_title": "Bases : Long et Short",
+    "step2_content": "<p><strong>Long</strong> – Pari sur la hausse. Bouton « Long » ou <code>A</code>. Mise débitée. Position 2 secondes. Prix monte → gain 2× la mise ; prix baisse ou stable → perte.</p><p><strong>Short</strong> – Pari sur la baisse. Bouton « Short » ou <code>D</code>. Prix baisse → gain 2× la mise ; prix monte ou stable → perte.</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">⏱️ Blocage</div><div class=\"tutorial-highlight-box-content\">Attendre 2 secondes après un pari avant de rejouer.</div></div>",
+    "step3_title": "Mises et séries de gains",
+    "step3_content": "<p>Votre <strong>mise</strong> détermine le risque par trade. <strong>Série :</strong> Départ $50, $100, $150, $200. Chaque gain augmente la mise ; une perte remet à $50. Série et mise visibles en haut.</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">💰 Combo mises</div><div class=\"tutorial-highlight-box-content\">Achetez les upgrades Combo mises dans la boutique de biscuits pour des mises plus élevées ($150–$1000).</div></div>",
+    "step4_title": "Biscuits de fortune et prophéties",
+    "step4_content": "<p>Les <strong>biscuits de fortune</strong> contiennent des prophéties sur les mouvements de prix. <strong>Achat :</strong> Ouvrir la boutique, acheter un biscuit, il va dans la réserve. <strong>Décoder :</strong> Glisser un biscuit au centre, cliquer 6 fois pour déballer. La prophétie apparaît à gauche ; <strong>tapez le texte</strong> de la fortune – les symboles se révèlent ; une fois terminé, la prophétie s'active.</p><p><strong>Types :</strong> Tendance hausse/baisse, Rivage (fourchette), Zone inévitable, Volatilité.</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">🎯 Astuce</div><div class=\"tutorial-highlight-box-content\">Utilisez les prophéties pour timing : Long en hausse, Short en baisse.</div></div>",
+    "step5_title": "Panneau Prophéties actives",
+    "step5_content": "<p>Le panneau <strong>Prophéties actives</strong> (à gauche) affiche toutes les prophéties en cours : type, action cible, temps restant, indicateurs sur le graphique. Surveillez-le pour planifier vos trades.</p>",
+    "step6_title": "Navigation et solde",
+    "step6_content": "<p>En haut : <strong>Trésorerie</strong>, <strong>Série et mise</strong>, <strong>Portefeuille</strong>, <strong>Retirer</strong> (5 % de frais).</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">🏦 Banque</div><div class=\"tutorial-highlight-box-content\">Appuyez sur <code>ESC</code>, puis Banque du Boulanger pour déposer de l'argent sur le compte de trading (min. $100).</div></div>",
+    "step7_title": "Trading d'actions (optionnel)",
+    "step7_content": "<p><strong>Trading d'actions</strong> – Acheter et détenir des actions. Débloquer : upgrade « Trading d'actions » ($2 500) dans la boutique. « Acheter des actions » ou <code>Espace</code> ; nombre = mise ÷ prix ; $25 de frais par trade. « Tout vendre » vend toutes les actions du titre actuel. Positions dans le graphique et le Portefeuille.</p>",
+    "step8_title": "Trading à marge (avancé)",
+    "step8_content": "<p><strong>Trading à marge</strong> – Risque élevé, multiplicateurs 25×–55×. Upgrade « Trading à marge » ($5 000). <strong>Phase 1 (25 ticks) :</strong> Position verrouillée. <strong>Phase 2 (25 ticks) :</strong> Position fermable. Gain = Mise × (variation %) × multiplicateur.</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">⚠️ Attention</div><div class=\"tutorial-highlight-box-content\">La marge est risquée ! Petits mouvements = gros gains/pertes. Utilisez les prophéties pour le timing.</div></div>",
+    "step9_title": "Raccourcis clavier",
+    "step9_content": "<p><code>ESC</code> – Téléphone, <code>A</code> – Long, <code>D</code> – Short, <code>Espace</code> – Acheter des actions, <code>Z</code> – Long marge, <code>C</code> – Short marge.</p>",
+    "step10_title": "Conseils pour débuter",
+    "step10_content": "<p><strong>Débutant :</strong> Petits dépôts ($100–$250), maîtriser Long/Short d'abord, acheter des biscuits et décoder les prophéties, ne pas tout miser sur un trade, retirer régulièrement.</p><div class=\"tutorial-highlight-box\"><div class=\"tutorial-highlight-box-title\">🎯 Pro</div><div class=\"tutorial-highlight-box-content\">Combinez prophéties et trades. Tendance haussière + Long = bon combo !</div></div><p>Bonne chance ! 🚀</p>",
+    "stockButtonsLabel": "Boutons trading d'actions",
+    "marginButtonsLabel": "Boutons trading à marge"
+  },
+  "common": {
+    "versionLabel": "Version {{version}}",
+    "max": "MAX !"
+  },
+  "ui": {
+    "upgradeRequiredFirst": "Achetez d'abord \"{{name}}\"",
+    "insufficientFunds": "Fonds insuffisants",
+    "stockTradingUnlocked": "Trading d'actions débloqué !",
+    "marginTradingUnlocked": "Trading à marge débloqué !",
+    "marginMultiplierIncreased": "Multiplicateur marge x{{mult}} !",
+    "newsTabUnlocked": "Onglet Actualités débloqué !",
+    "consoleTabUnlocked": "Console débloquée !",
+    "botBetIncreased": "Mise des bots à {{pct}} % !",
+    "upgradePurchased": "{{name}} acheté !",
+    "unknownUpgrade": "Upgrade inconnu",
+    "alreadyPurchased": "Déjà acheté !",
+    "sendProfitableStock": "Vendre les actions rentables",
+    "sendProfitableStockCount": "Vendre les rentables ({{count}})",
+    "resettingGame": "Réinitialisation en cours...",
+    "gameResetComplete": "Réinitialisation terminée.",
+    "noStocksToSell": "Aucune action à vendre",
+    "sellAllStocks": "Tout vendre",
+    "showStream": "Afficher le stream",
+    "hideStream": "Masquer le stream",
+    "unlockStockTrading": "Acheter \"Trading d'actions\"",
+    "unlockMarginTrading": "Acheter \"Trading à marge\"",
+    "closeMarginFirst": "Fermez d'abord votre position à marge"
+  }
+}
